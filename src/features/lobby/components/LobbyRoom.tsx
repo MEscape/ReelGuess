@@ -4,6 +4,8 @@ import { usePlayers } from '../hooks/use-players'
 import { PlayerCard } from './PlayerCard'
 import { ShareCode } from './ShareCode'
 import type { Lobby } from '../types'
+import { startGameAction } from '../actions'
+import { useState, useTransition } from 'react'
 
 type LobbyRoomProps = {
   lobby: Lobby
@@ -14,6 +16,20 @@ type LobbyRoomProps = {
 export function LobbyRoom({ lobby, currentPlayerId, onImport }: LobbyRoomProps) {
   const players = usePlayers(lobby.id, lobby.players)
   const isHost = lobby.hostId === currentPlayerId
+  const [isPending, startTransition] = useTransition()
+  const [error, setError] = useState<string | null>(null)
+
+  function handleStartGame() {
+    setError(null)
+    startTransition(async () => {
+      const result = await startGameAction(lobby.id, currentPlayerId)
+      if (!result.ok) {
+        const msg = 'message' in result.error ? result.error.message : 'Failed to start game'
+        setError(msg)
+      }
+      // Navigation happens via Realtime lobby status update in use-players / LobbyPageClient
+    })
+  }
 
   return (
     <div className="flex flex-col items-center gap-6 w-full max-w-md mx-auto px-4 pb-safe">
@@ -67,11 +83,35 @@ export function LobbyRoom({ lobby, currentPlayerId, onImport }: LobbyRoomProps) 
         </button>
       </div>
 
-      {/* Host-only info */}
+      {/* Start Game – Host only */}
       {isHost && (
-        <p className="text-zinc-500 text-xs text-center">
-          You are the host — start the game when everyone is ready
-        </p>
+        <div className="w-full">
+          <button
+            onClick={handleStartGame}
+            disabled={isPending || players.length < 2}
+            className="w-full min-h-[56px] bg-yellow-400 text-black font-black uppercase text-xl px-6
+              border-2 border-black rounded-xl shadow-brutal
+              hover:translate-y-[2px] hover:shadow-brutal-sm
+              active:translate-y-[4px] active:shadow-none
+              disabled:opacity-50 disabled:cursor-not-allowed disabled:translate-y-0 disabled:shadow-brutal
+              transition-all duration-200"
+          >
+            {isPending ? '⏳ STARTING...' : '🚀 START GAME'}
+          </button>
+          {players.length < 2 && (
+            <p className="text-zinc-500 text-xs text-center mt-2">Need at least 2 players</p>
+          )}
+          {error && (
+            <p className="text-red-500 text-sm font-bold text-center mt-2">{error}</p>
+          )}
+        </div>
+      )}
+
+      {!isHost && (
+        <div className="flex items-center justify-center gap-2 py-2">
+          <span className="animate-pulse text-yellow-400">⏳</span>
+          <p className="text-zinc-400 text-sm font-bold">Waiting for host to start...</p>
+        </div>
       )}
     </div>
   )

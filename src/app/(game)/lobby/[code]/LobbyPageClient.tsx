@@ -1,10 +1,11 @@
 'use client'
 
-import { useState, useEffect, startTransition } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { LobbyRoom } from '@/features/lobby/components/LobbyRoom'
 import { ImportFlow } from '@/features/reel-import/components/ImportFlow'
 import type { Lobby } from '@/features/lobby/types'
 import { useRouter } from 'next/navigation'
+import { createClient } from '@/lib/supabase/client'
 
 type LobbyPageClientProps = {
   lobby: Lobby
@@ -13,15 +14,33 @@ type LobbyPageClientProps = {
 
 export function LobbyPageClient({ lobby, showImport: initialShowImport }: LobbyPageClientProps) {
   const [showImport, setShowImport] = useState(initialShowImport)
-  const [playerId, setPlayerId] = useState<string | null>(null)
+  // Read playerId synchronously on first render to avoid flash of "Not in lobby"
+  const [playerId] = useState<string | null>(() => {
+    if (typeof window === 'undefined') return null
+    return sessionStorage.getItem(`player_${lobby.id}`)
+  })
   const router = useRouter()
+  const didRedirectRef = useRef(false)
 
+  // Listen for lobby status → playing and redirect all clients to game
   useEffect(() => {
-    const storedPlayerId = sessionStorage.getItem(`player_${lobby.id}`)
-    if (storedPlayerId) {
-      startTransition(() => setPlayerId(storedPlayerId))
-    }
-  }, [lobby.id])
+    const supabase = createClient()
+    const channel = supabase
+      .channel(`lobby-status:${lobby.id}`)
+      .on(
+        'postgres_changes',
+        { event: 'UPDATE', schema: 'public', table: 'lobbies', filter: `id=eq.${lobby.id}` },
+        (payload) => {
+          const newStatus = (payload.new as { status: string }).status
+          if (newStatus === 'playing' && !didRedirectRef.current) {
+            didRedirectRef.current = true
+            router.push(`/game/${lobby.id}`)
+          }
+        }
+      )
+      .subscribe()
+    return () => { supabase.removeChannel(channel) }
+  }, [lobby.id, router])
 
   if (!playerId) {
     return (
@@ -35,10 +54,9 @@ export function LobbyPageClient({ lobby, showImport: initialShowImport }: LobbyP
           <button
             onClick={() => router.push('/')}
             className="bg-yellow-400 text-black font-black uppercase text-sm py-2 px-6
-              border-2 border-black rounded-lg
-              shadow-[3px_3px_0px_0px_#000]
-              hover:translate-y-[1px] hover:shadow-[1px_1px_0px_0px_#000]
-              transition-all"
+              border-2 border-black rounded-lg shadow-brutal
+              hover:translate-y-[2px] hover:shadow-brutal-sm
+              transition-all duration-200"
           >
             ← GO HOME
           </button>
@@ -54,6 +72,7 @@ export function LobbyPageClient({ lobby, showImport: initialShowImport }: LobbyP
           lobbyId={lobby.id}
           playerId={playerId}
           onComplete={() => {
+            // Refresh server data (reels count etc.) then go back to lobby
             router.refresh()
             setShowImport(false)
           }}
@@ -68,4 +87,3 @@ export function LobbyPageClient({ lobby, showImport: initialShowImport }: LobbyP
     </div>
   )
 }
-
