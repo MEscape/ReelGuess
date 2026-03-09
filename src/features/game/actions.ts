@@ -231,3 +231,11 @@ export async function completeRoundAction(
   return { ok: true, value: undefined }
 }
 
+export async function getScoresAction(
+  lobbyId: string
+): Promise<SerializedResult<ScoreEntry[], GameError>> {
+  const result = await getScores(lobbyId)
+  if (result.isErr()) return { ok: false, error: result.error }
+  return { ok: true, value: result.value }
+}
+

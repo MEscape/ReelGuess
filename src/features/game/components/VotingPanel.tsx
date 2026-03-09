@@ -20,34 +20,35 @@ export function VotingPanel({
 }: VotingPanelProps) {
   if (hasVoted) {
     return (
-      <div className="text-center py-8">
-        <div className="text-5xl mb-3 animate-bounce">⏳</div>
+      <div className="text-center py-10 card-brutal p-6">
+        <div className="text-5xl mb-3">⏳</div>
         <p className="text-xl font-black text-yellow-400 uppercase">Vote Submitted!</p>
-        <p className="text-zinc-400 mt-1">Waiting for others...</p>
+        <p className="text-zinc-400 mt-1 text-sm">Waiting for others...</p>
       </div>
     )
   }
 
   return (
     <div className="w-full">
-      <h3 className="text-xl font-black uppercase text-center text-white mb-4">
+      <h3 className="text-sm font-black uppercase tracking-widest text-zinc-400 text-center mb-3">
         🤔 Who liked this reel?
       </h3>
-      <div className="grid grid-cols-2 gap-3">
+      <div className="grid grid-cols-2 gap-2.5">
         {players.map((player) => (
           <button
             key={player.id}
             onClick={() => onVote(player.id)}
             disabled={isPending}
-            className="flex flex-col items-center gap-2 p-4 bg-zinc-900 border-2 border-zinc-700 rounded-xl
-              hover:border-yellow-400 hover:bg-zinc-800
+            className="flex flex-col items-center gap-2 p-4 min-h-[96px]
+              bg-zinc-900 border-2 border-zinc-700 rounded-2xl
+              hover:border-yellow-400 hover:bg-zinc-800 hover:-translate-y-[1px] hover:shadow-brutal-yellow
               active:translate-y-[2px] active:shadow-none
-              shadow-[3px_3px_0px_0px_rgba(250,204,21,0.3)]
               disabled:opacity-50 disabled:cursor-not-allowed
-              transition-all"
+              transition-all duration-200 focus-visible:outline-none focus-visible:ring-2
+              focus-visible:ring-yellow-400 focus-visible:ring-offset-2 focus-visible:ring-offset-zinc-950"
           >
-            <PlayerAvatar seed={player.avatarSeed} size={56} />
-            <span className="font-bold text-white text-sm truncate w-full text-center">
+            <PlayerAvatar seed={player.avatarSeed} size={52} />
+            <span className="font-black text-white text-xs uppercase tracking-wide truncate w-full text-center">
               {player.displayName}
             </span>
           </button>

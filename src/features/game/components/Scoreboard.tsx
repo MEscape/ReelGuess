@@ -13,35 +13,43 @@ export function Scoreboard({ scores, isFinal = false }: ScoreboardProps) {
   const sorted = [...scores].sort((a, b) => b.points - a.points)
   const medals = ['🥇', '🥈', '🥉']
 
+  if (sorted.length === 0) {
+    return (
+      <div className="text-center py-6">
+        <p className="text-zinc-500 text-sm">No scores yet</p>
+      </div>
+    )
+  }
+
   return (
-    <div className="w-full max-w-md mx-auto">
-      <h2 className="text-2xl font-black uppercase text-center text-yellow-400 mb-4">
+    <div className="w-full">
+      <h2 className="text-xl font-black uppercase text-center text-yellow-400 mb-3 tracking-tight">
         {isFinal ? '🏆 FINAL SCORES' : '📊 SCOREBOARD'}
       </h2>
 
-      {/* Top 3 podium for final */}
+      {/* Podium – final only */}
       {isFinal && sorted.length >= 1 && (
-        <div className="flex justify-center items-end gap-4 mb-8">
-          {[1, 0, 2].map((idx) => {
+        <div className="flex justify-center items-end gap-3 mb-6">
+          {([1, 0, 2] as number[]).map((idx) => {
             const entry = sorted[idx]
             if (!entry) return <div key={idx} className="w-20" />
-            const height = idx === 0 ? 'h-32' : idx === 1 ? 'h-24' : 'h-16'
+            const heights = ['h-28', 'h-20', 'h-14']
             return (
               <motion.div
                 key={entry.playerId}
-                initial={{ y: 50, opacity: 0 }}
+                initial={{ y: 40, opacity: 0 }}
                 animate={{ y: 0, opacity: 1 }}
-                transition={{ delay: idx * 0.3 }}
+                transition={{ delay: idx * 0.25, type: 'spring', stiffness: 200 }}
                 className="flex flex-col items-center gap-1"
               >
-                <span className="text-3xl">{medals[idx]}</span>
-                <PlayerAvatar seed={entry.avatarSeed} size={48} />
-                <p className="text-sm font-bold text-white truncate max-w-20">
+                <span className="text-2xl">{medals[idx]}</span>
+                <PlayerAvatar seed={entry.avatarSeed} size={44} />
+                <p className="text-xs font-bold text-white truncate max-w-[72px] text-center">
                   {entry.displayName}
                 </p>
-                <div className={`w-20 ${height} bg-gradient-to-t from-yellow-400/20 to-yellow-400/5 
-                  border border-yellow-400/30 rounded-t-lg flex items-center justify-center`}>
-                  <span className="text-lg font-black text-yellow-400">{entry.points}</span>
+                <div className={`w-20 ${heights[idx]} bg-yellow-400/10 border border-yellow-400/20
+                  rounded-t-lg flex items-end justify-center pb-2`}>
+                  <span className="text-base font-black text-yellow-400">{entry.points}</span>
                 </div>
               </motion.div>
             )
@@ -49,33 +57,33 @@ export function Scoreboard({ scores, isFinal = false }: ScoreboardProps) {
         </div>
       )}
 
-      {/* Full list */}
-      <div className="space-y-2">
+      {/* Score list */}
+      <div className="flex flex-col gap-1.5">
         {sorted.map((entry, idx) => (
           <motion.div
             key={entry.playerId}
-            initial={{ x: -20, opacity: 0 }}
+            initial={{ x: -16, opacity: 0 }}
             animate={{ x: 0, opacity: 1 }}
-            transition={{ delay: idx * 0.1 }}
-            className="flex items-center gap-3 p-3 bg-zinc-900 border border-zinc-800 rounded-lg"
+            transition={{ delay: idx * 0.07 }}
+            className="flex items-center gap-3 px-3 py-2.5 bg-zinc-900 border border-zinc-800
+              rounded-xl shadow-brutal-sm"
           >
-            <span className="text-lg font-black text-zinc-500 w-6 text-center">
-              {idx < 3 ? medals[idx] : `${idx + 1}`}
+            <span className="text-base font-black text-zinc-500 w-5 text-center shrink-0">
+              {idx < 3 ? medals[idx] : idx + 1}
             </span>
             <PlayerAvatar seed={entry.avatarSeed} size={32} />
             <div className="flex-1 min-w-0">
-              <p className="font-bold text-white text-sm truncate">{entry.displayName}</p>
-              {entry.streak > 1 && (
-                <p className="text-xs text-orange-400 font-bold">
-                  🔥 {entry.streak} streak
-                </p>
+              <p className="font-bold text-white text-sm truncate leading-tight">{entry.displayName}</p>
+              {entry.streak >= 2 && (
+                <p className="text-xs text-orange-400 font-bold leading-tight">🔥 {entry.streak}× streak</p>
               )}
             </div>
-            <span className="text-lg font-black text-yellow-400">{entry.points}</span>
+            <span className="text-base font-black text-yellow-400 tabular-nums shrink-0">
+              {entry.points}
+            </span>
           </motion.div>
         ))}
       </div>
     </div>
   )
 }
-

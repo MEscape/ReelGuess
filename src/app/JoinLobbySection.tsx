@@ -10,12 +10,11 @@ export function JoinLobbySection() {
     return (
       <button
         onClick={() => setShowForm(true)}
-        className="w-full bg-pink-500 text-white font-black uppercase text-lg py-4 px-6
-          border-2 border-black rounded-xl
-          shadow-[4px_4px_0px_0px_#000]
-          hover:translate-y-[2px] hover:shadow-[2px_2px_0px_0px_#000]
+        className="w-full min-h-[56px] bg-pink-500 text-white font-black uppercase text-lg px-6
+          border-2 border-black rounded-xl shadow-brutal
+          hover:translate-y-[2px] hover:shadow-brutal-sm
           active:translate-y-[4px] active:shadow-none
-          transition-all"
+          transition-all duration-200"
       >
         🔗 JOIN LOBBY
       </button>
@@ -23,12 +22,11 @@ export function JoinLobbySection() {
   }
 
   return (
-    <div className="bg-zinc-900 border border-zinc-800 rounded-xl p-4">
-      <h3 className="text-lg font-black text-pink-500 uppercase mb-3 text-center">
+    <div className="card-brutal p-4">
+      <h3 className="text-base font-black text-pink-500 uppercase mb-3 text-center tracking-tight">
         🔗 Join Lobby
       </h3>
       <JoinForm />
     </div>
   )
 }
-

@@ -12,7 +12,7 @@ import { useGameState } from '../hooks/use-game-state'
 import { PlayerAvatar } from '@/features/player/components/PlayerAvatar'
 import type { Lobby } from '@/features/lobby/types'
 import type { Round, RoundReveal, ScoreEntry } from '../types'
-import { revealRoundAction, completeRoundAction } from '../actions'
+import { revealRoundAction, completeRoundAction, getScoresAction } from '../actions'
 import { motion, AnimatePresence } from 'framer-motion'
 
 type GameBoardProps = {
@@ -68,10 +68,12 @@ export function GameBoard({
       } catch { /* keep previous */ }
     }
     // All clients need reveal data to show RevealScreen.
-    // revealRoundAction is idempotent – scores are only computed once (server-side guard).
-    // Host triggers the DB status change; non-host just reads the result.
+    // Host computes scores (voting→reveal), non-hosts read after a short delay.
     if (round.status === 'reveal' && revealingRoundRef.current !== round.id) {
       revealingRoundRef.current = round.id
+      // Non-host: wait briefly so host's score writes are committed first
+      const delay = isHostRef.current ? 0 : 800
+      await new Promise((r) => setTimeout(r, delay))
       const result = await revealRoundAction(round.id)
       if (result.ok) {
         startTransition(() => {
@@ -80,7 +82,13 @@ export function GameBoard({
         })
       }
     }
-    // reveal stays until next voting round – do not clear on complete
+    // On complete: refresh scores from DB so streak resets are reflected for all clients
+    if (round.status === 'complete') {
+      const result = await getScoresAction(round.lobbyId)
+      if (result.ok) {
+        startTransition(() => setScores(result.value))
+      }
+    }
   }, [resetRound, checkExistingVote, currentPlayerId])
 
   const { currentRound, voteCount, lobbyStatus, resetVoteCount } = useGameRealtime(
@@ -179,10 +187,10 @@ export function GameBoard({
   const isStartPending = uiPending
 
   return (
-    <div className="flex flex-col items-center gap-6 w-full max-w-lg mx-auto p-4">
+    <div className="flex flex-col items-center gap-5 w-full max-w-lg mx-auto px-4 pb-safe">
       {/* Round Header */}
-      <div className="flex items-center justify-between w-full">
-        <h2 className="text-2xl font-black uppercase text-yellow-400">
+      <div className="flex items-center justify-between w-full pt-1">
+        <h2 className="text-2xl font-black uppercase text-yellow-400 tracking-tight">
           Round {activeRound?.roundNumber ?? 0} / {lobby.settings.roundsCount}
         </h2>
         {activeRound?.status === 'voting' && (
@@ -290,10 +298,12 @@ export function GameBoard({
                 <button
                   onClick={startNextRound}
                   disabled={isStartPending}
-                  className="w-full bg-yellow-400 text-black font-black uppercase text-xl py-4 px-6
-                    border-2 border-black rounded-xl shadow-[4px_4px_0px_0px_#000]
-                    hover:translate-y-[2px] hover:shadow-[2px_2px_0px_0px_#000]
-                    disabled:opacity-50 disabled:cursor-not-allowed transition-all"
+                  className="w-full min-h-[56px] bg-yellow-400 text-black font-black uppercase text-xl px-6
+                    border-2 border-black rounded-xl shadow-brutal
+                    hover:translate-y-[2px] hover:shadow-brutal-sm
+                    active:translate-y-[4px] active:shadow-none
+                    disabled:opacity-50 disabled:cursor-not-allowed disabled:translate-y-0 disabled:shadow-brutal
+                    transition-all duration-200"
                 >
                   {isStartPending ? '⏳ STARTING...' : '▶️ START GAME'}
                 </button>
@@ -325,10 +335,12 @@ export function GameBoard({
               <button
                 onClick={startNextRound}
                 disabled={isStartPending}
-                className="w-full bg-yellow-400 text-black font-black uppercase text-xl py-4 px-6
-                  border-2 border-black rounded-xl shadow-[4px_4px_0px_0px_#000]
-                  hover:translate-y-[2px] hover:shadow-[2px_2px_0px_0px_#000]
-                  disabled:opacity-50 disabled:cursor-not-allowed transition-all"
+                className="w-full min-h-[56px] bg-yellow-400 text-black font-black uppercase text-xl px-6
+                  border-2 border-black rounded-xl shadow-brutal
+                  hover:translate-y-[2px] hover:shadow-brutal-sm
+                  active:translate-y-[4px] active:shadow-none
+                  disabled:opacity-50 disabled:cursor-not-allowed disabled:translate-y-0 disabled:shadow-brutal
+                  transition-all duration-200"
               >
                 {isStartPending ? '⏳ STARTING...' : '▶️ NEXT ROUND'}
               </button>

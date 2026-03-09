@@ -12,12 +12,11 @@ export function CreateLobbySection() {
     return (
       <button
         onClick={() => setShowForm(true)}
-        className="w-full bg-yellow-400 text-black font-black uppercase text-lg py-4 px-6
-          border-2 border-black rounded-xl
-          shadow-[4px_4px_0px_0px_#000]
-          hover:translate-y-[2px] hover:shadow-[2px_2px_0px_0px_#000]
+        className="w-full min-h-[56px] bg-yellow-400 text-black font-black uppercase text-lg px-6
+          border-2 border-black rounded-xl shadow-brutal
+          hover:translate-y-[2px] hover:shadow-brutal-sm
           active:translate-y-[4px] active:shadow-none
-          transition-all"
+          transition-all duration-200"
       >
         🎮 CREATE LOBBY
       </button>
@@ -25,8 +24,8 @@ export function CreateLobbySection() {
   }
 
   return (
-    <div className="bg-zinc-900 border border-zinc-800 rounded-xl p-4">
-      <h3 className="text-lg font-black text-yellow-400 uppercase mb-3 text-center">
+    <div className="card-brutal p-4">
+      <h3 className="text-base font-black text-yellow-400 uppercase mb-3 text-center tracking-tight">
         🎮 Create Lobby
       </h3>
       <PlayerNameForm
@@ -35,10 +34,7 @@ export function CreateLobbySection() {
         placeholder="Your display name..."
         buttonText="🚀 CREATE & JOIN"
       />
-      {error && (
-        <p className="text-red-500 text-sm font-bold text-center mt-2">{error}</p>
-      )}
+      {error && <p className="text-red-500 text-sm font-bold text-center mt-2">{error}</p>}
     </div>
   )
 }
-
