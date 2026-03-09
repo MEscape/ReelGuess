@@ -1,0 +1,9 @@
+{
+  "crons": [
+    {
+      "path": "/api/cron/cleanup-lobbies",
+      "schedule": "0 3 * * *"
+    }
+  ]
+}
+

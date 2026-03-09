@@ -1,0 +1,63 @@
+@import "tailwindcss";
+
+@theme inline {
+  --color-background: #09090b;
+  --color-foreground: #fafafa;
+  --color-meme-yellow: #facc15;
+  --color-meme-pink: #ec4899;
+  --color-meme-green: #4ade80;
+  --color-meme-red: #ef4444;
+  --color-meme-blue: #3b82f6;
+  --font-sans: var(--font-inter);
+  --font-display: var(--font-bebas-neue);
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  background: var(--color-background);
+  color: var(--color-foreground);
+  font-family: var(--font-sans), system-ui, sans-serif;
+  min-height: 100dvh;
+}
+
+/* Scrollbar styling */
+::-webkit-scrollbar {
+  width: 6px;
+}
+::-webkit-scrollbar-track {
+  background: #18181b;
+}
+::-webkit-scrollbar-thumb {
+  background: #3f3f46;
+  border-radius: 3px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: #52525b;
+}
+
+/* Selection */
+::selection {
+  background: #facc15;
+  color: #000;
+}
+
+/* Meme-style utility classes */
+@layer utilities {
+  .meme-shadow {
+    box-shadow: 4px 4px 0px 0px #000;
+  }
+  .meme-shadow-yellow {
+    box-shadow: 4px 4px 0px 0px rgba(250, 204, 21, 1);
+  }
+  .meme-shadow-sm {
+    box-shadow: 2px 2px 0px 0px #000;
+  }
+  .text-meme {
+    font-weight: 900;
+    text-transform: uppercase;
+    letter-spacing: -0.025em;
+  }
+}
