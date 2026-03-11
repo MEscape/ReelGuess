@@ -1,17 +1,27 @@
 import type { Result } from 'neverthrow'
-import type { AppError } from './base-errors'
 
 /**
- * Serialize a Result for sending from Server Actions to the client.
- * Server Actions can't return class instances, so we serialize to plain objects.
+ * A plain-object Result suitable for crossing the Server Action boundary.
+ *
+ * Server Actions cannot return class instances (e.g. `Result` from neverthrow),
+ * so we serialize to `{ ok: true, value }` or `{ ok: false, error }`.
  */
-export type SerializedResult<T, E = AppError> =
-  | { ok: true; value: T }
-  | { ok: false; error: E }
+export type SerializedResult<T, E = unknown> =
+    | { ok: true;  value: T }
+    | { ok: false; error: E }
 
+/**
+ * Converts a NeverThrow `Result<T, E>` to a {@link SerializedResult}.
+ *
+ * @example
+ * ```ts
+ * const result = await doSomething()
+ * return serializeResult(result)
+ * ```
+ */
 export function serializeResult<T, E>(result: Result<T, E>): SerializedResult<T, E> {
-  return result.match(
-    (value) => ({ ok: true as const, value }),
-    (error) => ({ ok: false as const, error })
-  )
+    return result.match(
+        (value) => ({ ok: true  as const, value }),
+        (error) => ({ ok: false as const, error }),
+    )
 }

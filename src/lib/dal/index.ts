@@ -1,10 +1,23 @@
-// Re-export all DAL functions for convenience
-export { getLobbyByCode, getLobbyStatus } from '@/features/lobby/queries'
-export { createLobby, addPlayerToLobby, updateLobbyStatus } from '@/features/lobby/mutations'
+/**
+ * Data Access Layer — single import point for all database operations.
+ *
+ * Consumers import from `@/lib/dal` rather than reaching into feature modules.
+ * All functions return NeverThrow `Result` types for type-safe error handling.
+ *
+ * @example
+ * ```ts
+ * import { getLobbyByCode, getScores } from '@/lib/dal'
+ * ```
+ */
 
-export { getReelsByLobby, getReelsByPlayer } from '@/features/reel-import/queries'
-export { insertReels, updateReelEmbed, markReelUsed } from '@/features/reel-import/mutations'
+// ── Lobby ──────────────────────────────────────────────────────────────────
+export { getLobbyByCode }                                          from '@/features/lobby/queries'
+export { createLobby, addPlayerToLobby, updateLobbyStatus }       from '@/features/lobby/mutations'
 
-export { getCurrentRound, getRoundById, getVotesForRound, getScores } from '@/features/game/queries'
-export { createRound, updateRoundStatus, insertVote, upsertScore } from '@/features/game/mutations'
+// ── Reels ──────────────────────────────────────────────────────────────────
+export { getReelsByPlayer }                          from '@/features/reel-import/queries'
+export { insertReels }           from '@/features/reel-import/mutations'
 
+// ── Game ───────────────────────────────────────────────────────────────────
+export { getCurrentRound, getRoundById, getVotesForRound, getScores, getReelForRound } from '@/features/game/queries'
+export { createRound, updateRoundStatus, insertVote, batchUpsertScores }               from '@/features/game/mutations'

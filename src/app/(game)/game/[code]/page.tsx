@@ -1,56 +1,42 @@
-import { getLobbyByCode } from '@/features/lobby/queries'
-import { getCurrentRound, getScores } from '@/features/game/queries'
-import { notFound } from 'next/navigation'
-import { GamePageClient } from './GamePageClient'
+import { getLobbyByCode }         from '@/features/lobby/queries'
+import { getCurrentRound, getScores, getReelForRound } from '@/features/game/queries'
+import type { ReelData }          from '@/features/game/types'
+import { notFound }               from 'next/navigation'
+import { GamePageClient }         from './GamePageClient'
 
-type GamePageProps = {
-  params: Promise<{ code: string }>
-}
+type Props = { params: Promise<{ code: string }> }
 
-export default async function GamePage({ params }: GamePageProps) {
-  const { code } = await params
+export default async function GamePage({ params }: Props) {
+    const { code } = await params
+    const upperCode = code.toUpperCase()
 
-  const lobbyResult = await getLobbyByCode(code.toUpperCase())
-  if (lobbyResult.isErr()) {
-    notFound()
-  }
+    const lobbyResult = await getLobbyByCode(upperCode)
+    if (lobbyResult.isErr() || lobbyResult.value.status === 'waiting') notFound()
 
-  const lobby = lobbyResult.value
+    const lobby = lobbyResult.value
 
-  if (lobby.status === 'waiting') {
-    notFound()
-  }
+    const [roundResult, scoresResult] = await Promise.all([
+        getCurrentRound(upperCode),
+        getScores(upperCode),
+    ])
 
-  const roundResult = await getCurrentRound(code.toUpperCase())
-  const currentRound = roundResult.isOk() ? roundResult.value : null
+    const currentRound = roundResult.isOk() ? roundResult.value : null
+    const scores       = scoresResult.isOk() ? scoresResult.value : []
 
-  const scoresResult = await getScores(code.toUpperCase())
-  const scores = scoresResult.isOk() ? scoresResult.value : []
-
-  let reelData: { embedHtml: string | null; instagramUrl: string } | null = null
-  if (currentRound) {
-    const { createClient } = await import('@/lib/supabase/server')
-    const supabase = await createClient()
-    const { data: reel } = await supabase
-      .from('reels')
-      .select('id, embed_html, instagram_url')
-      .eq('id', currentRound.reelId)
-      .single()
-
-    if (reel) {
-      reelData = {
-        embedHtml: (reel.embed_html as string | null) ?? null,
-        instagramUrl: reel.instagram_url as string,
-      }
+    let reelData: ReelData | null = null
+    if (currentRound) {
+        const reelResult = await getReelForRound(currentRound.reelId)
+        if (reelResult.isOk()) reelData = reelResult.value
     }
-  }
 
-  return (
-    <GamePageClient
-      lobby={lobby}
-      initialRound={currentRound}
-      initialScores={scores}
-      reelData={reelData}
-    />
-  )
+    return (
+        <div className="min-h-dvh py-4">
+            <GamePageClient
+                lobby={lobby}
+                initialRound={currentRound}
+                initialScores={scores}
+                reelData={reelData}
+            />
+        </div>
+    )
 }

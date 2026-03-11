@@ -1,241 +1,114 @@
 'use server'
 
+/**
+ * Game Server Actions — thin controllers.
+ *
+ * Each action:
+ * 1. Applies rate limiting via Upstash Redis.
+ * 2. Validates raw input with Zod.
+ * 3. Delegates to the service layer.
+ * 4. Serialises the Result to a plain `SerializedResult` safe for the Action boundary.
+ *
+ * No business logic lives here.
+ */
+
 import { SubmitVoteSchema, StartNextRoundSchema, RevealRoundSchema } from './validations'
-import { getCurrentRound, getRoundById, getVotesForRound, getScores } from './queries'
-import { createRound, updateRoundStatus, insertVote, upsertScore } from './mutations'
-import { getLobbyByCode } from '@/features/lobby/queries'
-import type { GameError } from './errors'
+import { startNextRound, submitVote, revealRound, completeRound, getScoresForLobby } from './service'
+import type { GameError }        from './errors'
 import type { SerializedResult } from '@/lib/errors/error-handler'
-import type { Round, Vote, RoundReveal, ScoreEntry } from './types'
-import { createClient } from '@/lib/supabase/server'
+import type { Vote, RoundReveal, ScoreEntry, StartRoundActionResult } from './types'
+import { rateLimitFromIP }       from '@/lib/rate-limit'
 
-export type StartRoundResult = Round & { instagramUrl: string }
+// ─────────────────────────────────────────────────────────────────────────────
+// Actions
+// ─────────────────────────────────────────────────────────────────────────────
 
+/**
+ * Starts the next round.
+ *
+ * Rate limited per hostPlayerId: 5 starts per minute.
+ * Only the host may call this — `hostPlayerId` is validated server-side.
+ */
 export async function startNextRoundAction(
-  lobbyId: string,
-  hostPlayerId: string
-): Promise<SerializedResult<StartRoundResult, GameError>> {
-  const parsed = StartNextRoundSchema.safeParse({ lobbyId, hostPlayerId })
-  if (!parsed.success) {
-    return { ok: false, error: { type: 'GAME_DATABASE_ERROR', message: 'Invalid input' } }
-  }
+    lobbyId: string,
+    hostPlayerId: string,
+): Promise<SerializedResult<StartRoundActionResult, GameError>> {
+    const rl = await rateLimitFromIP('startRound', hostPlayerId)
+    if (!rl.success) {
+        return { ok: false, error: { type: 'GAME_DATABASE_ERROR', message: 'Too many requests. Please wait.' } }
+    }
 
-  const lobbyResult = await getLobbyByCode(lobbyId)
-  if (lobbyResult.isErr()) {
-    return { ok: false, error: { type: 'GAME_DATABASE_ERROR', message: 'Lobby not found' } }
-  }
+    const parsed = StartNextRoundSchema.safeParse({ lobbyId, hostPlayerId })
+    if (!parsed.success) {
+        return { ok: false, error: { type: 'GAME_DATABASE_ERROR', message: 'Invalid input' } }
+    }
 
-  const lobby = lobbyResult.value
-  if (lobby.hostId !== hostPlayerId) {
-    return { ok: false, error: { type: 'GAME_NOT_HOST', playerId: hostPlayerId } }
-  }
-
-  const currentRoundResult = await getCurrentRound(lobbyId)
-  if (currentRoundResult.isErr()) {
-    return { ok: false, error: currentRoundResult.error }
-  }
-
-  const currentRound = currentRoundResult.value
-  const nextRoundNumber = currentRound ? currentRound.roundNumber + 1 : 1
-
-  if (nextRoundNumber > lobby.settings.roundsCount) {
-    return { ok: false, error: { type: 'GAME_ALREADY_FINISHED', lobbyId } }
-  }
-
-  const supabase = await createClient()
-  const { data: unusedReels, error: reelError } = await supabase
-    .from('reels')
-    .select('*')
-    .eq('lobby_id', lobbyId)
-    .eq('used', false)
-
-  if (reelError || !unusedReels || unusedReels.length === 0) {
-    return { ok: false, error: { type: 'NO_REELS_AVAILABLE', lobbyId } }
-  }
-
-  // Pick a random unused reel – no oEmbed pre-check needed
-  const shuffled = [...unusedReels].sort(() => Math.random() - 0.5)
-  const chosenReel = shuffled[0]
-
-  await supabase.from('reels').update({ used: true }).eq('id', chosenReel.id)
-
-  const roundResult = await createRound(lobbyId, nextRoundNumber, chosenReel.id, chosenReel.owner_id)
-  if (roundResult.isErr()) {
-    return { ok: false, error: roundResult.error }
-  }
-
-  return {
-    ok: true,
-    value: { ...roundResult.value, instagramUrl: chosenReel.instagram_url as string },
-  }
+    const result = await startNextRound(parsed.data.lobbyId, parsed.data.hostPlayerId)
+    if (result.isErr()) return { ok: false, error: result.error }
+    return { ok: true, value: result.value }
 }
 
+/**
+ * Submits a vote for the current round.
+ *
+ * Rate limited per voterId: 20 votes per minute.
+ * Returns `ALREADY_VOTED` if the player has already voted this round.
+ */
 export async function submitVoteAction(
-  roundId: string,
-  voterId: string,
-  votedForId: string
+    roundId: string,
+    voterId: string,
+    votedForId: string,
 ): Promise<SerializedResult<Vote, GameError>> {
-  const parsed = SubmitVoteSchema.safeParse({ roundId, voterId, votedForId })
-  if (!parsed.success) {
-    return { ok: false, error: { type: 'GAME_DATABASE_ERROR', message: 'Invalid input' } }
-  }
-
-  const roundResult = await getRoundById(roundId)
-  if (roundResult.isErr()) {
-    return { ok: false, error: roundResult.error }
-  }
-
-  const round = roundResult.value
-  if (round.status !== 'voting') {
-    return { ok: false, error: { type: 'NOT_VOTING_PHASE', roundId, currentStatus: round.status } }
-  }
-
-  const existingVotes = await getVotesForRound(roundId)
-  if (existingVotes.isErr()) {
-    return { ok: false, error: existingVotes.error }
-  }
-
-  if (existingVotes.value.find((v) => v.voterId === voterId)) {
-    return { ok: false, error: { type: 'ALREADY_VOTED', roundId, voterId } }
-  }
-
-  const voteResult = await insertVote(
-    roundId,
-    voterId,
-    votedForId,
-    votedForId === round.correctPlayerId
-  )
-  if (voteResult.isErr()) {
-    return { ok: false, error: voteResult.error }
-  }
-
-  // Auto-reveal if all players voted
-  const lobby = await getLobbyByCode(round.lobbyId)
-  if (lobby.isOk()) {
-    const totalVotes = existingVotes.value.length + 1
-    if (totalVotes >= lobby.value.players.length) {
-      await revealRoundAction(roundId)
+    const rl = await rateLimitFromIP('submitVote', voterId)
+    if (!rl.success) {
+        return { ok: false, error: { type: 'GAME_DATABASE_ERROR', message: 'Too many requests. Please wait.' } }
     }
-  }
 
-  return { ok: true, value: voteResult.value }
+    const parsed = SubmitVoteSchema.safeParse({ roundId, voterId, votedForId })
+    if (!parsed.success) {
+        return { ok: false, error: { type: 'GAME_DATABASE_ERROR', message: 'Invalid input' } }
+    }
+
+    const result = await submitVote(parsed.data.roundId, parsed.data.voterId, parsed.data.votedForId)
+    if (result.isErr()) return { ok: false, error: result.error }
+    return { ok: true, value: result.value }
 }
 
+/**
+ * Reveals a round — transitions status to `reveal` and computes scores.
+ * Idempotent: safe to call multiple times.
+ */
 export async function revealRoundAction(
-  roundId: string
+    roundId: string,
 ): Promise<SerializedResult<RoundReveal, GameError>> {
-  const parsed = RevealRoundSchema.safeParse({ roundId })
-  if (!parsed.success) {
-    return { ok: false, error: { type: 'GAME_DATABASE_ERROR', message: 'Invalid round ID' } }
-  }
-
-  // Fetch current round first to check status (idempotency guard)
-  const roundResult = await getRoundById(roundId)
-  if (roundResult.isErr()) {
-    return { ok: false, error: roundResult.error }
-  }
-  const round = roundResult.value
-
-  // If already complete, just return existing data without recomputing scores
-  if (round.status === 'complete') {
-    const [votesResult, scoresResult, lobby] = await Promise.all([
-      getVotesForRound(roundId),
-      getScores(round.lobbyId),
-      getLobbyByCode(round.lobbyId),
-    ])
-    const scores = scoresResult.isOk() ? scoresResult.value : []
-    const correctPlayer = lobby.isOk()
-      ? lobby.value.players.find((p) => p.id === round.correctPlayerId)
-      : null
-    return {
-      ok: true,
-      value: {
-        round,
-        correctPlayerName: correctPlayer?.displayName ?? 'Unknown',
-        scores,
-        votes: votesResult.isOk() ? votesResult.value : [],
-      },
+    const parsed = RevealRoundSchema.safeParse({ roundId })
+    if (!parsed.success) {
+        return { ok: false, error: { type: 'GAME_DATABASE_ERROR', message: 'Invalid round ID' } }
     }
-  }
 
-  // If already in reveal status (another client beat us), skip DB write but still compute
-  const shouldUpdateScores = round.status !== 'reveal'
-
-  if (round.status !== 'voting' && round.status !== 'reveal') {
-    return { ok: false, error: { type: 'GAME_DATABASE_ERROR', message: 'Round cannot be revealed' } }
-  }
-
-  // Only update status to 'reveal' if currently 'voting'
-  if (round.status === 'voting') {
-    const statusResult = await updateRoundStatus(roundId, 'reveal')
-    if (statusResult.isErr()) {
-      return { ok: false, error: statusResult.error }
-    }
-  }
-
-  const votesResult = await getVotesForRound(roundId)
-  if (votesResult.isErr()) {
-    return { ok: false, error: votesResult.error }
-  }
-
-  // Only compute + write scores if we were the ones who transitioned voting→reveal
-  if (shouldUpdateScores) {
-    // Process each vote: correct = +100pts (+ streak bonus), wrong = 0pts, streak reset
-    for (const vote of votesResult.value) {
-      if (vote.isCorrect) {
-        // Read current streak for this player to compute bonus
-        const supabase = await createClient()
-        const { data: existing } = await supabase
-          .from('scores')
-          .select('points, streak')
-          .eq('player_id', vote.voterId)
-          .eq('lobby_id', round.lobbyId)
-          .maybeSingle()
-        const currentStreak = existing?.streak ?? 0
-        const newStreak = currentStreak + 1
-        // Streak bonus: +50 from the 2nd correct answer in a row (streak >= 1 before this round)
-        const streakBonus = currentStreak >= 1 ? 50 : 0
-        await upsertScore(vote.voterId, round.lobbyId, 100 + streakBonus, newStreak)
-      } else {
-        await upsertScore(vote.voterId, round.lobbyId, 0, 0)
-      }
-    }
-    // Note: status is NOT set to 'complete' here – the host client does that after the reveal delay
-  }
-
-  const updatedScores = await getScores(round.lobbyId)
-  const scores: ScoreEntry[] = updatedScores.isOk() ? updatedScores.value : []
-
-  const lobby = await getLobbyByCode(round.lobbyId)
-  const correctPlayer = lobby.isOk()
-    ? lobby.value.players.find((p) => p.id === round.correctPlayerId)
-    : null
-
-
-  return {
-    ok: true,
-    value: {
-      round,
-      correctPlayerName: correctPlayer?.displayName ?? 'Unknown',
-      scores,
-      votes: votesResult.value,
-    },
-  }
+    const result = await revealRound(parsed.data.roundId)
+    if (result.isErr()) return { ok: false, error: result.error }
+    return { ok: true, value: result.value }
 }
 
+/**
+ * Marks a round as complete. Called by the host after the reveal countdown.
+ */
 export async function completeRoundAction(
-  roundId: string
+    roundId: string,
 ): Promise<SerializedResult<void, GameError>> {
-  const result = await updateRoundStatus(roundId, 'complete')
-  if (result.isErr()) return { ok: false, error: result.error }
-  return { ok: true, value: undefined }
+    const result = await completeRound(roundId)
+    if (result.isErr()) return { ok: false, error: result.error }
+    return { ok: true, value: undefined }
 }
 
+/**
+ * Returns the current scores for a lobby.
+ */
 export async function getScoresAction(
-  lobbyId: string
+    lobbyId: string,
 ): Promise<SerializedResult<ScoreEntry[], GameError>> {
-  const result = await getScores(lobbyId)
-  if (result.isErr()) return { ok: false, error: result.error }
-  return { ok: true, value: result.value }
+    const result = await getScoresForLobby(lobbyId)
+    if (result.isErr()) return { ok: false, error: result.error }
+    return { ok: true, value: result.value }
 }
-

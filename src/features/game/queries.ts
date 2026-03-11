@@ -1,102 +1,134 @@
 import { ResultAsync } from 'neverthrow'
 import { createClient } from '@/lib/supabase/server'
-import type { Round, RoundRow, Vote, VoteRow, ScoreEntry, ScoreRow } from './types'
+import type { Round, RoundRow, Vote, VoteRow, ScoreEntry, ScoreRow, ReelData } from './types'
 import { mapRoundRow, mapVoteRow } from './types'
 import type { GameError } from './errors'
 
 export function getCurrentRound(lobbyId: string): ResultAsync<Round | null, GameError> {
-  return ResultAsync.fromPromise(
-    (async () => {
-      const supabase = await createClient()
-      const { data, error } = await supabase
-        .from('rounds')
-        .select('*')
-        .eq('lobby_id', lobbyId)
-        .order('round_number', { ascending: false })
-        .limit(1)
-        .maybeSingle()
+    return ResultAsync.fromPromise(
+        (async () => {
+            const supabase = await createClient()
+            const { data, error } = await supabase
+                .from('rounds')
+                .select('*')
+                .eq('lobby_id', lobbyId)
+                .order('round_number', { ascending: false })
+                .limit(1)
+                .maybeSingle()
 
-      if (error) {
-        throw {
-          type: 'GAME_DATABASE_ERROR',
-          message: error.message,
-        } satisfies GameError
-      }
+            if (error) {
+                throw {
+                    type: 'GAME_DATABASE_ERROR',
+                    message: error.message,
+                } satisfies GameError
+            }
 
-      return data ? mapRoundRow(data as unknown as RoundRow) : null
-    })(),
-    (e) => e as GameError
-  )
+            return data ? mapRoundRow(data as unknown as RoundRow) : null
+        })(),
+        (e) => e as GameError
+    )
 }
 
 export function getRoundById(roundId: string): ResultAsync<Round, GameError> {
-  return ResultAsync.fromPromise(
-    (async () => {
-      const supabase = await createClient()
-      const { data, error } = await supabase
-        .from('rounds')
-        .select('*')
-        .eq('id', roundId)
-        .single()
+    return ResultAsync.fromPromise(
+        (async () => {
+            const supabase = await createClient()
+            const { data, error } = await supabase
+                .from('rounds')
+                .select('*')
+                .eq('id', roundId)
+                .single()
 
-      if (error || !data) {
-        throw { type: 'ROUND_NOT_FOUND', roundId } satisfies GameError
-      }
+            if (error || !data) {
+                throw { type: 'ROUND_NOT_FOUND', roundId } satisfies GameError
+            }
 
-      return mapRoundRow(data as unknown as RoundRow)
-    })(),
-    (e) => e as GameError
-  )
+            return mapRoundRow(data as unknown as RoundRow)
+        })(),
+        (e) => e as GameError
+    )
 }
 
 export function getVotesForRound(roundId: string): ResultAsync<Vote[], GameError> {
-  return ResultAsync.fromPromise(
-    (async () => {
-      const supabase = await createClient()
-      const { data, error } = await supabase
-        .from('votes')
-        .select('*')
-        .eq('round_id', roundId)
+    return ResultAsync.fromPromise(
+        (async () => {
+            const supabase = await createClient()
+            // Select only required columns — avoids transferring submitted_at unnecessarily
+            const { data, error } = await supabase
+                .from('votes')
+                .select('id, round_id, voter_id, voted_for_id, is_correct')
+                .eq('round_id', roundId)
 
-      if (error) {
-        throw {
-          type: 'GAME_DATABASE_ERROR',
-          message: error.message,
-        } satisfies GameError
-      }
+            if (error) {
+                throw {
+                    type: 'GAME_DATABASE_ERROR',
+                    message: error.message,
+                } satisfies GameError
+            }
 
-      return (data as unknown as VoteRow[]).map(mapVoteRow)
-    })(),
-    (e) => e as GameError
-  )
+            return (data as unknown as VoteRow[]).map(mapVoteRow)
+        })(),
+        (e) => e as GameError
+    )
 }
 
 export function getScores(lobbyId: string): ResultAsync<ScoreEntry[], GameError> {
-  return ResultAsync.fromPromise(
-    (async () => {
-      const supabase = await createClient()
-      const { data, error } = await supabase
-        .from('scores')
-        .select('*, players!scores_player_id_fkey(display_name, avatar_seed)')
-        .eq('lobby_id', lobbyId)
-        .order('points', { ascending: false })
+    return ResultAsync.fromPromise(
+        (async () => {
+            const supabase = await createClient()
+            const { data, error } = await supabase
+                .from('scores')
+                .select('*, players!scores_player_id_fkey(display_name, avatar_seed)')
+                .eq('lobby_id', lobbyId)
+                .order('points', { ascending: false })
 
-      if (error) {
-        throw {
-          type: 'GAME_DATABASE_ERROR',
-          message: error.message,
-        } satisfies GameError
-      }
+            if (error) {
+                throw {
+                    type: 'GAME_DATABASE_ERROR',
+                    message: error.message,
+                } satisfies GameError
+            }
 
-      return (data as unknown as ScoreRow[]).map((row) => ({
-        playerId: row.player_id,
-        displayName: row.players?.display_name ?? 'Unknown',
-        avatarSeed: row.players?.avatar_seed ?? '',
-        points: row.points,
-        streak: row.streak,
-      }))
-    })(),
-    (e) => e as GameError
-  )
+            return (data as unknown as ScoreRow[]).map((row) => ({
+                playerId: row.player_id,
+                displayName: row.players?.display_name ?? 'Unknown',
+                avatarSeed: row.players?.avatar_seed ?? '',
+                points: row.points,
+                streak: row.streak,
+            }))
+        })(),
+        (e) => e as GameError
+    )
 }
 
+/**
+ * Fetches the Instagram URL for a given reel.
+ * Only `instagram_url` is selected — embed_html / thumbnail_url / caption
+ * are always null and have been removed from all types.
+ *
+ * Cost: 1 indexed PK lookup.
+ */
+export function getReelForRound(
+    reelId: string
+): ResultAsync<ReelData, GameError> {
+    return ResultAsync.fromPromise(
+        (async () => {
+            const supabase = await createClient()
+            const { data, error } = await supabase
+                .from('reels')
+                .select('instagram_url')
+                .eq('id', reelId)
+                .maybeSingle()
+
+            if (error) {
+                throw { type: 'GAME_DATABASE_ERROR', message: error.message } satisfies GameError
+            }
+            if (!data) {
+                throw { type: 'ROUND_NOT_FOUND', roundId: reelId } satisfies GameError
+            }
+
+            return { instagramUrl: data.instagram_url as string }
+        })(),
+        (e) => e as GameError
+    )
+}
