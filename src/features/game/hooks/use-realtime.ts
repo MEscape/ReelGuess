@@ -6,8 +6,20 @@ import type { Round, RoundRow } from '../types'
 import { mapRoundRow } from '../types'
 
 // ─────────────────────────────────────────────────────────────────────────────
-// Hook
+// Helpers
 // ─────────────────────────────────────────────────────────────────────────────
+
+/** Shape of a `lobbies` Realtime UPDATE payload we care about. */
+type LobbyPayloadNew = {
+    status?:   string
+    settings?: { rematch_id?: string; [key: string]: unknown }
+}
+
+/** Type guard — narrows an unknown Realtime payload to {@link LobbyPayloadNew}. */
+function parseLobbyPayload(raw: unknown): LobbyPayloadNew | null {
+    if (!raw || typeof raw !== 'object') return null
+    return raw as LobbyPayloadNew
+}
 
 /**
  * Subscribes to real-time Supabase changes for a game lobby.
@@ -36,6 +48,7 @@ export function useGameRealtime(
     const [currentRound, setCurrentRound] = useState<Round | null>(null)
     const [voteCount,    setVoteCount]    = useState(initialVoteCount ?? 0)
     const [lobbyStatus,  setLobbyStatus]  = useState<string>('playing')
+    const [rematchId,    setRematchId]    = useState<string | null>(null)
 
     // Tracks the current round ID for the votes filter.
     // Updated whenever a new round starts via onRoundChange.
@@ -94,9 +107,10 @@ export function useGameRealtime(
                 'postgres_changes',
                 { event: 'UPDATE', schema: 'public', table: 'lobbies', filter: `id=eq.${lobbyId}` },
                 (payload) => {
-                    if (payload.new && typeof payload.new === 'object' && 'status' in payload.new) {
-                        setLobbyStatus((payload.new as { status: string }).status)
-                    }
+                    const data = parseLobbyPayload(payload.new)
+                    if (!data) return
+                    if (data.status) setLobbyStatus(data.status)
+                    if (data.settings?.rematch_id) setRematchId(data.settings.rematch_id)
                 },
             )
             .subscribe()
@@ -106,5 +120,5 @@ export function useGameRealtime(
 
     const resetVoteCount = useCallback(() => setVoteCount(0), [])
 
-    return { currentRound, voteCount, lobbyStatus, resetVoteCount, setCurrentRound }
+    return { currentRound, voteCount, lobbyStatus, rematchId, resetVoteCount, setCurrentRound }
 }

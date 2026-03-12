@@ -186,7 +186,7 @@ export function GameBoard({
 
     // ── Realtime ──────────────────────────────────────────────────────────────
 
-    const { currentRound, voteCount, lobbyStatus, resetVoteCount } = useGameRealtime(
+    const { currentRound, voteCount, lobbyStatus, rematchId, resetVoteCount } = useGameRealtime(
         lobby.id,
         handleRoundChange,
         initialRound?.id ?? null,
@@ -206,6 +206,9 @@ export function GameBoard({
                 instagramUrl: data.instagramUrl,
             })
         },
+        // Fallback: if Realtime lobby-status event is delayed and the server
+        // already knows the game is over, transition immediately client-side.
+        () => startTransition(() => setGamePhase('finished')),
     )
 
     // ── Reel data ────────────────────────────────────────────────────────────
@@ -313,7 +316,14 @@ export function GameBoard({
     // ── Render ───────────────────────────────────────────────────────────────
 
     if (phase === 'finished') {
-        return <GameOverScreen scores={scores} />
+        return (
+            <GameOverScreen
+                scores={scores}
+                lobbyId={lobby.id}
+                currentPlayerId={currentPlayerId}
+                rematchId={rematchId}
+            />
+        )
     }
 
     return (
