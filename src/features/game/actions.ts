@@ -12,9 +12,10 @@
  * No business logic lives here.
  */
 
-import { SubmitVoteSchema, StartNextRoundSchema, RevealRoundSchema } from './validations'
+import { SubmitVoteSchema, StartNextRoundSchema, RevealRoundSchema, SubmitDoubleSchema } from './validations'
 import { startNextRound, submitVote, revealRound,
-    completeRound, getScoresForLobby }                         from './service'
+    completeRound, getScoresForLobby,
+    submitDouble }                                                         from './service'
 import { getVotesForRound, getCurrentRound }                         from './queries'
 import type { GameError }                                            from './errors'
 import type { SerializedResult }                                     from '@/lib/errors/error-handler'
@@ -166,5 +167,31 @@ export async function getCurrentRoundAction(
     const result = await getCurrentRound(lobbyId)
     if (result.isErr()) return { ok: false, error: result.error }
     return { ok: true, value: result.value }
+}
+
+/**
+ * Activates Double-or-Nothing for a player's vote in the current round.
+ *
+ * Rate limited per voterId: 10 doubles per minute (prevents exploit spam).
+ * Only allowed while the round is in `voting` status.
+ * Only allowed after the player has already submitted a vote.
+ */
+export async function submitDoubleAction(
+    roundId: string,
+    voterId: string,
+): Promise<SerializedResult<void, GameError>> {
+    const rl = await rateLimitFromIP('submitDouble', voterId)
+    if (!rl.success) {
+        return { ok: false, error: { type: 'GAME_DATABASE_ERROR', message: 'Too many requests. Please wait.' } }
+    }
+
+    const parsed = SubmitDoubleSchema.safeParse({ roundId, voterId })
+    if (!parsed.success) {
+        return { ok: false, error: { type: 'GAME_DATABASE_ERROR', message: 'Invalid input' } }
+    }
+
+    const result = await submitDouble(parsed.data.roundId, parsed.data.voterId)
+    if (result.isErr()) return { ok: false, error: result.error }
+    return { ok: true, value: undefined }
 }
 

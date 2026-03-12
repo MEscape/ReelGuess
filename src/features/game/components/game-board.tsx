@@ -18,6 +18,7 @@ import { useScores }          from '../hooks/use-scores'
 import { useReelData }        from '../hooks/use-reel-data'
 import { usePlayers }         from '@/features/lobby/hooks/use-players'
 import { ReactionBar }        from '@/features/reactions/components/ReactionBar'
+import { useScoreEvents }     from '@/features/scoring/hooks/useScoreEvents'
 import { revealRoundAction, completeRoundAction, getCurrentRoundAction } from '../actions'
 
 import { gameKeys }           from '@/lib/query-keys'
@@ -96,6 +97,24 @@ export function GameBoard({
     // Uses the same hook as the lobby page so mid-game joins are reflected.
     const livePlayers = usePlayers(lobby.id, lobby.players)
 
+    // ── Achievement broadcasts ─────────────────────────────────────────────────
+    // Host broadcasts achievements to all clients via Supabase Realtime broadcast.
+    // All clients (including non-host) receive the broadcast here and queue them
+    // for the HeroOverlay — which lives in RevealScreen.
+    // We forward achievements into `reveal` so the RevealScreen's HeroOverlay
+    // fires for every client (non-hosts included) via broadcast receipt.
+    const [broadcastedAchievements, setBroadcastedAchievements] = useState<
+        import('@/features/scoring/types').Achievement[]
+    >([])
+
+    const { broadcastAchievements } = useScoreEvents(
+        lobby.id,
+        (achievement) => {
+            // Accumulate received achievements; RevealScreen will render them
+            setBroadcastedAchievements((prev) => [...prev, achievement])
+        },
+    )
+
     // ── Round change handler ──────────────────────────────────────────────────
 
     const handleRoundChange = useCallback(async (round: Round) => {
@@ -119,7 +138,10 @@ export function GameBoard({
                 prevRoundIdRef.current = round.id
                 resetRound()
                 resetVoteCountRef.current()
-                startTransition(() => setReveal(null))
+                startTransition(() => {
+                    setReveal(null)
+                    setBroadcastedAchievements([])
+                })
                 await checkExistingVote(round.id, currentPlayerId)
             }
 
@@ -150,13 +172,17 @@ export function GameBoard({
                     setReveal(result.value)
                     invalidateScores()
                 })
+                // Host broadcasts achievements; all clients receive them via useScoreEvents
+                if (isHostRef.current && result.value.achievements.length > 0) {
+                    broadcastAchievements(result.value.achievements)
+                }
             }
         }
 
         if (round.status === 'complete') {
             invalidateScores()
         }
-    }, [resetRound, checkExistingVote, currentPlayerId, invalidateScores, queryClient])
+    }, [resetRound, checkExistingVote, currentPlayerId, invalidateScores, queryClient, broadcastAchievements])
 
     // ── Realtime ──────────────────────────────────────────────────────────────
 
@@ -270,6 +296,9 @@ export function GameBoard({
                     setReveal(result.value)
                     invalidateScores()
                 })
+                if (result.value.achievements.length > 0) {
+                    broadcastAchievements(result.value.achievements)
+                }
             }
         })
     }
@@ -341,6 +370,11 @@ export function GameBoard({
                             hasVoted={hasVoted}
                             isPending={isVotePending}
                             error={voteError}
+                            roundId={activeRound?.id ?? ''}
+                            currentPlayerId={currentPlayerId}
+                            currentStreak={
+                                scores.find((s) => s.playerId === currentPlayerId)?.streak ?? 0
+                            }
                         />
                     </motion.div>
                 )}
@@ -352,7 +386,22 @@ export function GameBoard({
                         className="w-full"
                     >
                         <RevealScreen
-                            reveal={reveal}
+                            reveal={{
+                                ...reveal,
+                                // Merge server achievements with any received via broadcast.
+                                // Use a composite key Set for O(n+m) deduplication.
+                                achievements: (() => {
+                                    const seen = new Set(
+                                        reveal.achievements.map((a) => `${a.type}:${a.playerId}`),
+                                    )
+                                    return [
+                                        ...reveal.achievements,
+                                        ...broadcastedAchievements.filter(
+                                            (ba) => !seen.has(`${ba.type}:${ba.playerId}`),
+                                        ),
+                                    ]
+                                })(),
+                            }}
                             players={livePlayers}
                             isHost={isHost}
                             onRevealCompleteAction={() => completeRoundAction(activeRound!.id)}

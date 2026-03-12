@@ -17,7 +17,8 @@ import { ok, err, type Result }          from 'neverthrow'
 import { getCurrentRound, getRoundById,
     getVotesForRound, getScores }   from './queries'
 import { createRound, updateRoundStatus,
-    insertVote, batchUpsertScores } from './mutations'
+    insertVote, batchUpsertScores,
+    updateVoteDouble }              from './mutations'
 import { getLobbyByCode, getPlayerCount } from '@/features/lobby/queries'
 import { getUnusedReels }                from '@/features/reel-import/queries'
 import { markReelUsed, unmarkReelUsed }  from '@/features/reel-import/mutations'
@@ -129,6 +130,7 @@ export async function submitVote(
         voterId,
         votedForId,
         votedForId === round.correctPlayerId,
+        Math.max(0, Date.now() - round.startedAt.getTime()),
     )
     if (voteResult.isErr()) return err(voteResult.error)
 
@@ -200,6 +202,7 @@ export async function revealRound(
             correctPlayerName: correctPlayer?.displayName ?? 'Unknown',
             scores,
             votes: votesResult.isOk() ? votesResult.value : [],
+            achievements: [],
         })
     }
 
@@ -219,7 +222,13 @@ export async function revealRound(
 
     // 2 DB calls total via batchUpsertScores regardless of player count
     const scoreResult = await batchUpsertScores(
-        votesResult.value.map((v) => ({ voterId: v.voterId, isCorrect: v.isCorrect })),
+        votesResult.value.map((v) => ({
+            voteId:     v.id,
+            voterId:    v.voterId,
+            isCorrect:  v.isCorrect,
+            voteTimeMs: v.voteTimeMs,
+            usedDouble: v.usedDouble,
+        })),
         round.lobbyId,
     )
     if (scoreResult.isErr()) return err(scoreResult.error)
@@ -234,11 +243,19 @@ export async function revealRound(
         ? lobbyResult.value.players.find((p) => p.id === round.correctPlayerId)
         : null
 
+    // Resolve player names for achievements
+    const players      = lobbyResult.isOk() ? lobbyResult.value.players : []
+    const achievements = scoreResult.value.map((a) => ({
+        ...a,
+        playerName: players.find((p) => p.id === a.playerId)?.displayName ?? 'Unknown',
+    }))
+
     return ok({
         round,
         correctPlayerName: correctPlayer?.displayName ?? 'Unknown',
         scores,
         votes: votesResult.value,
+        achievements,
     })
 }
 
@@ -262,4 +279,43 @@ export async function completeRound(roundId: string): Promise<Result<void, GameE
  */
 export async function getScoresForLobby(lobbyId: string): Promise<Result<ScoreEntry[], GameError>> {
     return getScores(lobbyId)
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// submitDouble
+// ─────────────────────────────────────────────────────────────────────────────
+
+/**
+ * Activates the Double-or-Nothing mechanic for a player's vote.
+ *
+ * Business rules:
+ * - Round must still be in `voting` status (doubles are locked out at reveal).
+ * - Player must have already voted this round.
+ * - The `used_double` flag is idempotent — pressing twice is safe.
+ *
+ * @param roundId - Target round.
+ * @param voterId - The player activating Double-or-Nothing.
+ */
+export async function submitDouble(
+    roundId: string,
+    voterId: string,
+): Promise<Result<void, GameError>> {
+    const roundResult = await getRoundById(roundId)
+    if (roundResult.isErr()) return err(roundResult.error)
+
+    const round = roundResult.value
+    if (round.status !== 'voting') {
+        return err({ type: 'NOT_VOTING_PHASE', roundId, currentStatus: round.status })
+    }
+
+    const existingVotes = await getVotesForRound(roundId)
+    if (existingVotes.isErr()) return err(existingVotes.error)
+
+    if (!existingVotes.value.some((v) => v.voterId === voterId)) {
+        return err({ type: 'GAME_DATABASE_ERROR', message: 'Player has not voted in this round yet' })
+    }
+
+    const result = await updateVoteDouble(roundId, voterId)
+    if (result.isErr()) return err(result.error)
+    return ok(undefined)
 }

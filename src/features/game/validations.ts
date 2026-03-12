@@ -26,5 +26,14 @@ export const RevealRoundSchema = z.object({
     roundId: z.string().uuid('roundId must be a UUID'),
 })
 
+/**
+ * Validates the input for {@link submitDoubleAction}.
+ */
+export const SubmitDoubleSchema = z.object({
+    roundId: z.string().uuid('roundId must be a UUID'),
+    voterId: z.string().uuid('voterId must be a UUID'),
+})
+
 export type SubmitVoteInput     = z.infer<typeof SubmitVoteSchema>
 export type StartNextRoundInput = z.infer<typeof StartNextRoundSchema>
+export type SubmitDoubleInput   = z.infer<typeof SubmitDoubleSchema>

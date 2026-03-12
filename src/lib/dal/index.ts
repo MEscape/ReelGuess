@@ -20,4 +20,4 @@ export { insertReels }           from '@/features/reel-import/mutations'
 
 // ── Game ───────────────────────────────────────────────────────────────────
 export { getCurrentRound, getRoundById, getVotesForRound, getScores, getReelForRound } from '@/features/game/queries'
-export { createRound, updateRoundStatus, insertVote, batchUpsertScores }               from '@/features/game/mutations'
+export { createRound, updateRoundStatus, insertVote, batchUpsertScores, updateVoteDouble } from '@/features/game/mutations'

@@ -3,6 +3,8 @@ import { createServiceClient }         from '@/lib/supabase/service'
 import { mapRoundRow, mapVoteRow }     from './types'
 import type { Round, RoundRow, Vote, VoteRow, RoundStatus } from './types'
 import type { GameError }              from './errors'
+import type { Achievement }            from '@/features/scoring/types'
+import { calculateRoundScore }         from '@/features/scoring/service'
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Rounds
@@ -101,17 +103,20 @@ export function updateRoundStatus(
  *
  * `isCorrect` is passed explicitly — the DB trigger was removed and correctness
  * is now computed in the service layer.
+ * `voteTimeMs` records how fast the player voted (ms since round start).
  *
  * @param roundId    - The round being voted on.
  * @param voterId    - Player casting the vote.
  * @param votedForId - Player being voted for.
  * @param isCorrect  - Whether `votedForId === round.correctPlayerId`.
+ * @param voteTimeMs - Milliseconds from round start to vote submission.
  */
 export function insertVote(
     roundId:    string,
     voterId:    string,
     votedForId: string,
     isCorrect:  boolean,
+    voteTimeMs: number,
 ): ResultAsync<Vote, GameError> {
     return ResultAsync.fromPromise(
         (async () => {
@@ -123,6 +128,7 @@ export function insertVote(
                     voter_id:     voterId,
                     voted_for_id: votedForId,
                     is_correct:   isCorrect,
+                    vote_time_ms: voteTimeMs,
                 })
                 .select()
                 .single()
@@ -145,27 +151,27 @@ export function insertVote(
 
 /**
  * Batch-upserts scores for a set of votes in 2 DB round-trips total,
- * regardless of player count.
+ * regardless of player count. Also writes back `points_awarded` on each vote.
  *
  * Algorithm:
  *  1. Load all existing scores for the relevant player IDs in one query.
- *  2. Compute new points / streak for each vote in memory.
- *  3. Write all results in one `upsert` call.
+ *  2. Compute new points / streak for each vote via {@link calculateRoundScore}.
+ *  3. Write all score results in one `upsert` call.
+ *  4. Batch-update `votes.points_awarded` so the reveal screen can show them.
+ *  5. Return achievements earned this round (streaks, speed, double success).
  *
- * Scoring rules:
- * - Correct vote: +100 pts, streak + 1, bonus +50 if streak was already ≥ 1.
- * - Wrong vote:   +0 pts, streak reset to 0.
+ * Scoring rules are defined in `src/features/scoring/service.ts`.
  *
- * @param votes   - All votes from this round.
+ * @param votes   - All votes from this round with speed/double data.
  * @param lobbyId - The lobby these scores belong to.
  */
 export function batchUpsertScores(
-    votes:    Array<{ voterId: string; isCorrect: boolean }>,
-    lobbyId:  string,
-): ResultAsync<void, GameError> {
+    votes:   Array<{ voteId: string; voterId: string; isCorrect: boolean; voteTimeMs: number | null; usedDouble: boolean }>,
+    lobbyId: string,
+): ResultAsync<Achievement[], GameError> {
     return ResultAsync.fromPromise(
         (async () => {
-            if (votes.length === 0) return
+            if (votes.length === 0) return []
 
             const supabase = createServiceClient()
             const voterIds = votes.map((v) => v.voterId)
@@ -184,32 +190,123 @@ export function batchUpsertScores(
                 ]),
             )
 
-            // 2. Compute new values in memory — zero extra DB calls
-            const upserts = votes.map((vote) => {
-                const prev = scoreMap.get(vote.voterId)
-                if (vote.isCorrect) {
-                    const currentStreak = prev?.streak ?? 0
-                    const newStreak     = currentStreak + 1
-                    const bonus         = currentStreak >= 1 ? 50 : 0
-                    return {
-                        player_id: vote.voterId,
-                        lobby_id:  lobbyId,
-                        points:    (prev?.points ?? 0) + 100 + bonus,
-                        streak:    newStreak,
-                    }
-                }
+            // 2. Compute new values in memory using calculateRoundScore
+            const results = votes.map((vote) => {
+                const prev   = scoreMap.get(vote.voterId)
+                const output = calculateRoundScore({
+                    isCorrect:  vote.isCorrect,
+                    voteTimeMs: vote.voteTimeMs,
+                    streak:     prev?.streak ?? 0,
+                    usedDouble: vote.usedDouble,
+                })
                 return {
-                    player_id: vote.voterId,
-                    lobby_id:  lobbyId,
-                    points:    prev?.points ?? 0,
-                    streak:    0,
+                    voteId:       vote.voteId,
+                    voterId:      vote.voterId,
+                    prevPoints:   prev?.points ?? 0,
+                    pointsEarned: output.pointsEarned,
+                    newStreak:    output.newStreak,
+                    speedMult:    output.speedMultiplier,
+                    usedDouble:   vote.usedDouble,
+                    isCorrect:    vote.isCorrect,
+                    voteTimeMs:   vote.voteTimeMs,
                 }
             })
 
-            // 3. Single batch upsert
-            const { error } = await supabase
+            // 3. Single batch upsert of scores
+            const upserts = results.map((r) => ({
+                player_id: r.voterId,
+                lobby_id:  lobbyId,
+                points:    r.prevPoints + r.pointsEarned,
+                streak:    r.newStreak,
+            }))
+
+            const { error: scoreErr } = await supabase
                 .from('scores')
                 .upsert(upserts, { onConflict: 'player_id,lobby_id' })
+
+            if (scoreErr) throw { type: 'GAME_DATABASE_ERROR', message: scoreErr.message } satisfies GameError
+
+            // 4. Batch-update points_awarded on each vote row
+            //    Use a series of individual updates (Supabase doesn't support
+            //    multi-row UPDATE with different values per row in one call).
+            await Promise.all(
+                results.map(({ voteId, pointsEarned }) =>
+                    supabase
+                        .from('votes')
+                        .update({ points_awarded: pointsEarned })
+                        .eq('id', voteId),
+                ),
+            )
+
+            // 5. Collect achievements (player names are NOT available here — resolved
+            //    in the service layer by looking up the lobby player list)
+            const achievements: Achievement[] = []
+
+            // Determine fastest correct voter
+            const correctResults = results.filter((r) => r.isCorrect && r.voteTimeMs !== null)
+            if (correctResults.length > 0) {
+                const fastest = correctResults.reduce((a, b) =>
+                    (a.voteTimeMs ?? Infinity) < (b.voteTimeMs ?? Infinity) ? a : b,
+                )
+                if (fastest.voteTimeMs !== null) {
+                    achievements.push({
+                        type:       'FASTEST_VOTE',
+                        playerId:   fastest.voterId,
+                        playerName: '',   // resolved in service
+                        voteTimeMs: fastest.voteTimeMs,
+                    })
+                }
+            }
+
+            for (const r of results) {
+                if (r.newStreak === 5) {
+                    achievements.push({ type: 'STREAK_5', playerId: r.voterId, playerName: '', streak: r.newStreak })
+                }
+                if (r.newStreak === 10) {
+                    achievements.push({ type: 'STREAK_10', playerId: r.voterId, playerName: '', streak: r.newStreak })
+                }
+                if (r.isCorrect && r.usedDouble) {
+                    achievements.push({ type: 'DOUBLE_SUCCESS', playerId: r.voterId, playerName: '', pointsEarned: r.pointsEarned })
+                }
+                // Big points: earned ≥ 200 (double base) and not already covered by DOUBLE_SUCCESS
+                if (r.pointsEarned >= 200 && !(r.isCorrect && r.usedDouble)) {
+                    achievements.push({ type: 'BIG_POINTS', playerId: r.voterId, playerName: '', pointsEarned: r.pointsEarned })
+                }
+            }
+
+            return achievements
+        })(),
+        (e) => e as GameError,
+    )
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Double-or-Nothing
+// ─────────────────────────────────────────────────────────────────────────────
+
+/**
+ * Sets `used_double = true` on a player's vote for the current round.
+ *
+ * Only allowed while the round is still in `voting` status.
+ * This is enforced in the service layer before calling this function.
+ *
+ * @param roundId - The active round.
+ * @param voterId - The player activating double-or-nothing.
+ */
+export function updateVoteDouble(
+    roundId: string,
+    voterId: string,
+): ResultAsync<void, GameError> {
+    return ResultAsync.fromPromise(
+        (async () => {
+            const supabase = createServiceClient()
+            const { error } = await supabase
+                .from('votes')
+                .update({ used_double: true })
+                .eq('round_id', roundId)
+                .eq('voter_id', voterId)
+                // Only allow if not already doubled (idempotent guard)
+                .eq('used_double', false)
 
             if (error) throw { type: 'GAME_DATABASE_ERROR', message: error.message } satisfies GameError
         })(),

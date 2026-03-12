@@ -53,11 +53,17 @@ export type StartRoundActionResult = Round & { instagramUrl: string }
 
 /** A single player's vote in a round. */
 export type Vote = {
-    id:         string
-    roundId:    string
-    voterId:    string
-    votedForId: string
-    isCorrect:  boolean
+    id:            string
+    roundId:       string
+    voterId:       string
+    votedForId:    string
+    isCorrect:     boolean
+    /** Milliseconds between round start and vote submission. Null if not yet stored. */
+    voteTimeMs:    number | null
+    /** Whether the player activated Double-or-Nothing for this vote. */
+    usedDouble:    boolean
+    /** Final points awarded for this vote (computed at reveal). Null until reveal. */
+    pointsAwarded: number | null
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -85,6 +91,8 @@ export type RoundReveal = {
     correctPlayerName: string
     scores:            ScoreEntry[]
     votes:             Vote[]
+    /** Achievements earned this round — used to trigger hero overlays. */
+    achievements:      import('@/features/scoring/types').Achievement[]
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -105,12 +113,15 @@ export type RoundRow = {
 
 /** @internal */
 export type VoteRow = {
-    id:           string
-    round_id:     string
-    voter_id:     string
-    voted_for_id: string
-    is_correct:   boolean
-    submitted_at: string
+    id:            string
+    round_id:      string
+    voter_id:      string
+    voted_for_id:  string
+    is_correct:    boolean
+    submitted_at:  string
+    vote_time_ms:  number | null
+    used_double:   boolean
+    points_awarded: number | null
 }
 
 /** @internal */
@@ -155,10 +166,13 @@ export function mapRoundRow(row: RoundRow): Round {
 /** Converts a raw `votes` DB row to the typed {@link Vote} shape. */
 export function mapVoteRow(row: VoteRow): Vote {
     return {
-        id:         row.id,
-        roundId:    row.round_id,
-        voterId:    row.voter_id,
-        votedForId: row.voted_for_id,
-        isCorrect:  row.is_correct,
+        id:            row.id,
+        roundId:       row.round_id,
+        voterId:       row.voter_id,
+        votedForId:    row.voted_for_id,
+        isCorrect:     row.is_correct,
+        voteTimeMs:    row.vote_time_ms   ?? null,
+        usedDouble:    row.used_double    ?? false,
+        pointsAwarded: row.points_awarded ?? null,
     }
 }
