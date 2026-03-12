@@ -105,6 +105,10 @@ export function updateRoundStatus(
  * is now computed in the service layer.
  * `voteTimeMs` records how fast the player voted (ms since round start).
  *
+ * Graceful fallback: if the `vote_time_ms` column doesn't exist yet
+ * (migration 20260312120004 not applied), retries without the new column so
+ * voting still works in environments where the migration is pending.
+ *
  * @param roundId    - The round being voted on.
  * @param voterId    - Player casting the vote.
  * @param votedForId - Player being voted for.
@@ -121,6 +125,7 @@ export function insertVote(
     return ResultAsync.fromPromise(
         (async () => {
             const supabase = createServiceClient()
+
             const { data, error } = await supabase
                 .from('votes')
                 .insert({
@@ -132,6 +137,30 @@ export function insertVote(
                 })
                 .select()
                 .single()
+
+            // PostgreSQL error 42703 = "undefined_column".
+            // Happens when the scoring migration (20260312120004) hasn't been
+            // applied yet.  Retry without the new column so the vote still lands.
+            if (error?.code === '42703') {
+                const { data: fallbackData, error: fallbackError } = await supabase
+                    .from('votes')
+                    .insert({
+                        round_id:     roundId,
+                        voter_id:     voterId,
+                        voted_for_id: votedForId,
+                        is_correct:   isCorrect,
+                    })
+                    .select()
+                    .single()
+
+                if (fallbackError || !fallbackData) {
+                    throw {
+                        type:    'GAME_DATABASE_ERROR',
+                        message: fallbackError?.message ?? 'Failed to insert vote',
+                    } satisfies GameError
+                }
+                return mapVoteRow(fallbackData as unknown as VoteRow)
+            }
 
             if (error || !data) {
                 throw {
