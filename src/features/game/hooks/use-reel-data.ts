@@ -7,18 +7,26 @@ import type { ReelData } from '../types'
 /**
  * Fetches and caches reel data for a given reel ID.
  *
- * Cached for 1 hour — reel URLs never change once imported.
+ * ### Stale-reel fix
+ * `initialData` is the server-provided reel for the round that was active
+ * when the page was SSR'd. It must ONLY be used when `reelId` matches the
+ * reel that was active at SSR time — passing it for a different `reelId`
+ * would seed React Query with the wrong data and show the old reel.
  *
- * Design decisions:
- * - `queryKey` includes the reelId, so React Query automatically fires a
- *   new request when the round changes (different reelId = different key).
- * - `initialData` is only used for the very first render (server-provided).
- *   For subsequent rounds it will always be undefined → triggers a fresh fetch.
+ * We solve this by accepting `initialReelId` alongside `initialData` and
+ * only passing `initialData` to React Query when the IDs match. For any
+ * subsequent round the query fires a fresh fetch.
  */
 export function useReelData(
-    reelId: string | null,
-    initialData?: ReelData | null,
+    reelId:        string | null,
+    initialData?:  ReelData | null,
+    initialReelId?: string | null,
 ) {
+    // Only treat server-provided data as initial data when the reel IDs match.
+    // If the active round changed since SSR (e.g. host started next round while
+    // this client was loading), fall through to a fresh fetch.
+    const isInitialMatch = !!initialData && !!initialReelId && initialReelId === reelId
+
     return useQuery<ReelData>({
         queryKey:            gameKeys.reel(reelId ?? ''),
         queryFn:             async () => {
@@ -27,10 +35,8 @@ export function useReelData(
             return res.json() as Promise<ReelData>
         },
         enabled:             !!reelId,
-        initialData:         initialData ?? undefined,
-        // Server-provided initial data is treated as perpetually fresh (no refetch on mount).
-        // For new rounds (no initialData), data from cache stays fresh for 1 h.
-        staleTime:           initialData ? Infinity : 60 * 60 * 1000,
+        initialData:         isInitialMatch ? initialData : undefined,
+        staleTime:           isInitialMatch ? Infinity : 60 * 60 * 1000,
         gcTime:              30 * 60 * 1000,  // 30 min
         refetchOnWindowFocus: false,
     })

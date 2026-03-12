@@ -132,27 +132,31 @@ export async function submitVote(
     )
     if (voteResult.isErr()) return err(voteResult.error)
 
-    // Auto-reveal when all players have voted.
-    // Re-fetch vote count AFTER insert to get the accurate post-insert total —
-    // avoids the TOCTOU race where two concurrent last-voters both see N-1 votes.
-    // The predicated UPDATE in updateRoundStatus guarantees only one reveal wins.
-    // Fire-and-forget: failure is non-fatal; host timer is the fallback.
-    void (async () => {
-        try {
-            const [countResult, freshVotesResult] = await Promise.all([
-                getPlayerCount(round.lobbyId),
-                getVotesForRound(roundId),
-            ])
-            if (countResult.isOk() && freshVotesResult.isOk()) {
-                const totalVotes = freshVotesResult.value.length
-                if (totalVotes >= countResult.value) {
-                    await revealRound(roundId)
-                }
+    // ── Auto-reveal when every player has voted ───────────────────────────────
+    //
+    // IMPORTANT: this MUST be awaited before returning — NOT fire-and-forget.
+    //
+    // In Next.js Server Actions the serverless function is torn down as soon as
+    // the response is sent. Any `void` / fire-and-forget async work is silently
+    // dropped in production (Vercel/Edge), meaning auto-reveal never fired.
+    //
+    // We re-fetch votes AFTER the insert (not before) to get the true post-
+    // insert count, avoiding the N-1 TOCTOU race when two players vote
+    // simultaneously. The predicated UPDATE in updateRoundStatus (`WHERE status
+    // = 'voting'`) guarantees only one concurrent caller wins the transition.
+    try {
+        const [countResult, freshVotesResult] = await Promise.all([
+            getPlayerCount(round.lobbyId),
+            getVotesForRound(roundId),
+        ])
+        if (countResult.isOk() && freshVotesResult.isOk()) {
+            if (freshVotesResult.value.length >= countResult.value) {
+                await revealRound(roundId)
             }
-        } catch {
-            // intentionally silent
         }
-    })()
+    } catch {
+        // Non-fatal — host timer is the guaranteed fallback.
+    }
 
     return ok(voteResult.value)
 }

@@ -106,15 +106,22 @@ export function GameBoard({
         if (round.status === 'voting') {
             revealingRef.current = null
             const isNewRound = round.id !== prevRoundIdRef.current
-            prevRoundIdRef.current = round.id
+
             if (isNewRound) {
+                // Remove the previous round's reel from the cache so it can
+                // never bleed into the new round's reel query.
+                const prevReelId = (currentRound ?? initialRound)?.reelId
+                if (prevReelId && prevReelId !== round.reelId) {
+                    queryClient.removeQueries({ queryKey: gameKeys.reel(prevReelId) })
+                }
+
+                prevRoundIdRef.current = round.id
                 resetRound()
                 resetVoteCountRef.current()
-                setReveal(null)
-                // Only re-check votes for genuinely new rounds.
-                // The mount useEffect handles the initial refresh case.
+                startTransition(() => setReveal(null))
                 await checkExistingVote(round.id, currentPlayerId)
             }
+
             if (round.reelId) {
                 void queryClient.prefetchQuery({
                     queryKey:  gameKeys.reel(round.reelId),
@@ -178,7 +185,9 @@ export function GameBoard({
 
     const activeRound  = currentRound ?? initialRound
     const activeReelId = activeRound?.reelId ?? null
-    const { data: reelData } = useReelData(activeReelId, initialReelData)
+    // Pass the SSR round's reelId so useReelData only seeds the cache for
+    // the reel that was active at page load — not for subsequent rounds.
+    const { data: reelData } = useReelData(activeReelId, initialReelData, initialRound?.reelId ?? null)
 
     // ── Effects ───────────────────────────────────────────────────────────────
 
@@ -317,7 +326,13 @@ export function GameBoard({
                         className="w-full space-y-4"
                     >
                         {reelData && (
-                            <ReelDisplay instagramUrl={reelData.instagramUrl} />
+                            // Key on round ID guarantees a full ReelDisplay remount
+                            // for every new round — even if the same reel URL is
+                            // reused (reel rotation edge case) the player is reset.
+                            <ReelDisplay
+                                key={activeRound?.id}
+                                instagramUrl={reelData.instagramUrl}
+                            />
                         )}
                         <VotingPanel
                             players={livePlayers}
