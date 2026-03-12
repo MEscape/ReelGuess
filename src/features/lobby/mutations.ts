@@ -209,18 +209,20 @@ export function setRematchId(
 
             const newSettings = { ...currentSettings, rematch_id: rematchId }
 
-            const { error } = await supabase
+            const { data, error } = await supabase
                 .from('lobbies')
                 .update({ settings: newSettings })
                 .eq('id', lobbyId)
                 // Predicated update — only succeeds if rematch_id is still absent
                 .is('settings->>rematch_id', null)
+                .select('id')
 
             if (error) throw { type: 'LOBBY_DATABASE_ERROR', message: error.message } satisfies LobbyError
 
-            // If 0 rows updated, another concurrent caller already set it
-            // We rely on the idempotency check in createRematch to handle this case
-            return true
+            // No rows returned means the predicate failed — another concurrent caller
+            // already set rematch_id. Return false so createRematch can resolve
+            // to the existing rematch lobby instead of the one we just created.
+            return (data ?? []).length > 0
         })(),
         (e) => e as LobbyError,
     )

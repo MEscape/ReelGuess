@@ -19,6 +19,7 @@ import { getCurrentRound, getRoundById,
 import { createRound, updateRoundStatus,
     insertVote, batchUpsertScores } from './mutations'
 import { getLobbyByCode, getPlayerCount } from '@/features/lobby/queries'
+import { updateLobbyStatus }             from '@/features/lobby/mutations'
 import { getUnusedReels }                from '@/features/reel-import/queries'
 import { markReelUsed, unmarkReelUsed }  from '@/features/reel-import/mutations'
 import type { GameError }                from './errors'
@@ -249,10 +250,43 @@ export async function revealRound(
 /**
  * Marks a round as `complete`. Called by the host after the reveal timer ends.
  *
+ * After marking the round complete, checks whether this was the final round
+ * (i.e. `round.roundNumber >= lobby.settings.roundsCount`). If so, updates
+ * `lobby.status` to `'finished'`, which fires a Realtime event that transitions
+ * every connected client to the {@link GameOverScreen}.
+ *
  * @param roundId - The round to complete.
  */
 export async function completeRound(roundId: string): Promise<Result<void, GameError>> {
-    return updateRoundStatus(roundId, 'complete')
+    // `getRoundById` is required here: this function only receives a `roundId`,
+    // but we need `lobbyId` and `roundNumber` to decide whether to close the game.
+    // `updateRoundStatus` returns void, so there is no way to avoid this fetch.
+    const roundResult = await getRoundById(roundId)
+    if (roundResult.isErr()) return err(roundResult.error)
+
+    const round = roundResult.value
+
+    const statusResult = await updateRoundStatus(roundId, 'complete')
+    if (statusResult.isErr()) return err(statusResult.error)
+
+    // ── Check if this was the last round ──────────────────────────────────────
+    //
+    // If so, update lobby.status → 'finished'. This fires a Supabase Realtime
+    // UPDATE event on `lobbies` that every connected client is subscribed to
+    // via useGameRealtime. The client effect:
+    //
+    //   if (lobbyStatus === 'finished') setGamePhase('finished')
+    //
+    // then transitions every client to GameOverScreen.
+    const lobbyResult = await getLobbyByCode(round.lobbyId)
+    if (lobbyResult.isOk()) {
+        const lobby = lobbyResult.value
+        if (round.roundNumber >= lobby.settings.roundsCount) {
+            await updateLobbyStatus(round.lobbyId, 'finished')
+        }
+    }
+
+    return ok(undefined)
 }
 
 /**

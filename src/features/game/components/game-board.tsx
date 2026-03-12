@@ -178,6 +178,9 @@ export function GameBoard({
                 instagramUrl: data.instagramUrl,
             })
         },
+        // Fallback: if Realtime lobby-status event is delayed and the server
+        // already knows the game is over, transition immediately client-side.
+        () => startTransition(() => setGamePhase('finished')),
     )
 
     // ── Reel data ────────────────────────────────────────────────────────────

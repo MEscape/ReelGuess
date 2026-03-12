@@ -6,8 +6,20 @@ import type { Round, RoundRow } from '../types'
 import { mapRoundRow } from '../types'
 
 // ─────────────────────────────────────────────────────────────────────────────
-// Hook
+// Helpers
 // ─────────────────────────────────────────────────────────────────────────────
+
+/** Shape of a `lobbies` Realtime UPDATE payload we care about. */
+type LobbyPayloadNew = {
+    status?:   string
+    settings?: { rematch_id?: string; [key: string]: unknown }
+}
+
+/** Type guard — narrows an unknown Realtime payload to {@link LobbyPayloadNew}. */
+function parseLobbyPayload(raw: unknown): LobbyPayloadNew | null {
+    if (!raw || typeof raw !== 'object') return null
+    return raw as LobbyPayloadNew
+}
 
 /**
  * Subscribes to real-time Supabase changes for a game lobby.
@@ -95,17 +107,10 @@ export function useGameRealtime(
                 'postgres_changes',
                 { event: 'UPDATE', schema: 'public', table: 'lobbies', filter: `id=eq.${lobbyId}` },
                 (payload) => {
-                    if (payload.new && typeof payload.new === 'object') {
-                        if ('status' in payload.new) {
-                            setLobbyStatus((payload.new as { status: string }).status)
-                        }
-                        if ('settings' in payload.new) {
-                            const settings = (payload.new as { settings: Record<string, unknown> }).settings
-                            if (settings?.rematch_id && typeof settings.rematch_id === 'string') {
-                                setRematchId(settings.rematch_id)
-                            }
-                        }
-                    }
+                    const data = parseLobbyPayload(payload.new)
+                    if (!data) return
+                    if (data.status) setLobbyStatus(data.status)
+                    if (data.settings?.rematch_id) setRematchId(data.settings.rematch_id)
                 },
             )
             .subscribe()

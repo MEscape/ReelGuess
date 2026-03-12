@@ -21,14 +21,18 @@ import type { StartRoundActionResult } from '../types'
  * A submit-lock ref prevents double-click race conditions where the host
  * rapidly clicks "Next Round" twice before the first mutation settles.
  *
- * @param lobbyId      - Current lobby.
- * @param hostPlayerId - Must be the lobby host's UUID.
- * @param onSuccess    - Called with the new round's full result (includes reelId + instagramUrl).
+ * @param lobbyId        - Current lobby.
+ * @param hostPlayerId   - Must be the lobby host's UUID.
+ * @param onSuccess      - Called with the new round's full result (includes reelId + instagramUrl).
+ * @param onGameFinished - Called when the server returns `GAME_ALREADY_FINISHED` so the
+ *                         caller can transition to the game-over screen as a fallback
+ *                         (used when the Realtime lobby-status event is delayed).
  */
 export function useGameState(
     lobbyId: string,
     hostPlayerId: string,
     onSuccess?: (data: StartRoundActionResult) => void,
+    onGameFinished?: () => void,
 ) {
     const queryClient     = useQueryClient()
     /** Prevents concurrent startNextRound submissions (double-click guard). */
@@ -40,7 +44,9 @@ export function useGameState(
             if (!result.ok) {
                 switch (result.error.type) {
                     case 'NO_REELS_AVAILABLE':    throw 'No more reels available!'
-                    case 'GAME_ALREADY_FINISHED': throw 'Game is already finished!'
+                    case 'GAME_ALREADY_FINISHED':
+                        onGameFinished?.()
+                        throw 'Game is already finished!'
                     case 'GAME_NOT_HOST':         throw 'Only the host can start rounds'
                     default:                      throw 'Failed to start round'
                 }
