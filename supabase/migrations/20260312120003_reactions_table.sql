@@ -54,9 +54,9 @@ BEGIN
 END;
 $$;
 
--- Runs every minute — keeps the table lean at all times.
+-- Runs every 5 minutes — keeps the table lean with minimal DB overhead.
 SELECT cron.schedule(
     'cleanup-old-reactions',
-    '* * * * *',
+    '*/5 * * * *',
     'SELECT cleanup_old_reactions()'
 );

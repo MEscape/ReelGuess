@@ -21,7 +21,7 @@ const ReactionSchema = z.object({
 /**
  * POST /api/reactions
  *
- * Inserts an emoji reaction for a player. Rate limited to 10 per 10 s per
+ * Inserts an emoji reaction for a player. Rate limited to 10 per 10 seconds per
  * player to prevent spam.
  *
  * Body: `{ lobbyId, playerId, emoji }`

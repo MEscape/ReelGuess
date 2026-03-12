@@ -1,13 +1,13 @@
 'use client'
 
-import { useState, useCallback, useEffect } from 'react'
+import { useState, useCallback, useRef }    from 'react'
 import { AnimatePresence, motion }          from 'framer-motion'
 
-import { FloatingReaction }         from './FloatingReaction'
-import { useReactions }             from '../hooks/useReactions'
+import { FloatingReaction }                 from './FloatingReaction'
+import { useReactions }                     from '../hooks/useReactions'
 import { useReactionCooldown, COOLDOWN_MS } from '../hooks/useReactionCooldown'
-import { REACTION_EMOJIS }          from '../types'
-import type { ReactionEmoji, Reaction } from '../types'
+import { REACTION_EMOJIS }                  from '../types'
+import type { ReactionEmoji, Reaction }     from '../types'
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Types
@@ -27,46 +27,46 @@ type ReactionBarProps = {
  *
  * Responsibilities:
  * - Renders a horizontal strip of emoji buttons.
- * - On press, POSTs the reaction to `/api/reactions` and starts the cooldown.
- * - Subscribes to Supabase Realtime so reactions from all players float up.
- * - Removes floating emojis after their animation completes.
+ * - On press, broadcasts the reaction instantly via Supabase Realtime broadcast
+ *   (all clients including self receive it) and POSTs to `/api/reactions` for
+ *   DB persistence as a fire-and-forget background call.
+ * - Removes floating emojis once their animation completes.
  */
 export function ReactionBar({ lobbyId, playerId }: ReactionBarProps) {
-    const { reactions }                            = useReactions(lobbyId, true)
+    const [floating, setFloating]          = useState<Reaction[]>([])
     const { canReact, msRemaining, startCooldown } = useReactionCooldown()
 
-    // Floating reactions visible on this client (union of all players' reactions)
-    const [floating, setFloating] = useState<Reaction[]>([])
+    // Deduplicate reactions: the ref is mutated inside the stable callback,
+    // never during render, so no react-hooks/refs lint issue.
+    const processedIdsRef = useRef(new Set<string>())
 
-    // Sync incoming realtime reactions into the floating set.
-    // We track the last-seen length to only add newly arrived reactions.
-    const [lastSeenCount, setLastSeenCount] = useState(0)
-    useEffect(() => {
-        if (reactions.length > lastSeenCount) {
-            const newReactions = reactions.slice(lastSeenCount)
-            setLastSeenCount(reactions.length)
-            setFloating((prev) => [...prev, ...newReactions])
-        }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [reactions])
+    // Called by useReactions for every incoming broadcast (including self).
+    // Stable via useCallback — never causes the subscription to re-create.
+    const handleNewReaction = useCallback((reaction: Reaction) => {
+        if (processedIdsRef.current.has(reaction.id)) return
+        processedIdsRef.current.add(reaction.id)
+        setFloating((prev) => [...prev, reaction])
+    }, [])
+
+    const { sendReaction } = useReactions(lobbyId, true, handleNewReaction)
 
     const handleRemoveFloating = useCallback((id: string) => {
         setFloating((prev) => prev.filter((r) => r.id !== id))
     }, [])
 
-    async function handleReact(emoji: ReactionEmoji) {
+    function handleReact(emoji: ReactionEmoji) {
         if (!canReact) return
         startCooldown()
 
-        try {
-            await fetch('/api/reactions', {
-                method:  'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body:    JSON.stringify({ lobbyId, playerId, emoji }),
-            })
-        } catch {
-            // Best-effort — the optimistic animation already ran via Realtime echo
-        }
+        // Broadcast to all clients instantly (including self via self:true config).
+        sendReaction(emoji, playerId)
+
+        // Persist to DB in the background — display is already driven by broadcast.
+        void fetch('/api/reactions', {
+            method:  'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body:    JSON.stringify({ lobbyId, playerId, emoji }),
+        }).catch(() => { /* ignore persistence failures */ })
     }
 
     const cooldownPercent = msRemaining > 0
@@ -108,7 +108,7 @@ export function ReactionBar({ lobbyId, playerId }: ReactionBarProps) {
                     <button
                         key={emoji}
                         type="button"
-                        onClick={() => void handleReact(emoji)}
+                        onClick={() => handleReact(emoji)}
                         disabled={!canReact}
                         aria-label={`React with ${emoji}`}
                         style={{
