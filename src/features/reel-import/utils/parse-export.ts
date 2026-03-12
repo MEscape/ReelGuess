@@ -5,7 +5,7 @@
  * without mounting any React component.
  */
 
-import { MAX_REELS }  from '../validations'
+import { MAX_REELS, LOCAL_MAX_REELS } from '../validations'
 import type { LocalReel } from '../types'
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -43,14 +43,17 @@ const REEL_URL_RE = /https?:\/\/(?:www\.)?instagram\.com\/reel\/[A-Za-z0-9_-]+/
  * 1. Walk every `label_values` entry for `{ label: "URL", href: "…/reel/…" }`.
  * 2. Deduplicate via a Set.
  * 3. Fisher-Yates shuffle to prevent guessing order.
- * 4. Cap at `maxReels` to keep the game balanced.
+ * 4. Cap at `maxReels` to avoid unbounded memory usage.
+ *
+ * Default cap is LOCAL_MAX_REELS (500) — enough for any realistic export while
+ * preventing runaway allocations. Pass `Infinity` to get everything.
  *
  * @param json     - Parsed JSON (already validated with {@link isLikedPostsJson}).
- * @param maxReels - Upper bound on returned URLs. Pass `Infinity` to get all.
+ * @param maxReels - Upper bound on returned URLs. Defaults to LOCAL_MAX_REELS.
  */
 export function extractReelsFromInstagramExport(
     json: unknown,
-    maxReels: number = MAX_REELS,
+    maxReels: number = LOCAL_MAX_REELS,
 ): string[] {
     if (!Array.isArray(json)) return []
 

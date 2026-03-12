@@ -15,11 +15,11 @@
 import { SubmitVoteSchema, StartNextRoundSchema, RevealRoundSchema } from './validations'
 import { startNextRound, submitVote, revealRound,
     completeRound, getScoresForLobby }                         from './service'
-import { getVotesForRound }                                          from './queries'
+import { getVotesForRound, getCurrentRound }                         from './queries'
 import type { GameError }                                            from './errors'
 import type { SerializedResult }                                     from '@/lib/errors/error-handler'
 import type { Vote, RoundReveal, ScoreEntry,
-    StartRoundActionResult }                               from './types'
+    StartRoundActionResult, Round }                            from './types'
 import { rateLimitFromIP }                                           from '@/lib/rate-limit'
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -149,3 +149,22 @@ export async function checkExistingVoteAction(
     const hasVoted = votesResult.value.some((v) => v.voterId === playerId)
     return { ok: true, value: hasVoted }
 }
+
+/**
+ * Fetches the current round for a lobby.
+ *
+ * Used as a post-vote polling fallback: after submitting the last vote the
+ * server performs auto-reveal, but Realtime may take a few seconds to deliver
+ * the status change. Polling once after 1.5 s ensures the client transitions
+ * to the reveal phase even if Realtime is slow.
+ *
+ * @param lobbyId - Target lobby code.
+ */
+export async function getCurrentRoundAction(
+    lobbyId: string,
+): Promise<SerializedResult<Round | null, GameError>> {
+    const result = await getCurrentRound(lobbyId)
+    if (result.isErr()) return { ok: false, error: result.error }
+    return { ok: true, value: result.value }
+}
+

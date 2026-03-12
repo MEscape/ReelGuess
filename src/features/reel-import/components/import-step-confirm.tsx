@@ -1,6 +1,6 @@
 import { Button } from '@/components/ui'
-import { MAX_REELS }            from '../validations'
-import { cn }                   from '@/lib/utils/cn'
+import { MAX_REELS } from '../validations'
+import { cn }        from '@/lib/utils/cn'
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Constants
@@ -63,6 +63,7 @@ export function ImportStepConfirm({
                     Found{' '}
                     <strong className="font-semibold text-[var(--color-foreground)]">{urlCount} Reels</strong>
                     {' '}in your file. New ones will be added to your pool ({localCount} already saved).
+                    Up to {MAX_REELS} will be randomly selected per game session.
                 </p>
             </div>
 
@@ -83,7 +84,7 @@ export function ImportStepConfirm({
                         className="font-sans text-[var(--color-subtle)]"
                         style={{ fontSize: 'var(--text-body-sm)' }}
                     >
-                        max {MAX_REELS} per game
+                        {MAX_REELS} used per game
                     </span>
                 </div>
 

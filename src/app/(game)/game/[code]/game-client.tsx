@@ -31,21 +31,22 @@ type Props = {
  * populated via useEffect to avoid sessionStorage mismatch.
  */
 export function GameClient({ lobby, initialRound, initialScores, reelData, initialVoteCount }: Props) {
-    const getPlayerId               = usePlayerStore((s) => s.getPlayerId)
-    const [playerId, setPlayerId]   = useState<string | null>(null)
-    const router                    = useRouter()
+    const getPlayerId = usePlayerStore((s) => s.getPlayerId)
+    const [identity, setIdentity] = useState<'loading' | 'not-member' | string>('loading')
+    const router = useRouter()
 
     useEffect(() => {
-        startTransition(() => setPlayerId(getPlayerId(lobby.id)))
+        const id = getPlayerId(lobby.id)
+        startTransition(() => setIdentity(id ?? 'not-member'))
     }, [getPlayerId, lobby.id])
 
-    // ── Loading — identity not yet read from sessionStorage ──────────────────
-    if (playerId === null) {
+    // Loading — sessionStorage not yet read.
+    if (identity === 'loading') {
         return <PageLoader emoji="🎬" label="Loading Game…" />
     }
 
-    // ── Not in this game ─────────────────────────────────────────────────────
-    if (!playerId) {
+    // Not in this game.
+    if (identity === 'not-member') {
         return (
             <main className="min-h-dvh flex items-center justify-center px-4 pb-safe">
                 <div className="w-full max-w-sm flex flex-col gap-0">
@@ -109,11 +110,11 @@ export function GameClient({ lobby, initialRound, initialScores, reelData, initi
         )
     }
 
-    // ── In game ──────────────────────────────────────────────────────────────
+    // In game — identity is the UUID string.
     return (
         <GameBoard
             lobby={lobby}
-            currentPlayerId={playerId}
+            currentPlayerId={identity}
             initialRound={initialRound}
             initialScores={initialScores}
             reelData={reelData}

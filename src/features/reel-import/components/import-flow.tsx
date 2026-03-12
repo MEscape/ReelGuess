@@ -3,7 +3,7 @@
 import { useState }              from 'react'
 import { useLocalReels }         from '../hooks/use-local-reels'
 import { useFileImport }         from '../hooks/use-file-import'
-import { MAX_REELS }             from '../validations'
+import { LOCAL_MAX_REELS }       from '../validations'
 import type { AddReelsResult }   from '../types'
 
 import { ImportStepUpload }  from './import-step-upload'
@@ -58,8 +58,10 @@ export function ImportFlow({ onComplete }: ImportFlowProps) {
     // ── Confirm: save to localStorage ────────────────────────────────────
     function handleConfirmSubmit() {
         if (parsedUrls.length === 0) return
-        // Cap at MAX_REELS — the full set is stored, game selection happens at join time
-        const result = addReels(parsedUrls.slice(0, MAX_REELS))
+        // Save up to LOCAL_MAX_REELS (500) to localStorage.
+        // The game-session cap (MAX_REELS = 50) is applied server-side when
+        // the player joins or creates a lobby — NOT here.
+        const result = addReels(parsedUrls.slice(0, LOCAL_MAX_REELS))
         setSaveResult(result)
         setStep('done')
     }

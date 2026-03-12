@@ -11,14 +11,13 @@ import { PregamePanel }       from './pregame-panel'
 import { RoundHeader }        from './round-header'
 import { BetweenRoundsPanel } from './between-rounds-panel'
 import { GameOverScreen }     from './game-over-screen'
-
 import { useGameRealtime }    from '../hooks/use-realtime'
 import { useRound }           from '../hooks/use-round'
 import { useGameState }       from '../hooks/use-game-state'
 import { useScores }          from '../hooks/use-scores'
 import { useReelData }        from '../hooks/use-reel-data'
 import { usePlayers }         from '@/features/lobby/hooks/use-players'
-import { revealRoundAction, completeRoundAction } from '../actions'
+import { revealRoundAction, completeRoundAction, getCurrentRoundAction } from '../actions'
 
 import { gameKeys }           from '@/lib/query-keys'
 
@@ -224,6 +223,32 @@ export function GameBoard({
         if (!activeRound) return
         submitVote(activeRound.id, currentPlayerId, votedForId)
     }, [activeRound, currentPlayerId, submitVote])
+
+    // Post-vote poll fallback — if Realtime is slow delivering the auto-reveal
+    // (happens when the current player cast the last vote), poll the round
+    // status once after 1.5 s. If it's already 'reveal', manually trigger
+    // handleRoundChange so the UI transitions without waiting for Realtime.
+    const pollTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null)
+    useEffect(() => {
+        if (!hasVoted || !activeRound || activeRound.status !== 'voting') return
+
+        pollTimeoutRef.current = setTimeout(async () => {
+            const result = await getCurrentRoundAction(lobby.id)
+            if (
+                result.ok &&
+                result.value &&
+                result.value.id === activeRound.id &&
+                result.value.status === 'reveal'
+            ) {
+                void handleRoundChange(result.value)
+            }
+        }, 1500)
+
+        return () => {
+            if (pollTimeoutRef.current) clearTimeout(pollTimeoutRef.current)
+        }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [hasVoted])
 
     function handleTimerComplete() {
         if (!isHost || !activeRound || activeRound.status !== 'voting') return
