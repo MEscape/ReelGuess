@@ -37,6 +37,7 @@ export type ActionType =
     | 'startRound'
     | 'revealRound'
     | 'completeRound'
+    | 'submitReaction'
 
 /**
  * Per-action limits using sliding window strategy.
@@ -53,14 +54,15 @@ export type ActionType =
  * | completeRound| 1 min  | 20  | Host-only; prevents rapid-complete abuse     |
  */
 const LIMITS: Record<ActionType, { window: `${number} ${'s' | 'm' | 'h' | 'd'}`; limit: number }> = {
-    createLobby:   { window: '10 m', limit: 3  },
-    joinLobby:     { window: '1 m',  limit: 10 },
-    startGame:     { window: '1 m',  limit: 5  },
-    submitVote:    { window: '1 m',  limit: 20 },
-    importReels:   { window: '1 h',  limit: 5  },
-    startRound:    { window: '1 m',  limit: 20 },
-    revealRound:   { window: '1 m',  limit: 20 },
-    completeRound: { window: '1 m',  limit: 20 },
+    createLobby:     { window: '10 m', limit: 3  },
+    joinLobby:       { window: '1 m',  limit: 10 },
+    startGame:       { window: '1 m',  limit: 5  },
+    submitVote:      { window: '1 m',  limit: 20 },
+    importReels:     { window: '1 h',  limit: 5  },
+    startRound:      { window: '1 m',  limit: 20 },
+    revealRound:     { window: '1 m',  limit: 20 },
+    completeRound:   { window: '1 m',  limit: 20 },
+    submitReaction:  { window: '10 s', limit: 10 },
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
