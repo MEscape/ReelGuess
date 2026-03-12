@@ -83,8 +83,11 @@ export function getUnusedReels(
 }
 
 /**
- * Returns ALL reels for a lobby (both used and unused) — used when creating a
- * rematch lobby so every reel can be copied over and reset to unused.
+ * Returns ALL reels for a lobby (both used and unused).
+ *
+ * @deprecated No longer used — replaced by {@link getUnusedReelsByPlayer} which
+ *             provides finer-grained per-player unused-reel seeding for rematch.
+ *             Kept temporarily for reference; remove in a future cleanup pass.
  *
  * @param lobbyId - Source lobby whose reels to fetch.
  */
@@ -98,6 +101,41 @@ export function getAllReelsByLobby(
                 .from('reels')
                 .select('id, owner_id, instagram_url')
                 .eq('lobby_id', lobbyId)
+
+            if (error) throw { type: 'REEL_DATABASE_ERROR', message: error.message } satisfies ReelImportError
+            return (data ?? []).map((r) => ({
+                id:           r.id           as string,
+                ownerId:      r.owner_id     as string,
+                instagramUrl: r.instagram_url as string,
+            }))
+        })(),
+        (e) => e as ReelImportError,
+    )
+}
+
+/**
+ * Returns only the UNUSED reels for a specific player in a lobby.
+ *
+ * Used as a server-side fallback when creating a rematch: if a returning
+ * player's local reel pool is insufficient, these unused reels from the
+ * previous game are seeded into the new lobby so the game can still start.
+ *
+ * @param lobbyId  - Source lobby.
+ * @param playerId - Player whose unused reels to fetch.
+ */
+export function getUnusedReelsByPlayer(
+    lobbyId:  string,
+    playerId: string,
+): ResultAsync<Array<{ id: string; ownerId: string; instagramUrl: string }>, ReelImportError> {
+    return ResultAsync.fromPromise(
+        (async () => {
+            const supabase = await createClient()
+            const { data, error } = await supabase
+                .from('reels')
+                .select('id, owner_id, instagram_url')
+                .eq('lobby_id', lobbyId)
+                .eq('owner_id', playerId)
+                .eq('used', false)
 
             if (error) throw { type: 'REEL_DATABASE_ERROR', message: error.message } satisfies ReelImportError
             return (data ?? []).map((r) => ({

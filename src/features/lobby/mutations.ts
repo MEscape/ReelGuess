@@ -114,22 +114,25 @@ export function createLobby(
  *
  * @param lobbyId    - Target lobby code.
  * @param playerName - Display name for the joining player.
+ * @param avatarSeed - Optional seed to preserve the player's avatar across rematches.
+ *                     Defaults to a freshly generated random seed when omitted.
  */
 export function addPlayerToLobby(
-    lobbyId:    string,
-    playerName: string,
+    lobbyId:     string,
+    playerName:  string,
+    avatarSeed?: string,
 ): ResultAsync<Player, LobbyError> {
     return ResultAsync.fromPromise(
         (async () => {
             const supabase   = createServiceClient()
-            const avatarSeed = Math.random().toString(36).substring(2, 10)
+            const resolvedAvatarSeed = avatarSeed ?? Math.random().toString(36).substring(2, 10)
 
             const { data, error } = await supabase
                 .from('players')
                 .insert({
                     lobby_id:     lobbyId,
                     display_name: playerName,
-                    avatar_seed:  avatarSeed,
+                    avatar_seed:  resolvedAvatarSeed,
                     is_host:      false,
                 })
                 .select()
