@@ -90,3 +90,50 @@ export function unmarkReelUsed(reelId: string): ResultAsync<void, ReelImportErro
         (e) => e as ReelImportError,
     )
 }
+
+/**
+ * Copies all reels from an old lobby into a new lobby in a single bulk INSERT.
+ *
+ * Each reel is inserted with `used = false` so the new game starts fresh.
+ * `owner_id` is remapped via `playerIdMap` (old UUID → new UUID) so FK
+ * constraints are satisfied in the new lobby.
+ *
+ * Reels with no corresponding entry in `playerIdMap` are skipped (e.g. if a
+ * player did not re-join).
+ *
+ * @param reels       - All reels from the old lobby.
+ * @param newLobbyId  - Target lobby code.
+ * @param playerIdMap - Map from old player UUID → new player UUID.
+ */
+export function copyReelsToNewLobby(
+    reels:       Array<{ id: string; ownerId: string; instagramUrl: string }>,
+    newLobbyId:  string,
+    playerIdMap: Map<string, string>,
+): ResultAsync<void, ReelImportError> {
+    return ResultAsync.fromPromise(
+        (async () => {
+            if (reels.length === 0) return
+
+            const supabase = createServiceClient()
+
+            const rows = reels
+                .map((r) => {
+                    const newOwnerId = playerIdMap.get(r.ownerId)
+                    if (!newOwnerId) return null
+                    return {
+                        lobby_id:      newLobbyId,
+                        owner_id:      newOwnerId,
+                        instagram_url: r.instagramUrl,
+                        used:          false,
+                    }
+                })
+                .filter((r): r is NonNullable<typeof r> => r !== null)
+
+            if (rows.length === 0) return
+
+            const { error } = await supabase.from('reels').insert(rows)
+            if (error) throw { type: 'REEL_DATABASE_ERROR', message: error.message } satisfies ReelImportError
+        })(),
+        (e) => e as ReelImportError,
+    )
+}

@@ -13,6 +13,12 @@ export type GameSettings = {
     roundsCount:  number
     /** Seconds each player has to vote per round. */
     timerSeconds: number
+    /**
+     * Code of the rematch lobby created from this lobby.
+     * Set atomically when a rematch is created; used to de-duplicate concurrent
+     * rematch requests and to redirect all clients to the new lobby.
+     */
+    rematchId?: string
 }
 
 /** CamelCase representation of a `lobbies` table row, including joined players. */
@@ -34,7 +40,7 @@ export type LobbyRow = {
     id:         string
     host_id:    string
     status:     string
-    settings:   { rounds_count: number; timer_seconds: number }
+    settings:   { rounds_count: number; timer_seconds: number; rematch_id?: string }
     created_at: string
     players?:   PlayerRow[]
 }
@@ -52,6 +58,7 @@ export function mapLobbyRow(row: LobbyRow): Lobby {
         settings: {
             roundsCount:  row.settings.rounds_count,
             timerSeconds: row.settings.timer_seconds,
+            ...(row.settings.rematch_id ? { rematchId: row.settings.rematch_id } : {}),
         },
         players:   (row.players ?? []).map(mapPlayerRow),
         createdAt: new Date(row.created_at),
