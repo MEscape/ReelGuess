@@ -36,6 +36,7 @@ export function useGameRealtime(
     const [currentRound, setCurrentRound] = useState<Round | null>(null)
     const [voteCount,    setVoteCount]    = useState(initialVoteCount ?? 0)
     const [lobbyStatus,  setLobbyStatus]  = useState<string>('playing')
+    const [rematchId,    setRematchId]    = useState<string | null>(null)
 
     // Tracks the current round ID for the votes filter.
     // Updated whenever a new round starts via onRoundChange.
@@ -94,8 +95,16 @@ export function useGameRealtime(
                 'postgres_changes',
                 { event: 'UPDATE', schema: 'public', table: 'lobbies', filter: `id=eq.${lobbyId}` },
                 (payload) => {
-                    if (payload.new && typeof payload.new === 'object' && 'status' in payload.new) {
-                        setLobbyStatus((payload.new as { status: string }).status)
+                    if (payload.new && typeof payload.new === 'object') {
+                        if ('status' in payload.new) {
+                            setLobbyStatus((payload.new as { status: string }).status)
+                        }
+                        if ('settings' in payload.new) {
+                            const settings = (payload.new as { settings: Record<string, unknown> }).settings
+                            if (settings?.rematch_id && typeof settings.rematch_id === 'string') {
+                                setRematchId(settings.rematch_id)
+                            }
+                        }
                     }
                 },
             )
@@ -106,5 +115,5 @@ export function useGameRealtime(
 
     const resetVoteCount = useCallback(() => setVoteCount(0), [])
 
-    return { currentRound, voteCount, lobbyStatus, resetVoteCount, setCurrentRound }
+    return { currentRound, voteCount, lobbyStatus, rematchId, resetVoteCount, setCurrentRound }
 }

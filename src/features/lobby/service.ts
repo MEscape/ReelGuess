@@ -6,14 +6,17 @@
  * Dependency direction: actions.ts → service.ts → DAL
  */
 
-import { err, type Result }  from 'neverthrow'
+import { ok, err, type Result }  from 'neverthrow'
 import { getLobbyByCode }        from './queries'
 import {
     createLobby as createLobbyMutation,
     addPlayerToLobby,
     updateLobbyStatus,
+    createRematchLobby,
+    setRematchId,
 } from './mutations'
-import { getReelOwnersByLobby }  from '@/features/reel-import/queries'
+import { getReelOwnersByLobby, getAllReelsByLobby } from '@/features/reel-import/queries'
+import { copyReelsToNewLobby }   from '@/features/reel-import/mutations'
 import type { LobbyError }       from './errors'
 import type { Lobby }            from './types'
 import type { Player }           from '@/features/player/types'
@@ -126,4 +129,105 @@ export async function startGame(
     }
 
     return updateLobbyStatus(lobby.id, 'playing')
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// createRematch
+// ─────────────────────────────────────────────────────────────────────────────
+
+/**
+ * Creates a rematch lobby from a finished lobby, or returns the existing one
+ * if another player already triggered the rematch (idempotent).
+ *
+ * Business rules:
+ * - Requesting player must be a member of the old lobby.
+ * - If `settings.rematchId` is already set, look up the player's new ID in
+ *   the existing rematch lobby by display name (no second lobby created).
+ * - Otherwise: create a new lobby, copy all players + reels, then atomically
+ *   set `settings.rematch_id` on the old lobby to prevent duplicate creation.
+ *
+ * @param oldLobbyId          - Code of the finished lobby.
+ * @param requestingPlayerId  - The player who pressed "Rematch".
+ * @returns `{ newLobbyCode, newPlayerId }` — the player stores `newPlayerId`
+ *          under `newLobbyCode` in their local player store then navigates.
+ */
+export async function createRematch(
+    oldLobbyId:          string,
+    requestingPlayerId:  string,
+): Promise<Result<{ newLobbyCode: string; newPlayerId: string }, LobbyError>> {
+    // ── 1. Fetch old lobby ────────────────────────────────────────────────────
+    const oldLobbyResult = await getLobbyByCode(oldLobbyId)
+    if (oldLobbyResult.isErr()) return err(oldLobbyResult.error)
+
+    const oldLobby = oldLobbyResult.value
+
+    const requestingPlayer = oldLobby.players.find((p) => p.id === requestingPlayerId)
+    if (!requestingPlayer) {
+        return err({
+            type:    'LOBBY_VALIDATION_ERROR',
+            message: 'Player is not a member of this lobby.',
+            issues:  [],
+        })
+    }
+
+    // ── 2. Idempotency — rematch already created ──────────────────────────────
+    if (oldLobby.settings.rematchId) {
+        const newLobbyResult = await getLobbyByCode(oldLobby.settings.rematchId)
+        if (newLobbyResult.isOk()) {
+            const newPlayer = newLobbyResult.value.players.find(
+                (p) => p.displayName === requestingPlayer.displayName,
+            )
+            if (newPlayer) {
+                return ok({ newLobbyCode: oldLobby.settings.rematchId, newPlayerId: newPlayer.id })
+            }
+        }
+    }
+
+    // ── 3. Create rematch lobby with all players ──────────────────────────────
+    const rematchResult = await createRematchLobby(
+        oldLobby.players,
+        requestingPlayerId,
+        {
+            roundsCount:  oldLobby.settings.roundsCount,
+            timerSeconds: oldLobby.settings.timerSeconds,
+        },
+    )
+    if (rematchResult.isErr()) return err(rematchResult.error)
+
+    const { lobby: newLobby, playerIdMap, newPlayerId } = rematchResult.value
+
+    // ── 4. Copy reels from old lobby → new lobby ──────────────────────────────
+    const reelsResult = await getAllReelsByLobby(oldLobbyId)
+    if (reelsResult.isOk() && reelsResult.value.length > 0) {
+        // Non-fatal — a rematch without reels still works (host can import new ones)
+        await copyReelsToNewLobby(reelsResult.value, newLobby.id, playerIdMap)
+    }
+
+    // ── 5. Atomically mark old lobby with new lobby code ──────────────────────
+    // If two players pressed rematch simultaneously, only one wins the
+    // conditional UPDATE (WHERE rematch_id IS NULL). The losing player's
+    // newly-created lobby becomes a short-lived orphan.
+    const setResult = await setRematchId(oldLobbyId, newLobby.id)
+    if (setResult.isErr()) {
+        // Non-fatal — the lobby was created; just proceed.
+    } else if (!setResult.value) {
+        // Another caller won the race — find the existing rematch lobby
+        const latestOldLobby = await getLobbyByCode(oldLobbyId)
+        if (latestOldLobby.isOk() && latestOldLobby.value.settings.rematchId) {
+            const existingNewLobby = await getLobbyByCode(latestOldLobby.value.settings.rematchId)
+            if (existingNewLobby.isOk()) {
+                const existingPlayer = existingNewLobby.value.players.find(
+                    (p) => p.displayName === requestingPlayer.displayName,
+                )
+                if (existingPlayer) {
+                    return ok({
+                        newLobbyCode: latestOldLobby.value.settings.rematchId,
+                        newPlayerId:  existingPlayer.id,
+                    })
+                }
+            }
+        }
+    }
+
+    return ok({ newLobbyCode: newLobby.id, newPlayerId })
 }

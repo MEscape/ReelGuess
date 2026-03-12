@@ -10,7 +10,7 @@
  */
 
 import { CreateLobbySchema, JoinLobbySchema } from './validations'
-import { createLobbyWithHost, joinLobby, startGame } from './service'
+import { createLobbyWithHost, joinLobby, startGame, createRematch } from './service'
 import type { LobbyError }       from './errors'
 import type { SerializedResult } from '@/lib/errors/error-handler'
 import { serializeResult }       from '@/lib/errors/error-handler'
@@ -98,4 +98,33 @@ export async function startGameAction(
     }
 
     return serializeResult(await startGame(lobbyCode, hostPlayerId))
+}
+// ─────────────────────────────────────────────────────────────────────────────
+// createRematchAction
+// ─────────────────────────────────────────────────────────────────────────────
+
+/**
+ * Creates a rematch lobby from a finished lobby, or returns the existing one
+ * if another player already triggered it (idempotent).
+ *
+ * Rate limited per player: 5 rematch requests per minute.
+ *
+ * @param oldLobbyId         - Code of the finished lobby.
+ * @param requestingPlayerId - The player pressing "Rematch".
+ * @returns `{ newLobbyCode, newPlayerId }` — the client stores the new player
+ *          ID and navigates to the new lobby.
+ */
+export async function createRematchAction(
+    oldLobbyId:          string,
+    requestingPlayerId:  string,
+): Promise<SerializedResult<{ newLobbyCode: string; newPlayerId: string }, LobbyError>> {
+    const rl = await rateLimitFromIP('rematch', requestingPlayerId)
+    if (!rl.success) {
+        return {
+            ok:    false,
+            error: { type: 'LOBBY_VALIDATION_ERROR', message: 'Too many rematch requests. Please wait.', issues: [] },
+        }
+    }
+
+    return serializeResult(await createRematch(oldLobbyId, requestingPlayerId))
 }

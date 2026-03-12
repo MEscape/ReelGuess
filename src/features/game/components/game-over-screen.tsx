@@ -1,7 +1,8 @@
 'use client'
 
-import { motion }    from 'framer-motion'
-import { Scoreboard } from './scoreboard'
+import { motion }          from 'framer-motion'
+import { Leaderboard }     from './leaderboard'
+import { RematchButton }   from './rematch-button'
 import type { ScoreEntry } from '../types'
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -9,7 +10,14 @@ import type { ScoreEntry } from '../types'
 // ─────────────────────────────────────────────────────────────────────────────
 
 type GameOverScreenProps = {
-    scores: ScoreEntry[]
+    scores:          ScoreEntry[]
+    lobbyId:         string
+    currentPlayerId: string
+    /**
+     * If another player already triggered a rematch (detected via Realtime),
+     * pass the new lobby code here so this player can join with one click.
+     */
+    rematchId?:      string | null
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -19,9 +27,10 @@ type GameOverScreenProps = {
 /**
  * Full-bleed GAME OVER screen shown when `lobbyStatus` transitions to `finished`.
  *
- * Renders a trophy hero followed by the final {@link Scoreboard}.
+ * Renders a trophy hero, the final {@link Leaderboard}, and a
+ * {@link RematchButton} for starting a new game with the same players.
  */
-export function GameOverScreen({ scores }: GameOverScreenProps) {
+export function GameOverScreen({ scores, lobbyId, currentPlayerId, rematchId }: GameOverScreenProps) {
     return (
         <div className="flex flex-col items-center gap-6 p-4 w-full max-w-lg mx-auto">
 
@@ -79,16 +88,51 @@ export function GameOverScreen({ scores }: GameOverScreenProps) {
                 >
                     OVER
                 </p>
+
+                {/* Winner callout */}
+                {scores.length > 0 && (
+                    <motion.p
+                        initial={{ opacity: 0, y: 8 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ delay: 0.5 }}
+                        className="relative font-display uppercase"
+                        style={{
+                            fontSize:      'var(--text-body-sm)',
+                            letterSpacing: 'var(--tracking-label)',
+                            color:         'var(--color-muted)',
+                            marginTop:     'var(--space-4)',
+                        }}
+                    >
+                        Winner:{' '}
+                        <span style={{ color: 'var(--color-accent)' }}>
+                            {[...scores].sort((a, b) => b.points - a.points)[0].displayName}
+                        </span>
+                    </motion.p>
+                )}
             </motion.div>
 
-            {/* ── Final scoreboard ────────────────────────────────── */}
+            {/* ── Final leaderboard ────────────────────────────────── */}
             <motion.div
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: 0.4 }}
+                transition={{ delay: 0.35 }}
                 className="w-full"
             >
-                <Scoreboard scores={scores} isFinal />
+                <Leaderboard scores={scores} />
+            </motion.div>
+
+            {/* ── Rematch ──────────────────────────────────────────── */}
+            <motion.div
+                initial={{ opacity: 0, y: 12 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.55 }}
+                className="w-full"
+            >
+                <RematchButton
+                    lobbyId={lobbyId}
+                    currentPlayerId={currentPlayerId}
+                    rematchId={rematchId}
+                />
             </motion.div>
         </div>
     )

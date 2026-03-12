@@ -94,7 +94,6 @@ export function GameBoard({
     // Live player list — updated via Realtime when players join/leave.
     // Uses the same hook as the lobby page so mid-game joins are reflected.
     const livePlayers = usePlayers(lobby.id, lobby.players)
-
     // ── Round change handler ──────────────────────────────────────────────────
 
     const handleRoundChange = useCallback(async (round: Round) => {
@@ -159,7 +158,7 @@ export function GameBoard({
 
     // ── Realtime ──────────────────────────────────────────────────────────────
 
-    const { currentRound, voteCount, lobbyStatus, resetVoteCount } = useGameRealtime(
+    const { currentRound, voteCount, lobbyStatus, rematchId, resetVoteCount } = useGameRealtime(
         lobby.id,
         handleRoundChange,
         initialRound?.id ?? null,
@@ -283,7 +282,14 @@ export function GameBoard({
     // ── Render ───────────────────────────────────────────────────────────────
 
     if (phase === 'finished') {
-        return <GameOverScreen scores={scores} />
+        return (
+            <GameOverScreen
+                scores={scores}
+                lobbyId={lobby.id}
+                currentPlayerId={currentPlayerId}
+                rematchId={rematchId}
+            />
+        )
     }
 
     return (
