@@ -52,11 +52,24 @@ export function getVotesForRound(roundId: string): ResultAsync<Vote[], GameError
     return ResultAsync.fromPromise(
         (async () => {
             const supabase = await createClient()
-            // Select only required columns — avoids transferring submitted_at unnecessarily
+
             const { data, error } = await supabase
                 .from('votes')
-                .select('id, round_id, voter_id, voted_for_id, is_correct')
+                .select('id, round_id, voter_id, voted_for_id, is_correct, vote_time_ms, used_double, points_awarded')
                 .eq('round_id', roundId)
+
+            // PostgreSQL error 42703 = "undefined_column".
+            // Happens when the scoring migration (20260312120004) hasn't been
+            // applied yet.  Fall back to the original column set so reads still work.
+            if (error?.code === '42703') {
+                const { data: fallbackData, error: fallbackError } = await supabase
+                    .from('votes')
+                    .select('id, round_id, voter_id, voted_for_id, is_correct')
+                    .eq('round_id', roundId)
+
+                if (fallbackError) throw { type: 'GAME_DATABASE_ERROR', message: fallbackError.message } satisfies GameError
+                return (fallbackData as unknown as VoteRow[]).map(mapVoteRow)
+            }
 
             if (error) throw { type: 'GAME_DATABASE_ERROR', message: error.message } satisfies GameError
             return (data as unknown as VoteRow[]).map(mapVoteRow)

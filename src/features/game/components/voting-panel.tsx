@@ -4,6 +4,8 @@ import { memo } from 'react'
 import { motion } from 'framer-motion'
 import { PlayerAvatar } from '@/features/player/components/PlayerAvatar'
 import { ErrorMessage, Card } from '@/components/ui'
+import { DoubleButton } from '@/features/scoring/components/DoubleButton'
+import { StreakIndicator } from '@/features/scoring/components/StreakIndicator'
 import type { Player } from '@/features/player/types'
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -11,11 +13,17 @@ import type { Player } from '@/features/player/types'
 // ─────────────────────────────────────────────────────────────────────────────
 
 type VotingPanelProps = {
-    players:   Player[]
-    onVote:    (votedForId: string) => void
-    hasVoted:  boolean
-    isPending: boolean
-    error:     string | null
+    players:     Player[]
+    onVote:      (votedForId: string) => void
+    hasVoted:    boolean
+    isPending:   boolean
+    error:       string | null
+    /** The current round ID — needed for the Double-or-Nothing action. */
+    roundId:     string
+    /** Current player's ID — needed for the Double-or-Nothing action. */
+    currentPlayerId: string
+    /** Current player's active streak — shown when hasVoted. */
+    currentStreak:   number
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -27,7 +35,7 @@ type VotingPanelProps = {
  *
  * - Full-height vote buttons with avatar + name
  * - Staggered entrance animation
- * - Voted state: large confirmation lockout card
+ * - Voted state: large confirmation lockout card + DoubleButton + StreakIndicator
  * - No roundness — pure brutalist geometry
  */
 export const VotingPanel = memo(function VotingPanel({
@@ -36,67 +44,85 @@ export const VotingPanel = memo(function VotingPanel({
                                                          hasVoted,
                                                          isPending,
                                                          error,
+                                                         roundId,
+                                                         currentPlayerId,
+                                                         currentStreak,
                                                      }: VotingPanelProps) {
     // ── Voted confirmation ─────────────────────────────────────────────────
     if (hasVoted) {
         return (
-            <motion.div
-                initial={{ scale: 0.95, opacity: 0 }}
-                animate={{ scale: 1, opacity: 1 }}
-                transition={{ type: 'spring', stiffness: 300, damping: 20 }}
-                className="pb-4"
-            >
-                <Card
-                    variant="brutal"
-                    stripe
-                    className="flex flex-col items-center justify-center py-10 px-6 gap-4"
+            <div className="pb-4 space-y-3">
+                <motion.div
+                    initial={{ scale: 0.95, opacity: 0 }}
+                    animate={{ scale: 1, opacity: 1 }}
+                    transition={{ type: 'spring', stiffness: 300, damping: 20 }}
                 >
-                    {/* Big checkmark */}
-                    <div
-                        className="flex items-center justify-center"
-                        style={{
-                            width:        '4rem',
-                            height:       '4rem',
-                            background:   'var(--color-success-bg)',
-                            border:       '3px solid var(--color-success)',
-                            boxShadow:    'var(--shadow-brutal-success)',
-                        }}
+                    <Card
+                        variant="brutal"
+                        stripe
+                        className="flex flex-col items-center justify-center py-10 px-6 gap-4"
                     >
-                        <span
-                            className="font-display"
+                        {/* Big checkmark */}
+                        <div
+                            className="flex items-center justify-center"
                             style={{
-                                fontSize: '2rem',
-                                color:    'var(--color-success)',
-                                lineHeight: 1,
+                                width:        '4rem',
+                                height:       '4rem',
+                                background:   'var(--color-success-bg)',
+                                border:       '3px solid var(--color-success)',
+                                boxShadow:    'var(--shadow-brutal-success)',
                             }}
                         >
-                            ✓
-                        </span>
-                    </div>
+                            <span
+                                className="font-display"
+                                style={{
+                                    fontSize: '2rem',
+                                    color:    'var(--color-success)',
+                                    lineHeight: 1,
+                                }}
+                            >
+                                ✓
+                            </span>
+                        </div>
 
-                    <div className="text-center space-y-1">
-                        <p
-                            className="font-display uppercase"
-                            style={{
-                                fontSize:      'var(--text-title)',
-                                letterSpacing: 'var(--tracking-display)',
-                                color:         'var(--color-accent)',
-                            }}
-                        >
-                            VOTE LOCKED
-                        </p>
-                        <p
-                            className="font-sans"
-                            style={{
-                                fontSize: 'var(--text-body-sm)',
-                                color:    'var(--color-muted)',
-                            }}
-                        >
-                            Waiting for others to vote…
-                        </p>
-                    </div>
-                </Card>
-            </motion.div>
+                        <div className="text-center space-y-2">
+                            <p
+                                className="font-display uppercase"
+                                style={{
+                                    fontSize:      'var(--text-title)',
+                                    letterSpacing: 'var(--tracking-display)',
+                                    color:         'var(--color-accent)',
+                                }}
+                            >
+                                VOTE LOCKED
+                            </p>
+                            <p
+                                className="font-sans"
+                                style={{
+                                    fontSize: 'var(--text-body-sm)',
+                                    color:    'var(--color-muted)',
+                                }}
+                            >
+                                Waiting for others to vote…
+                            </p>
+
+                            {/* Streak indicator */}
+                            {currentStreak > 0 && (
+                                <div className="flex justify-center pt-1">
+                                    <StreakIndicator streak={currentStreak} size="md" />
+                                </div>
+                            )}
+                        </div>
+                    </Card>
+                </motion.div>
+
+                {/* Double-or-Nothing button */}
+                <DoubleButton
+                    roundId={roundId}
+                    voterId={currentPlayerId}
+                    onDoubled={() => {/* parent notified via button's internal state */}}
+                />
+            </div>
         )
     }
 

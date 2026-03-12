@@ -4,6 +4,7 @@ import { useEffect, useState, useRef, useMemo, startTransition } from 'react'
 import { motion } from 'framer-motion'
 import { PlayerAvatar } from '@/features/player/components/PlayerAvatar'
 import { Card, Badge, ProgressBar } from '@/components/ui'
+import { HeroOverlay } from '@/features/scoring/components/HeroOverlay'
 import type { RoundReveal } from '../types'
 import type { Player }      from '@/features/player/types'
 
@@ -85,6 +86,9 @@ export function RevealScreen({ reveal, players, isHost, onRevealCompleteAction }
 
     return (
         <div className="w-full space-y-4">
+
+            {/* ── Hero achievement overlays ────────────────────────── */}
+            <HeroOverlay achievements={reveal.achievements} />
 
             {/* ── CORRECT ANSWER HERO ─────────────────────────────── */}
             <motion.div
@@ -295,7 +299,31 @@ export function RevealScreen({ reveal, players, isHost, onRevealCompleteAction }
                                             color:         'var(--color-success)',
                                         }}
                                     >
-                                        +100
+                                        +{vote.pointsAwarded ?? 100}
+                                    </span>
+                                )}
+                                {!vote.isCorrect && vote.pointsAwarded !== null && vote.pointsAwarded < 0 && (
+                                    <span
+                                        className="font-display shrink-0"
+                                        style={{
+                                            fontSize:      'var(--text-ui)',
+                                            letterSpacing: 'var(--tracking-display)',
+                                            color:         'var(--color-danger)',
+                                        }}
+                                    >
+                                        {vote.pointsAwarded}
+                                    </span>
+                                )}
+                                {vote.usedDouble && (
+                                    <span
+                                        className="font-display shrink-0"
+                                        style={{
+                                            fontSize: 'var(--text-label-xs)',
+                                            color:    'var(--color-accent)',
+                                        }}
+                                        title="Double-or-Nothing activated"
+                                    >
+                                        ⚡
                                     </span>
                                 )}
                             </motion.div>

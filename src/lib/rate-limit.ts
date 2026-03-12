@@ -33,6 +33,7 @@ export type ActionType =
     | 'joinLobby'
     | 'startGame'
     | 'submitVote'
+    | 'submitDouble'
     | 'importReels'
     | 'startRound'
     | 'revealRound'
@@ -49,6 +50,7 @@ export type ActionType =
  * | joinLobby    | 1 min  | 10  | Allow retries; block brute-force code guessing|
  * | startGame    | 1 min  | 5   | Host-only; prevents re-trigger spam          |
  * | submitVote   | 1 min  | 20  | 1 vote/round + generous retry budget         |
+ * | submitDouble | 1 min  | 10  | 1 double/round; prevent exploit spam         |
  * | importReels  | 1 hour | 5   | File processing is expensive                 |
  * | startRound   | 1 min  | 20  | Host-only; prevents rapid-start abuse        |
  * | revealRound  | 1 min  | 20  | Host-only; prevents rapid-reveal abuse       |
@@ -60,6 +62,7 @@ const LIMITS: Record<ActionType, { window: `${number} ${'s' | 'm' | 'h' | 'd'}`;
     joinLobby:     { window: '1 m',  limit: 10 },
     startGame:     { window: '1 m',  limit: 5  },
     submitVote:    { window: '1 m',  limit: 20 },
+    submitDouble:  { window: '1 m',  limit: 10 },
     importReels:   { window: '1 h',  limit: 5  },
     startRound:    { window: '1 m',  limit: 20 },
     revealRound:   { window: '1 m',  limit: 20 },
