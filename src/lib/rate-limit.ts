@@ -38,6 +38,7 @@ export type ActionType =
     | 'revealRound'
     | 'completeRound'
     | 'rematch'
+    | 'submitReaction'
 
 /**
  * Per-action limits using sliding window strategy.
@@ -64,6 +65,7 @@ const LIMITS: Record<ActionType, { window: `${number} ${'s' | 'm' | 'h' | 'd'}`;
     revealRound:   { window: '1 m',  limit: 20 },
     completeRound: { window: '1 m',  limit: 20 },
     rematch:       { window: '1 m',  limit: 5  },
+    submitReaction:  { window: '10 s', limit: 10 },
 }
 
 // ─────────────────────────────────────────────────────────────────────────────

@@ -17,6 +17,7 @@ import { useGameState }       from '../hooks/use-game-state'
 import { useScores }          from '../hooks/use-scores'
 import { useReelData }        from '../hooks/use-reel-data'
 import { usePlayers }         from '@/features/lobby/hooks/use-players'
+import { ReactionBar }        from '@/features/reactions/components/ReactionBar'
 import { revealRoundAction, completeRoundAction, getCurrentRoundAction } from '../actions'
 
 import { gameKeys }           from '@/lib/query-keys'
@@ -365,6 +366,12 @@ export function GameBoard({
                             isHost={isHost}
                             onRevealCompleteAction={() => completeRoundAction(activeRound!.id)}
                         />
+                        <div className="mt-4">
+                            <ReactionBar
+                                lobbyId={lobby.id}
+                                playerId={currentPlayerId}
+                            />
+                        </div>
                     </motion.div>
                 )}
 
