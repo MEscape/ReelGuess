@@ -2,51 +2,56 @@ import type { NextConfig } from "next";
 
 /**
  * Next.js configuration with security headers and bundle optimization.
- *
- * WHY:
- * - Security headers prevent common web attacks (XSS, clickjacking, MIME sniffing)
- * - Bundle analyzer helps identify optimization opportunities
- * - Image optimization for Instagram embed thumbnails
  */
 const nextConfig: NextConfig = {
-  // Strict React mode catches common bugs during development
   reactStrictMode: true,
 
-  // Security headers for production
   async headers() {
     return [
       {
         source: "/(.*)",
         headers: [
-          // Prevents clickjacking — only allow our own frames
           { key: "X-Frame-Options", value: "SAMEORIGIN" },
-          // Prevents MIME-type sniffing attacks
           { key: "X-Content-Type-Options", value: "nosniff" },
-          // Controls referrer information sent with requests
           { key: "Referrer-Policy", value: "strict-origin-when-cross-origin" },
-          // Disables browser features we don't need — reduces attack surface
           {
             key: "Permissions-Policy",
-            value: "camera=(), microphone=(), geolocation=()",
+            value: "camera=(), microphone=(), geolocation=(), unload=()",
+          },
+          /**
+           * Content-Security-Policy
+           *
+           * frame-src MUST include instagram.com or reel embeds are blocked
+           * by the browser before even reaching our iframe error handlers.
+           */
+          {
+            key: "Content-Security-Policy",
+            value: [
+              "default-src 'self'",
+              "script-src 'self' 'unsafe-inline' https://www.instagram.com",
+              "style-src 'self' 'unsafe-inline'",
+              "img-src 'self' data: blob: https://*.cdninstagram.com https://www.instagram.com",
+              "font-src 'self'",
+              "connect-src 'self' https://*.supabase.co wss://*.supabase.co https://precious-sawfly-68348.upstash.io",
+              "frame-src https://www.instagram.com https://instagram.com",
+              "child-src https://www.instagram.com https://instagram.com",
+              "media-src 'self' https://*.cdninstagram.com",
+            ].join("; "),
           },
         ],
       },
     ];
   },
 
-  // Allow Instagram embed images
   images: {
     remotePatterns: [
-      {
-        protocol: "https",
-        hostname: "*.cdninstagram.com",
-      },
+      { protocol: "https", hostname: "*.cdninstagram.com" },
+      { protocol: "https", hostname: "www.instagram.com" },
     ],
   },
 
-  // Experimental: optimize package imports for smaller bundles
   experimental: {
-    optimizePackageImports: ["lucide-react", "framer-motion"],
+    optimizePackageImports: ["framer-motion"],
   },
 };
 

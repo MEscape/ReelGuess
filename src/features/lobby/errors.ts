@@ -1,8 +1,6 @@
 import type { Result } from 'neverthrow'
 
-/**
- * All errors that can be returned by lobby service / DAL operations.
- */
+/** All errors that can be returned by lobby service / DAL operations. */
 export type LobbyError =
     | { type: 'LOBBY_NOT_FOUND';        code: string }
     | { type: 'LOBBY_FULL';             maxPlayers: number }

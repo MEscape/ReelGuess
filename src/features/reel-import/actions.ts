@@ -1,48 +1,51 @@
 'use server'
 
 /**
- * Reel Import — Server Actions (thin controllers).
+ * Reel Import — Server Actions.
  *
- * Dependency direction:  actions.ts → service.ts → DAL
+ * The client-side import action (`importReelsAction`) has been removed.
+ * Reel import is now fully local (localStorage). The only server action
+ * remaining is called by the lobby-join flow to persist the player's
+ * selected reels for a game session.
+ *
+ * Dependency direction: lobby-join action → importReelsForPlayer (service) → DAL
  */
 
-import { ImportReelsSchema }       from './validations'
-import type { ReelImportError }    from './errors'
-import { importReelsForPlayer }    from './service'
-import type { SerializedResult }   from '@/lib/errors/error-handler'
-import { serializeResult }         from '@/lib/errors/error-handler'
-import type { Reel }               from './types'
-import { getReelsByPlayer }        from './queries'
-import { rateLimitFromIP }         from '@/lib/rate-limit'
-
-// ─────────────────────────────────────────────────────────────────────────────
-// Actions
-// ─────────────────────────────────────────────────────────────────────────────
+import { importReelsForPlayer }  from './service'
+import { selectGameReels }       from './utils/parse-export'
+import {MAX_REELS, SubmitReelsSchema} from './validations'
+import { rateLimitFromIP }       from '@/lib/rate-limit'
+import { serializeResult }       from '@/lib/errors/error-handler'
+import type { SerializedResult } from '@/lib/errors/error-handler'
+import type { ReelImportError }  from './errors'
+import type { Reel, LocalReel }  from './types'
 
 /**
- * Validates and persists a player's reel import.
+ * Called when a player joins a lobby — persists their randomly selected reels
+ * for the game session.
  *
- * Validates FormData with {@link ImportReelsSchema}:
- * - `lobbyId`  — 6-char lobby code
- * - `playerId` — UUID
- * - `reelUrls` — JSON-encoded string array (min {@link MIN_REELS}, max {@link MAX_REELS})
+ * Flow:
+ * 1. Rate-limit by IP (with playerId as tiebreaker).
+ * 2. Validate payload.
+ * 3. Randomly select up to MAX_REELS from the submitted pool (server-side shuffle).
+ * 4. Persist via service (idempotent — safe to call twice).
  *
- * Returns `REELS_ALREADY_IMPORTED` when the player has already imported —
- * the hook treats this as a non-fatal transition to the success state.
+ * @param formData - Must contain `lobbyId`, `playerId`, `reelUrls` (JSON array).
  */
-export async function importReelsAction(
+export async function submitReelsOnJoinAction(
     formData: FormData,
 ): Promise<SerializedResult<Reel[], ReelImportError>> {
     const playerId = formData.get('playerId') as string | null
+
     const rl = await rateLimitFromIP('importReels', playerId ?? undefined)
     if (!rl.success) {
         return {
             ok:    false,
-            error: { type: 'INVALID_PAYLOAD', message: 'Too many import attempts. Please wait an hour.' },
+            error: { type: 'INVALID_PAYLOAD', message: 'Too many attempts. Please wait and try again.' },
         }
     }
 
-    const parsed = ImportReelsSchema.safeParse({
+    const parsed = SubmitReelsSchema.safeParse({
         lobbyId:  formData.get('lobbyId'),
         playerId: formData.get('playerId'),
         reelUrls: JSON.parse((formData.get('reelUrls') as string) || '[]'),
@@ -58,29 +61,17 @@ export async function importReelsAction(
         }
     }
 
+    // Server-side random selection — client cannot influence which reels enter
+    const localReels: LocalReel[] = parsed.data.reelUrls.map((url) => ({
+        url,
+        importedAt: Date.now(),
+    }))
+    const selectedUrls = selectGameReels(localReels, MAX_REELS)
+
     const result = await importReelsForPlayer(
         parsed.data.lobbyId,
         parsed.data.playerId,
-        parsed.data.reelUrls,
+        selectedUrls,
     )
     return serializeResult(result)
-}
-
-/**
- * Returns how many reels a player has already imported for a lobby.
- * Used by the lobby page to show import status per player.
- *
- * @param lobbyId  - Target lobby.
- * @param playerId - Player to check.
- */
-export async function getImportStatusAction(
-    lobbyId: string,
-    playerId: string,
-): Promise<SerializedResult<{ count: number; hasImported: boolean }, ReelImportError>> {
-    const result = await getReelsByPlayer(lobbyId, playerId)
-    if (result.isErr()) return { ok: false, error: result.error }
-    return {
-        ok:    true,
-        value: { count: result.value.length, hasImported: result.value.length > 0 },
-    }
 }

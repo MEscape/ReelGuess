@@ -1,30 +1,30 @@
-import { ResultAsync } from 'neverthrow'
-import { createClient } from '@/lib/supabase/server'
+import { ResultAsync }                  from 'neverthrow'
+import { createServiceClient }         from '@/lib/supabase/service'
+import { mapRoundRow, mapVoteRow }     from './types'
 import type { Round, RoundRow, Vote, VoteRow, RoundStatus } from './types'
-import { mapRoundRow, mapVoteRow } from './types'
-import type { GameError } from './errors'
+import type { GameError }              from './errors'
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Rounds
 // ─────────────────────────────────────────────────────────────────────────────
 
 /**
- * Inserts a new round row.
+ * Inserts a new round row with status `voting`.
  *
- * @param lobbyId        - Lobby the round belongs to.
- * @param roundNumber    - 1-based sequence number within the lobby.
- * @param reelId         - The reel that will be shown this round.
+ * @param lobbyId         - Lobby the round belongs to.
+ * @param roundNumber     - 1-based sequence number within the lobby.
+ * @param reelId          - The reel that will be shown this round.
  * @param correctPlayerId - The player who liked this reel (the answer).
  */
 export function createRound(
-    lobbyId: string,
-    roundNumber: number,
-    reelId: string,
+    lobbyId:         string,
+    roundNumber:     number,
+    reelId:          string,
     correctPlayerId: string,
 ): ResultAsync<Round, GameError> {
     return ResultAsync.fromPromise(
         (async () => {
-            const supabase = await createClient()
+            const supabase = createServiceClient()
             const { data, error } = await supabase
                 .from('rounds')
                 .insert({
@@ -38,7 +38,10 @@ export function createRound(
                 .single()
 
             if (error || !data) {
-                throw { type: 'GAME_DATABASE_ERROR', message: error?.message ?? 'Failed to create round' } satisfies GameError
+                throw {
+                    type:    'GAME_DATABASE_ERROR',
+                    message: error?.message ?? 'Failed to create round',
+                } satisfies GameError
             }
             return mapRoundRow(data as unknown as RoundRow)
         })(),
@@ -47,27 +50,43 @@ export function createRound(
 }
 
 /**
- * Updates the status of a round, optionally recording the reveal timestamp.
+ * Updates the status of a round using a **predicated UPDATE** that only
+ * succeeds when the current status allows the transition.
+ *
+ * - `voting   → reveal`   : only when status IS `voting`   (prevents double-reveal)
+ * - `reveal   → complete` : only when status IS `reveal`
+ * - Any other transition  : unconditional (e.g. emergency resets)
+ *
+ * If the predicate fails (row already transitioned by another caller) the
+ * function returns `ok(void)` — the transition is treated as idempotent.
  *
  * @param roundId - Target round.
  * @param status  - New status to transition to.
  */
 export function updateRoundStatus(
     roundId: string,
-    status: RoundStatus,
+    status:  RoundStatus,
 ): ResultAsync<void, GameError> {
     return ResultAsync.fromPromise(
         (async () => {
-            const supabase = await createClient()
+            const supabase = createServiceClient()
             const update: Record<string, unknown> = { status }
             if (status === 'reveal') update.revealed_at = new Date().toISOString()
 
-            const { error } = await supabase
+            let query = supabase
                 .from('rounds')
                 .update(update)
                 .eq('id', roundId)
 
+            // Predicated transition — only one concurrent caller can win
+            if (status === 'reveal')   query = query.eq('status', 'voting')
+            if (status === 'complete') query = query.eq('status', 'reveal')
+
+            const { error } = await query
+
             if (error) throw { type: 'GAME_DATABASE_ERROR', message: error.message } satisfies GameError
+            // If no row was updated (predicate failed), a concurrent caller already
+            // transitioned — treat as idempotent success.
         })(),
         (e) => e as GameError,
     )
@@ -80,8 +99,8 @@ export function updateRoundStatus(
 /**
  * Inserts a player's vote.
  *
- * `isCorrect` is passed explicitly — the DB trigger was removed in the latest
- * migration and correctness is now computed in the service layer.
+ * `isCorrect` is passed explicitly — the DB trigger was removed and correctness
+ * is now computed in the service layer.
  *
  * @param roundId    - The round being voted on.
  * @param voterId    - Player casting the vote.
@@ -89,22 +108,30 @@ export function updateRoundStatus(
  * @param isCorrect  - Whether `votedForId === round.correctPlayerId`.
  */
 export function insertVote(
-    roundId: string,
-    voterId: string,
+    roundId:    string,
+    voterId:    string,
     votedForId: string,
-    isCorrect: boolean,
+    isCorrect:  boolean,
 ): ResultAsync<Vote, GameError> {
     return ResultAsync.fromPromise(
         (async () => {
-            const supabase = await createClient()
+            const supabase = createServiceClient()
             const { data, error } = await supabase
                 .from('votes')
-                .insert({ round_id: roundId, voter_id: voterId, voted_for_id: votedForId, is_correct: isCorrect })
+                .insert({
+                    round_id:     roundId,
+                    voter_id:     voterId,
+                    voted_for_id: votedForId,
+                    is_correct:   isCorrect,
+                })
                 .select()
                 .single()
 
             if (error || !data) {
-                throw { type: 'GAME_DATABASE_ERROR', message: error?.message ?? 'Failed to insert vote' } satisfies GameError
+                throw {
+                    type:    'GAME_DATABASE_ERROR',
+                    message: error?.message ?? 'Failed to insert vote',
+                } satisfies GameError
             }
             return mapVoteRow(data as unknown as VoteRow)
         })(),
@@ -117,10 +144,8 @@ export function insertVote(
 // ─────────────────────────────────────────────────────────────────────────────
 
 /**
- * Batch-upserts scores for a set of votes in a single DB round-trip.
- *
- * This replaces the previous N+1 implementation that did one SELECT + one
- * UPDATE per vote (16 queries for 8 players → now 2 queries total).
+ * Batch-upserts scores for a set of votes in 2 DB round-trips total,
+ * regardless of player count.
  *
  * Algorithm:
  *  1. Load all existing scores for the relevant player IDs in one query.
@@ -135,14 +160,14 @@ export function insertVote(
  * @param lobbyId - The lobby these scores belong to.
  */
 export function batchUpsertScores(
-    votes: Array<{ voterId: string; isCorrect: boolean }>,
-    lobbyId: string,
+    votes:    Array<{ voterId: string; isCorrect: boolean }>,
+    lobbyId:  string,
 ): ResultAsync<void, GameError> {
     return ResultAsync.fromPromise(
         (async () => {
             if (votes.length === 0) return
 
-            const supabase = await createClient()
+            const supabase = createServiceClient()
             const voterIds = votes.map((v) => v.voterId)
 
             // 1. Fetch all current scores in one query
@@ -153,10 +178,13 @@ export function batchUpsertScores(
                 .in('player_id', voterIds)
 
             const scoreMap = new Map(
-                (existing ?? []).map((s) => [s.player_id, s as { player_id: string; points: number; streak: number }]),
+                (existing ?? []).map((s) => [
+                    s.player_id,
+                    s as { player_id: string; points: number; streak: number },
+                ]),
             )
 
-            // 2. Compute new values in memory — zero DB calls
+            // 2. Compute new values in memory — zero extra DB calls
             const upserts = votes.map((vote) => {
                 const prev = scoreMap.get(vote.voterId)
                 if (vote.isCorrect) {

@@ -1,14 +1,15 @@
 /**
- * Characters used for lobby codes.
- * Ambiguous characters (0/O, 1/I, L) are excluded to prevent read errors.
+ * Lobby code generation and validation utilities.
+ *
+ * Ambiguous characters (0/O, 1/I, L) are excluded to prevent read errors
+ * when codes are shared verbally or written by hand.
  */
+
 const SAFE_CHARS = 'ABCDEFGHJKMNPQRSTUVWXYZ23456789'
 
 /**
  * Generates a random 6-character lobby code.
- *
- * Codes are URL-safe, uppercase and easy to read aloud — ambiguous characters
- * (0/O, 1/I, L) are excluded.
+ * URL-safe, uppercase, easy to read aloud.
  */
 export function generateLobbyCode(): string {
     let code = ''
@@ -16,11 +17,4 @@ export function generateLobbyCode(): string {
         code += SAFE_CHARS[Math.floor(Math.random() * SAFE_CHARS.length)]
     }
     return code
-}
-
-/**
- * Returns `true` if `code` is a valid 6-character uppercase alphanumeric code.
- */
-export function isValidLobbyCode(code: string): boolean {
-    return /^[A-Z0-9]{6}$/.test(code)
 }

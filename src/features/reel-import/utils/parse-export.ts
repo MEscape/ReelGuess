@@ -1,11 +1,12 @@
 /**
  * Instagram data-export parsing utilities.
  *
- * Extracted from ImportFlow.tsx so parsing logic is independently testable
- * without mounting a React component.
+ * Extracted from import-flow so parsing logic is independently testable
+ * without mounting any React component.
  */
 
-import { MAX_REELS } from '../validations'
+import { MAX_REELS }  from '../validations'
+import type { LocalReel } from '../types'
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Type guards
@@ -14,8 +15,8 @@ import { MAX_REELS } from '../validations'
 /**
  * Returns `true` if the parsed JSON looks like an Instagram `liked_posts.json`.
  *
- * The file is an array of objects, each having a `label_values` array.
- * This is a lightweight shape-check — not a full schema validation.
+ * The file is an array of objects each having a `label_values` array.
+ * Lightweight shape-check — not a full schema validation.
  */
 export function isLikedPostsJson(json: unknown): boolean {
     if (!Array.isArray(json) || json.length === 0) return false
@@ -39,17 +40,17 @@ const REEL_URL_RE = /https?:\/\/(?:www\.)?instagram\.com\/reel\/[A-Za-z0-9_-]+/
  * Extracts and shuffles Instagram Reel URLs from a `liked_posts.json` export.
  *
  * Steps:
- * 1. Walk every `label_values` entry looking for `{ label: "URL", href: "…/reel/…" }`.
+ * 1. Walk every `label_values` entry for `{ label: "URL", href: "…/reel/…" }`.
  * 2. Deduplicate via a Set.
  * 3. Fisher-Yates shuffle to prevent guessing order.
- * 4. Cap at `maxReels` to keep game balanced.
+ * 4. Cap at `maxReels` to keep the game balanced.
  *
  * @param json     - Parsed JSON (already validated with {@link isLikedPostsJson}).
- * @param maxReels - Upper bound on returned URLs. @default MAX_REELS (50)
+ * @param maxReels - Upper bound on returned URLs. Pass `Infinity` to get all.
  */
 export function extractReelsFromInstagramExport(
     json: unknown,
-    maxReels = MAX_REELS,
+    maxReels: number = MAX_REELS,
 ): string[] {
     if (!Array.isArray(json)) return []
 
@@ -70,12 +71,37 @@ export function extractReelsFromInstagramExport(
         }
     }
 
-    // Fisher-Yates shuffle
     const arr = [...urls]
+    fisherYatesShuffle(arr)
+    return arr.slice(0, maxReels)
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Game reel selection
+// ─────────────────────────────────────────────────────────────────────────────
+
+/**
+ * Randomly selects up to `count` reel URLs from the local pool for a game session.
+ *
+ * Uses Fisher-Yates so every reel has an equal chance of being picked.
+ * Returns URL strings only — the game layer doesn't need metadata.
+ *
+ * @param reels - Full local reel pool.
+ * @param count - Max reels to select. Defaults to {@link MAX_REELS}.
+ */
+export function selectGameReels(reels: LocalReel[], count: number = MAX_REELS): string[] {
+    const arr = reels.map((r) => r.url)
+    fisherYatesShuffle(arr)
+    return arr.slice(0, count)
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Internal
+// ─────────────────────────────────────────────────────────────────────────────
+
+function fisherYatesShuffle<T>(arr: T[]): void {
     for (let i = arr.length - 1; i > 0; i--) {
         const j = Math.floor(Math.random() * (i + 1))
         ;[arr[i], arr[j]] = [arr[j], arr[i]]
     }
-
-    return arr.slice(0, maxReels)
 }

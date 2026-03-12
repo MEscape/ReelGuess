@@ -5,23 +5,38 @@ import { cn } from '@/lib/utils/cn'
 // ─────────────────────────────────────────────────────────────────────────────
 
 /**
- * Inline error message displayed below forms or action buttons.
+ * Inline error block displayed below inputs or action buttons.
  *
- * Renders nothing when `message` is null/undefined — safe to always render.
+ * Improvements:
+ *  - Accepts `id` prop so Input can link it via `aria-describedby`.
+ *  - Uses CSS token for font-size (`--text-body-sm`) instead of `text-sm`.
  *
  * @example
  * ```tsx
  * <ErrorMessage message={error} />
+ * <ErrorMessage id="name-error" message="Name already taken." className="mt-2" />
  * ```
  */
-export function ErrorMessage({ message, className }: { message?: string | null; className?: string }) {
+export function ErrorMessage({
+                                 message,
+                                 className,
+                                 id,
+                             }: {
+    message?:   string | null
+    className?: string
+    id?:        string
+}) {
     if (!message) return null
+
     return (
         <p
+            id={id}
             role="alert"
-            className={cn('text-[var(--color-danger)] text-sm font-bold text-center', className)}
+            aria-live="polite"
+            className={cn('error-message', className)}
         >
-            {message}
+            <span aria-hidden className="shrink-0 font-black">✕</span>
+            <span>{message}</span>
         </p>
     )
 }

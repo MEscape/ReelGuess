@@ -1,16 +1,14 @@
+/**
+ * Reel Import — DB errors.
+ *
+ * NOTE: `REELS_ALREADY_IMPORTED` has been removed — the "import once" check
+ * only applies to the game layer (selecting reels on lobby join), not here.
+ */
+
 import type { Result } from 'neverthrow'
 
-// ─────────────────────────────────────────────────────────────────────────────
-// Errors
-// ─────────────────────────────────────────────────────────────────────────────
-
-/** All errors that can be returned by reel-import operations. */
 export type ReelImportError =
-    | { type: 'INVALID_PAYLOAD';       message: string }
-    | { type: 'INVALID_REEL_URL';      url: string }
-    | { type: 'TOO_FEW_REELS';         count: number; minimum: number }
-    | { type: 'OEMBED_FETCH_ERROR';    url: string; message: string }
-    | { type: 'REEL_DATABASE_ERROR';   message: string; cause?: unknown }
-    | { type: 'REELS_ALREADY_IMPORTED'; playerId: string }
+    | { type: 'INVALID_PAYLOAD';     message: string }
+    | { type: 'REEL_DATABASE_ERROR'; message: string; cause?: unknown }
 
 export type ReelImportResult<T> = Result<T, ReelImportError>

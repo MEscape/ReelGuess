@@ -1,13 +1,17 @@
-import { ResultAsync } from 'neverthrow'
-import { createClient } from '@/lib/supabase/server'
+import { ResultAsync }        from 'neverthrow'
+import { createClient }       from '@/lib/supabase/server'
+import { mapLobbyRow }        from './types'
 import type { Lobby, LobbyRow } from './types'
-import { mapLobbyRow } from './types'
-import type { LobbyError } from './errors'
+import type { LobbyError }    from './errors'
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Queries
+// ─────────────────────────────────────────────────────────────────────────────
 
 /**
  * Fetches a lobby by its 6-char code, including all joined players.
  *
- * @throws `LOBBY_NOT_FOUND` when the code does not exist.
+ * @throws `LOBBY_NOT_FOUND` when the code does not match any lobby.
  */
 export function getLobbyByCode(code: string): ResultAsync<Lobby, LobbyError> {
     return ResultAsync.fromPromise(
@@ -29,8 +33,8 @@ export function getLobbyByCode(code: string): ResultAsync<Lobby, LobbyError> {
 /**
  * Returns the number of players currently in a lobby.
  *
- * Used by the game service for the auto-reveal check (are all players voted?).
- * A cheap HEAD + COUNT — no player rows are transferred.
+ * Uses a HEAD + COUNT query — no player row data is transferred.
+ * Used by the game service for the auto-reveal check.
  *
  * @param lobbyId - Target lobby.
  */
@@ -49,4 +53,3 @@ export function getPlayerCount(lobbyId: string): ResultAsync<number, LobbyError>
         (e) => e as LobbyError,
     )
 }
-

@@ -1,6 +1,6 @@
 'use client'
 
-import { useCallback }           from 'react'
+import { useCallback, useRef }   from 'react'
 import { useMutation, useQueryClient } from '@tanstack/react-query'
 import { startNextRoundAction }  from '../actions'
 import { gameKeys }              from '@/lib/query-keys'
@@ -13,20 +13,26 @@ import type { StartRoundActionResult } from '../types'
 /**
  * Manages the "start next round" action for the host using React Query `useMutation`.
  *
- * On success the React Query scores cache is invalidated so the scoreboard
- * refreshes without a page reload.
+ * On success:
+ * - Invalidates the scores cache so the scoreboard refreshes.
+ * - Calls `onSuccess` with the full StartRoundActionResult so the host can
+ *   pre-populate the reel cache and see the reel immediately before Realtime fires.
+ *
+ * A submit-lock ref prevents double-click race conditions where the host
+ * rapidly clicks "Next Round" twice before the first mutation settles.
  *
  * @param lobbyId      - Current lobby.
  * @param hostPlayerId - Must be the lobby host's UUID.
- * @param onSuccess    - Called with the new round's Instagram URL so the host
- *                       can display the reel immediately before Realtime fires.
+ * @param onSuccess    - Called with the new round's full result (includes reelId + instagramUrl).
  */
 export function useGameState(
     lobbyId: string,
     hostPlayerId: string,
-    onSuccess?: (instagramUrl: string) => void,
+    onSuccess?: (data: StartRoundActionResult) => void,
 ) {
-    const queryClient = useQueryClient()
+    const queryClient     = useQueryClient()
+    /** Prevents concurrent startNextRound submissions (double-click guard). */
+    const isSubmittingRef = useRef(false)
 
     const mutation = useMutation<StartRoundActionResult, string>({
         mutationFn: async () => {
@@ -43,11 +49,14 @@ export function useGameState(
         },
         onSuccess: (data) => {
             queryClient.invalidateQueries({ queryKey: gameKeys.scores(lobbyId) })
-            onSuccess?.(data.instagramUrl)
+            onSuccess?.(data)
         },
+        onSettled: () => { isSubmittingRef.current = false },
     })
 
     const startNextRound = useCallback(() => {
+        if (isSubmittingRef.current) return
+        isSubmittingRef.current = true
         mutation.mutate()
     }, [mutation])
 

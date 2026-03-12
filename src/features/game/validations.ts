@@ -26,5 +26,5 @@ export const RevealRoundSchema = z.object({
     roundId: z.string().uuid('roundId must be a UUID'),
 })
 
-export type SubmitVoteInput    = z.infer<typeof SubmitVoteSchema>
+export type SubmitVoteInput     = z.infer<typeof SubmitVoteSchema>
 export type StartNextRoundInput = z.infer<typeof StartNextRoundSchema>

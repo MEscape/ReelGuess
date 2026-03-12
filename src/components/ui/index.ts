@@ -1,14 +1,15 @@
-/**
- * Shared UI component library.
- *
- * Import from here, never from individual files:
- * ```tsx
- * import { Button, Card, Input, ErrorMessage } from '@/components/ui'
- * ```
- */
+// ─── Primitives ──────────────────────────────────────────────────────────────
+export { Button, LoadingDots }    from './button'
+export { Card }                   from './card'
+export { Input }                  from './input'
+export { Badge }                  from './badge'
+export { ErrorMessage }           from './error-message'
+export { Modal }                  from './modal'
+export { Toast }                  from './toast'
+export { NavBar }                 from './navbar'
+export { StatusPanel }            from './status-panel'
+export { ProgressBar }            from './progress-bar'
+export { TimerRing }              from './timer-ring'
 
-export { Button }        from './button'
-export { Card }          from './card'
-export { Input }         from './input'
-export { ErrorMessage }  from './error-message'
-export { LoadingDots, PageLoader, EmptyState, SkeletonBlock } from './feedback'
+// ─── Feedback / States ───────────────────────────────────────────────────────
+export { PageLoader, EmptyState, SkeletonBlock } from './feedback'

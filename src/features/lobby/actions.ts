@@ -3,8 +3,10 @@
 /**
  * Lobby Server Actions — thin controllers.
  *
- * Each action: rate-limit → validate input → delegate to service → serialise.
+ * Each action: rate-limit → validate → delegate to service → serialize.
  * No business logic lives here.
+ *
+ * Dependency direction: actions.ts → service.ts → DAL
  */
 
 import { CreateLobbySchema, JoinLobbySchema } from './validations'
@@ -15,6 +17,10 @@ import { serializeResult }       from '@/lib/errors/error-handler'
 import type { Lobby }            from './types'
 import type { Player }           from '@/features/player/types'
 import { rateLimitFromIP }       from '@/lib/rate-limit'
+
+// ─────────────────────────────────────────────────────────────────────────────
+// createLobbyAction
+// ─────────────────────────────────────────────────────────────────────────────
 
 export async function createLobbyAction(
     formData: FormData,
@@ -38,8 +44,13 @@ export async function createLobbyAction(
             },
         }
     }
+
     return serializeResult(await createLobbyWithHost(parsed.data.playerName))
 }
+
+// ─────────────────────────────────────────────────────────────────────────────
+// joinLobbyAction
+// ─────────────────────────────────────────────────────────────────────────────
 
 export async function joinLobbyAction(
     formData: FormData,
@@ -66,11 +77,16 @@ export async function joinLobbyAction(
             },
         }
     }
+
     return serializeResult(await joinLobby(parsed.data.code, parsed.data.playerName))
 }
 
+// ─────────────────────────────────────────────────────────────────────────────
+// startGameAction
+// ─────────────────────────────────────────────────────────────────────────────
+
 export async function startGameAction(
-    lobbyId: string,
+    lobbyCode:    string,
     hostPlayerId: string,
 ): Promise<SerializedResult<void, LobbyError>> {
     const rl = await rateLimitFromIP('startGame', hostPlayerId)
@@ -80,5 +96,6 @@ export async function startGameAction(
             error: { type: 'LOBBY_VALIDATION_ERROR', message: 'Too many requests. Please wait.', issues: [] },
         }
     }
-    return serializeResult(await startGame(lobbyId, hostPlayerId))
+
+    return serializeResult(await startGame(lobbyCode, hostPlayerId))
 }

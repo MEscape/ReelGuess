@@ -7,20 +7,23 @@
  *
  * Return types are `Promise<Result<T, E>>` — a synchronous NeverThrow Result
  * wrapped in a Promise. Callers `await` the Promise, then use `.isOk()` /
- * `.isErr()` on the resulting `Result`. Do NOT return `ResultAsync` from
- * service functions — it causes a double-wrapping bug.
+ * `.isErr()` on the resulting Result. Do NOT return `ResultAsync` from service
+ * functions — it causes a double-wrapping bug.
  *
  * Dependency direction:  Actions → Service → DAL (queries / mutations)
  */
 
-import { ok, err, type Result }   from 'neverthrow'
-import { getCurrentRound, getRoundById, getVotesForRound, getScores } from '@/features/game/queries'
-import { createRound, updateRoundStatus, insertVote, batchUpsertScores } from '@/features/game/mutations'
+import { ok, err, type Result }          from 'neverthrow'
+import { getCurrentRound, getRoundById,
+    getVotesForRound, getScores }   from './queries'
+import { createRound, updateRoundStatus,
+    insertVote, batchUpsertScores } from './mutations'
 import { getLobbyByCode, getPlayerCount } from '@/features/lobby/queries'
-import { getUnusedReels }             from '@/features/reel-import/queries'
-import { markReelUsed }               from '@/features/reel-import/mutations'
-import type { GameError }                 from '@/features/game/errors'
-import type { Vote, RoundReveal, ScoreEntry, StartRoundActionResult } from '@/features/game/types'
+import { getUnusedReels }                from '@/features/reel-import/queries'
+import { markReelUsed, unmarkReelUsed }  from '@/features/reel-import/mutations'
+import type { GameError }                from './errors'
+import type { Vote, RoundReveal, ScoreEntry,
+    StartRoundActionResult }   from './types'
 
 // ─────────────────────────────────────────────────────────────────────────────
 // startNextRound
@@ -38,7 +41,7 @@ import type { Vote, RoundReveal, ScoreEntry, StartRoundActionResult } from '@/fe
  * @param hostPlayerId - Must match `lobby.hostId` in the DB.
  */
 export async function startNextRound(
-    lobbyId: string,
+    lobbyId:      string,
     hostPlayerId: string,
 ): Promise<Result<StartRoundActionResult, GameError>> {
     const lobbyResult = await getLobbyByCode(lobbyId)
@@ -51,7 +54,9 @@ export async function startNextRound(
     if (currentRoundResult.isErr()) return err(currentRoundResult.error)
 
     const nextRoundNumber = (currentRoundResult.value?.roundNumber ?? 0) + 1
-    if (nextRoundNumber > lobby.settings.roundsCount) return err({ type: 'GAME_ALREADY_FINISHED', lobbyId })
+    if (nextRoundNumber > lobby.settings.roundsCount) {
+        return err({ type: 'GAME_ALREADY_FINISHED', lobbyId })
+    }
 
     const unusedReelsResult = await getUnusedReels(lobbyId)
     if (unusedReelsResult.isErr()) return err({ type: 'NO_REELS_AVAILABLE', lobbyId })
@@ -59,14 +64,26 @@ export async function startNextRound(
     const unusedReels = unusedReelsResult.value
     if (unusedReels.length === 0) return err({ type: 'NO_REELS_AVAILABLE', lobbyId })
 
-    // Pick randomly in memory
-    const chosen = unusedReels[Math.floor(Math.random() * unusedReels.length)]
+    // Reel rotation: exclude the last-used reel so the same reel never appears
+    // twice in a row. If only 1 reel remains, we have no choice but to reuse it.
+    const lastReelId = currentRoundResult.value?.reelId ?? null
+    const candidates = unusedReels.length > 1 && lastReelId
+        ? unusedReels.filter((r) => r.id !== lastReelId)
+        : unusedReels
+
+    const chosen = candidates[Math.floor(Math.random() * candidates.length)]
 
     const markResult = await markReelUsed(chosen.id)
     if (markResult.isErr()) return err({ type: 'GAME_DATABASE_ERROR', message: 'Failed to mark reel used' })
 
     const roundResult = await createRound(lobbyId, nextRoundNumber, chosen.id, chosen.ownerId)
-    if (roundResult.isErr()) return err(roundResult.error)
+    if (roundResult.isErr()) {
+        // Roll back the reel mark to avoid consuming a reel with no round created.
+        // This handles the TOCTOU race where two concurrent host clicks both
+        // read the same roundNumber and race to insert the same round.
+        await unmarkReelUsed(chosen.id)
+        return err(roundResult.error)
+    }
 
     return ok({ ...roundResult.value, instagramUrl: chosen.instagramUrl })
 }
@@ -80,7 +97,7 @@ export async function startNextRound(
  *
  * Business rules:
  * - Round must be in `voting` status.
- * - A player may only vote once per round (pre-checked for a friendly error).
+ * - A player may only vote once per round.
  * - Auto-triggers reveal when all lobby players have voted.
  *
  * @param roundId    - Target round.
@@ -88,8 +105,8 @@ export async function startNextRound(
  * @param votedForId - The player UUID being voted for.
  */
 export async function submitVote(
-    roundId: string,
-    voterId: string,
+    roundId:    string,
+    voterId:    string,
     votedForId: string,
 ): Promise<Result<Vote, GameError>> {
     const roundResult = await getRoundById(roundId)
@@ -107,18 +124,30 @@ export async function submitVote(
         return err({ type: 'ALREADY_VOTED', roundId, voterId })
     }
 
-    const voteResult = await insertVote(roundId, voterId, votedForId, votedForId === round.correctPlayerId)
+    const voteResult = await insertVote(
+        roundId,
+        voterId,
+        votedForId,
+        votedForId === round.correctPlayerId,
+    )
     if (voteResult.isErr()) return err(voteResult.error)
 
     // Auto-reveal when all players have voted.
-    // getPlayerCount = cheap HEAD COUNT query in DAL.
-    // Fire-and-forget: failure here is non-fatal; host timer is the fallback.
+    // Re-fetch vote count AFTER insert to get the accurate post-insert total —
+    // avoids the TOCTOU race where two concurrent last-voters both see N-1 votes.
+    // The predicated UPDATE in updateRoundStatus guarantees only one reveal wins.
+    // Fire-and-forget: failure is non-fatal; host timer is the fallback.
     void (async () => {
         try {
-            const countResult = await getPlayerCount(round.lobbyId)
-            const totalVotes  = existingVotes.value.length + 1
-            if (countResult.isOk() && totalVotes >= countResult.value) {
-                await revealRound(roundId)
+            const [countResult, freshVotesResult] = await Promise.all([
+                getPlayerCount(round.lobbyId),
+                getVotesForRound(roundId),
+            ])
+            if (countResult.isOk() && freshVotesResult.isOk()) {
+                const totalVotes = freshVotesResult.value.length
+                if (totalVotes >= countResult.value) {
+                    await revealRound(roundId)
+                }
             }
         } catch {
             // intentionally silent
@@ -157,7 +186,7 @@ export async function revealRound(
             getScores(round.lobbyId),
             getLobbyByCode(round.lobbyId),
         ])
-        const scores = scoresResult.isOk() ? scoresResult.value : []
+        const scores        = scoresResult.isOk() ? scoresResult.value : []
         const correctPlayer = lobbyResult.isOk()
             ? lobbyResult.value.players.find((p) => p.id === round.correctPlayerId)
             : null
@@ -171,7 +200,10 @@ export async function revealRound(
     }
 
     if (round.status !== 'voting') {
-        return err({ type: 'GAME_DATABASE_ERROR', message: `Cannot reveal round in "${round.status}" status` })
+        return err({
+            type:    'GAME_DATABASE_ERROR',
+            message: `Cannot reveal round in "${round.status}" status`,
+        })
     }
 
     // ── voting → reveal ───────────────────────────────────────────────────────
@@ -212,7 +244,6 @@ export async function revealRound(
 
 /**
  * Marks a round as `complete`. Called by the host after the reveal timer ends.
- * `updateRoundStatus` returns `ResultAsync` — `await` it to get the `Result`.
  *
  * @param roundId - The round to complete.
  */

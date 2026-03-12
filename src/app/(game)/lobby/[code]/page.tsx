@@ -1,24 +1,20 @@
-import { getLobbyByCode } from '@/features/lobby/queries'
-import { notFound }       from 'next/navigation'
-import { LobbyPageClient } from './LobbyPageClient'
+import { getLobbyByCode }  from '@/features/lobby/queries'
+import { notFound }        from 'next/navigation'
+import { LobbyClient } from './lobby-client'
+
+// ─────────────────────────────────────────────────────────────────────────────
+// LobbyPage — server component
+// ─────────────────────────────────────────────────────────────────────────────
 
 type Props = {
-    params:       Promise<{ code: string }>
-    searchParams: Promise<{ import?: string }>
+    params: Promise<{ code: string }>
 }
 
-export default async function LobbyPage({ params, searchParams }: Props) {
-    const { code }   = await params
-    const search     = await searchParams
-    const upperCode  = code.toUpperCase()
+export default async function LobbyPage({ params }: Props) {
+    const { code } = await params
+    const result   = await getLobbyByCode(code.toUpperCase())
 
-    const lobbyResult = await getLobbyByCode(upperCode)
-    if (lobbyResult.isErr()) notFound()
+    if (result.isErr()) notFound()
 
-    return (
-        <LobbyPageClient
-            lobby={lobbyResult.value}
-            showImport={search.import === 'true'}
-        />
-    )
+    return <LobbyClient lobby={result.value} />
 }

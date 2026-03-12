@@ -7,10 +7,13 @@ import type { ReelData } from '../types'
 /**
  * Fetches and caches reel data for a given reel ID.
  *
- * Cached for 1 hour — reels don't change and the same reel can be shown
- * across multiple reconnects / refreshes without a re-fetch.
- *
  * Cached for 1 hour — reel URLs never change once imported.
+ *
+ * Design decisions:
+ * - `queryKey` includes the reelId, so React Query automatically fires a
+ *   new request when the round changes (different reelId = different key).
+ * - `initialData` is only used for the very first render (server-provided).
+ *   For subsequent rounds it will always be undefined → triggers a fresh fetch.
  */
 export function useReelData(
     reelId: string | null,
@@ -25,7 +28,9 @@ export function useReelData(
         },
         enabled:             !!reelId,
         initialData:         initialData ?? undefined,
-        staleTime:           60 * 60 * 1000,  // 1 hour
+        // Server-provided initial data is treated as perpetually fresh (no refetch on mount).
+        // For new rounds (no initialData), data from cache stays fresh for 1 h.
+        staleTime:           initialData ? Infinity : 60 * 60 * 1000,
         gcTime:              30 * 60 * 1000,  // 30 min
         refetchOnWindowFocus: false,
     })

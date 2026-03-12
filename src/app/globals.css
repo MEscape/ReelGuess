@@ -2,301 +2,1097 @@
 
 /* ─────────────────────────────────────────────────────────────────────────────
    DESIGN TOKENS
-   All visual values live here. Components NEVER hardcode colors, shadows or
-   spacing — they reference these tokens via @theme or utility classes below.
+   Single source of truth. Components reference tokens only — never raw values.
 ───────────────────────────────────────────────────────────────────────────── */
 
 @theme inline {
-    /* ── Brand colours ── */
-    --color-background:      #09090b; /* zinc-950 — page background           */
-    --color-surface:         #18181b; /* zinc-900 — card / panel background   */
-    --color-surface-raised:  #1c1c1f; /* slightly lighter surface             */
-    --color-border:          #27272a; /* zinc-800 — default border            */
-    --color-border-subtle:   #3f3f46; /* zinc-700 — hover / focus borders     */
-    --color-foreground:      #fafafa; /* zinc-50  — primary text              */
-    --color-muted:           #a1a1aa; /* zinc-400 — secondary text            */
-    --color-subtle:          #71717a; /* zinc-500 — placeholder / meta text   */
-    --color-faint:           #52525b; /* zinc-600 — disabled / ghost          */
+    /* ── Surface stack (darkest → raised) ── */
+    --color-background:      #07070a;   /* page bg */
+    --color-surface:         #111114;   /* card base */
+    --color-surface-raised:  #18181c;   /* hover / elevated */
+    --color-surface-overlay: #1e1e23;   /* dropdown / tooltip */
 
-    /* ── Accent colours ── */
-    --color-accent:          #facc15; /* yellow-400 — primary CTA / highlight */
-    --color-accent-hover:    #eab308; /* yellow-500                           */
-    --color-accent-fg:       #000000; /* text on accent background            */
-    --color-secondary:       #ec4899; /* pink-500  — join / secondary CTA     */
-    --color-secondary-hover: #db2777; /* pink-600                             */
-    --color-secondary-fg:    #ffffff;
-    --color-success:         #4ade80; /* green-400 — correct vote             */
-    --color-success-bg:      #052e16; /* green-950                            */
-    --color-danger:          #ef4444; /* red-500   — error / wrong vote       */
-    --color-danger-bg:       #450a0a; /* red-950                              */
-    --color-warning:         #f97316; /* orange-500 — streak                  */
+    /* ── Borders ── */
+    --color-border:          #222228;   /* subtle separator */
+    --color-border-subtle:   #2e2e36;   /* card edges */
+    --color-border-strong:   #44444f;   /* interactive focus areas */
 
-    /* ── Typography ── */
-    --font-sans:    var(--font-inter);
-    --font-display: var(--font-bebas-neue);
+    /* ── Text hierarchy — 4 clear levels ── */
+    --color-foreground:      #f2f2f4;   /* primary — headings, values */
+    --color-muted:           #8e8e9a;   /* secondary — labels, captions */
+    --color-subtle:          #58586a;   /* tertiary — placeholders, disabled */
+    --color-faint:           #38383f;   /* ghost — dividers used as text */
 
-    /* ── Shadows ── */
-    --shadow-brutal:           4px 4px 0px 0px #000000;
-    --shadow-brutal-sm:        2px 2px 0px 0px #000000;
-    --shadow-brutal-lg:        6px 6px 0px 0px #000000;
-    --shadow-brutal-accent:    4px 4px 0px 0px var(--color-accent);
+    /* ── Accent — yellow is the ONLY brand pop ── */
+    --color-accent:          #f5c800;
+    --color-accent-dim:      #c9a300;
+    --color-accent-fg:       #07070a;
+    --color-accent-glow:     rgba(245, 200, 0, 0.18);
+    --color-accent-glow-lg:  rgba(245, 200, 0, 0.32);
+
+    /* ── Semantic ── */
+    --color-success:         #22c55e;
+    --color-success-bg:      #052010;
+    --color-success-border:  #166534;
+    --color-danger:          #f03e3e;
+    --color-danger-bg:       #3a0808;
+    --color-danger-border:   #7f1d1d;
+    --color-warning:         #fb923c;
+    --color-warning-bg:      #2c1206;
+    --color-warning-border:  #7c2d12;
+
+    /* ── Type scale — exhaustive, named by role ── */
+    --text-label-xs:   0.625rem;  /* 10px — badge, stat label */
+    --text-label-sm:   0.75rem;   /* 12px — input label, nav item */
+    --text-body-sm:    0.8125rem; /* 13px — captions, secondary copy */
+    --text-body:       0.9375rem; /* 15px — default body */
+    --text-body-lg:    1.0625rem; /* 17px — comfortable body */
+    --text-ui:         1.125rem;  /* 18px — button md, badge lg */
+    --text-title-sm:   1.375rem;  /* 22px — card titles */
+    --text-title:      1.75rem;   /* 28px — modal title, section header */
+    --text-title-lg:   2.25rem;   /* 36px — page titles */
+    --text-display:    3rem;      /* 48px — hero numbers, timer */
+    --text-display-lg: 4rem;      /* 64px — score screen */
+
+    /* ── Letter spacing — keyed to font role ── */
+    --tracking-body:    0em;
+    --tracking-ui:      0.04em;
+    --tracking-label:   0.1em;
+    --tracking-display: 0.06em;
+    --tracking-loose:   0.18em;
+
+    /* ── Shadows — brutalist (offset only, no blur) ── */
+    --shadow-brutal-xs:      2px 2px 0px 0px #000;
+    --shadow-brutal:         4px 4px 0px 0px #000;
+    --shadow-brutal-lg:      6px 6px 0px 0px #000;
+    --shadow-brutal-xl:      8px 8px 0px 0px #000;
+    --shadow-brutal-accent:  4px 4px 0px 0px var(--color-accent);
     --shadow-brutal-accent-lg: 6px 6px 0px 0px var(--color-accent);
-    --shadow-glow-accent:      0 0 24px rgba(250, 204, 21, 0.2);
-    --shadow-glow-accent-lg:   0 0 40px rgba(250, 204, 21, 0.35);
+    --shadow-brutal-danger:  4px 4px 0px 0px var(--color-danger);
+    --shadow-brutal-success: 4px 4px 0px 0px var(--color-success);
+    --shadow-glow-accent:    0 0 28px var(--color-accent-glow);
+    --shadow-glow-accent-lg: 0 0 48px var(--color-accent-glow-lg);
+    --shadow-glow-danger:    0 0 28px rgba(240, 62, 62, 0.22);
+    --shadow-glow-success:   0 0 28px rgba(34, 197, 94, 0.22);
 
-    /* ── Spacing scale ── */
-    --space-1:  0.25rem;  /*  4px */
-    --space-2:  0.5rem;   /*  8px */
-    --space-3:  0.75rem;  /* 12px */
-    --space-4:  1rem;     /* 16px */
-    --space-5:  1.25rem;  /* 20px */
-    --space-6:  1.5rem;   /* 24px */
-    --space-8:  2rem;     /* 32px */
-    --space-10: 2.5rem;   /* 40px */
-    --space-12: 3rem;     /* 48px */
+    /* ── Component heights — consistent vertical rhythm ── */
+    --height-btn-xs:   2rem;     /* 32px */
+    --height-btn-sm:   2.5rem;   /* 40px */
+    --height-btn-md:   3rem;     /* 48px */
+    --height-btn-lg:   3.75rem;  /* 60px */
+    --height-input:    3rem;     /* 48px — matches btn-md */
+    --height-input-lg: 3.75rem;  /* 60px — code input */
+    --height-nav:      3.5rem;   /* 56px */
+    --height-badge-sm: 1.25rem;  /* 20px */
+    --height-badge-md: 1.625rem; /* 26px */
 
-    /* ── Border radius ── */
-    --radius-sm: 0.5rem;
-    --radius-md: 0.75rem;
-    --radius-lg: 1rem;
-    --radius-xl: 1.25rem;
-    --radius-full: 9999px;
+    /* ── Spacing — 4pt grid ── */
+    --space-1:  0.25rem;
+    --space-2:  0.5rem;
+    --space-3:  0.75rem;
+    --space-4:  1rem;
+    --space-5:  1.25rem;
+    --space-6:  1.5rem;
+    --space-8:  2rem;
+    --space-10: 2.5rem;
+    --space-12: 3rem;
+    --space-16: 4rem;
+
+    /* ── Border radius — zero everywhere (brutalist), pill for dots/chips ── */
+    --radius-none: 0px;
+    --radius-pill: 9999px;
 
     /* ── Transitions ── */
-    --duration-fast:   100ms;
-    --duration-base:   200ms;
-    --duration-slow:   350ms;
-    --ease-standard:   cubic-bezier(0.2, 0, 0, 1);
-    --ease-spring:     cubic-bezier(0.34, 1.56, 0.64, 1);
-
-    /* ── Component sizes ── */
-    --btn-height-sm: 2.5rem;   /* 40px */
-    --btn-height-md: 3rem;     /* 48px */
-    --btn-height-lg: 3.5rem;   /* 56px */
-    --input-height:  3rem;     /* 48px */
-    --avatar-sm:     2rem;     /* 32px */
-    --avatar-md:     3rem;     /* 48px */
-    --avatar-lg:     5rem;     /* 80px */
+    --duration-instant: 80ms;
+    --duration-fast:    140ms;
+    --duration-base:    220ms;
+    --duration-slow:    380ms;
+    --ease-out:         cubic-bezier(0.0, 0, 0.2, 1);
+    --ease-spring:      cubic-bezier(0.34, 1.56, 0.64, 1);
+    --ease-bounce:      cubic-bezier(0.68, -0.55, 0.265, 1.55);
 }
 
 /* ─────────────────────────────────────────────────────────────────────────────
    BASE RESET
 ───────────────────────────────────────────────────────────────────────────── */
 
-*, *::before, *::after { box-sizing: border-box; }
+@layer base {
+    *, *::before, *::after { box-sizing: border-box; margin: 0; }
+}
 
-html { -webkit-text-size-adjust: 100%; }
+html {
+    -webkit-text-size-adjust: 100%;
+    font-size: 16px;
+}
 
 body {
     background-color: var(--color-background);
     color: var(--color-foreground);
-    font-family: var(--font-sans), system-ui, sans-serif;
+    font-family: var(--font-inter), system-ui, sans-serif;
+    font-size: var(--text-body);
+    line-height: 1.5;
     min-height: 100dvh;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
 }
 
-/* Scrollbar styling */
-::-webkit-scrollbar       { width: 6px; height: 6px; }
+/* Scrollbar — thin, matches surface */
+::-webkit-scrollbar       { width: 5px; height: 5px; }
 ::-webkit-scrollbar-track { background: var(--color-background); }
-::-webkit-scrollbar-thumb { background: var(--color-border-subtle); border-radius: var(--radius-full); }
-::-webkit-scrollbar-thumb:hover { background: var(--color-faint); }
+::-webkit-scrollbar-thumb { background: var(--color-border-strong); }
+::-webkit-scrollbar-thumb:hover { background: var(--color-muted); }
 
-/* Text selection */
-::selection { background: var(--color-accent); color: var(--color-accent-fg); }
-
-/* Focus visible — consistent ring across all interactive elements */
-:focus-visible {
-    outline: 2px solid var(--color-accent);
-    outline-offset: 2px;
+/* Selection — accent brand moment */
+::selection {
+    background: var(--color-accent);
+    color: var(--color-accent-fg);
 }
 
-/* Remove default focus ring; :focus-visible replaces it */
 :focus:not(:focus-visible) { outline: none; }
 
 /* ─────────────────────────────────────────────────────────────────────────────
    UTILITY CLASSES
-   These extend Tailwind. Components use these class names — never raw hex values.
 ───────────────────────────────────────────────────────────────────────────── */
 
 @layer utilities {
-    /* ── Shadows ── */
-    .shadow-brutal    { box-shadow: var(--shadow-brutal); }
-    .shadow-brutal-sm { box-shadow: var(--shadow-brutal-sm); }
-    .shadow-brutal-lg { box-shadow: var(--shadow-brutal-lg); }
+    /* Shadows */
+    .shadow-brutal-xs        { box-shadow: var(--shadow-brutal-xs); }
+    .shadow-brutal           { box-shadow: var(--shadow-brutal); }
+    .shadow-brutal-lg        { box-shadow: var(--shadow-brutal-lg); }
+    .shadow-brutal-xl        { box-shadow: var(--shadow-brutal-xl); }
     .shadow-brutal-accent    { box-shadow: var(--shadow-brutal-accent); }
     .shadow-brutal-accent-lg { box-shadow: var(--shadow-brutal-accent-lg); }
-    .shadow-glow-accent    { box-shadow: var(--shadow-glow-accent); }
-    .shadow-glow-accent-lg { box-shadow: var(--shadow-glow-accent-lg); }
+    .shadow-brutal-danger    { box-shadow: var(--shadow-brutal-danger); }
+    .shadow-brutal-success   { box-shadow: var(--shadow-brutal-success); }
+    .shadow-glow-accent      { box-shadow: var(--shadow-glow-accent); }
+    .shadow-glow-accent-lg   { box-shadow: var(--shadow-glow-accent-lg); }
+    .shadow-glow-danger      { box-shadow: var(--shadow-glow-danger); }
+    .shadow-glow-success     { box-shadow: var(--shadow-glow-success); }
 
-    /* ── Safe area ── */
+    /* Font families */
+    .font-display { font-family: var(--font-bebas-neue), sans-serif; }
+    .font-sans    { font-family: var(--font-inter), sans-serif; }
+
+    /* Text hierarchy utilities */
+    .text-primary   { color: var(--color-foreground); }
+    .text-secondary { color: var(--color-muted); }
+    .text-tertiary  { color: var(--color-subtle); }
+
+    /* Safe area */
     .pb-safe { padding-bottom: env(safe-area-inset-bottom, 1rem); }
-    .pt-safe { padding-top: env(safe-area-inset-top, 0); }
+    .pt-safe { padding-top:    env(safe-area-inset-top, 0); }
 
-    /* ── Text truncation ── */
-    .truncate-2 {
+    /* Text clamp */
+    .line-clamp-2 {
         display: -webkit-box;
         -webkit-line-clamp: 2;
         -webkit-box-orient: vertical;
         overflow: hidden;
     }
+
+    /* Brutalist border helpers */
+    .border-accent   { border-color: var(--color-accent); }
+    .border-danger   { border-color: var(--color-danger); }
+    .border-success  { border-color: var(--color-success); }
+    .border-strong   { border-color: var(--color-border-strong); }
 }
 
 /* ─────────────────────────────────────────────────────────────────────────────
-   COMPONENT BASE CLASSES
-   Reusable multi-property patterns that are awkward as single utilities.
-   Components @apply these instead of repeating the same Tailwind strings.
+   KEYFRAMES
+───────────────────────────────────────────────────────────────────────────── */
+
+@layer base {
+
+    /* Page loader */
+    @keyframes brutal-bounce {
+        from { transform: translateY(0)    scale(1); }
+        to   { transform: translateY(-14px) scale(1.05); }
+    }
+
+    @keyframes brutal-pulse {
+        0%, 100% { opacity: 1; }
+        50%       { opacity: 0.35; }
+    }
+
+    /* Loading dots */
+    @keyframes dot-bounce {
+        0%, 80%, 100% { transform: translateY(0)   scale(1); }
+        40%            { transform: translateY(-6px) scale(0.9); }
+    }
+
+    /* Skeleton shimmer */
+    @keyframes skeleton-sweep {
+        0%   { transform: translateX(-100%); }
+        100% { transform: translateX(200%); }
+    }
+
+    /* Badge live pulse */
+    @keyframes badge-pulse {
+        0%, 100% { opacity: 1; }
+        50%       { opacity: 0.5; }
+    }
+
+    /* Status dot ping */
+    @keyframes status-ping {
+        0%        { box-shadow: 0 0 0 0 currentColor; opacity: 1; }
+        70%, 100% { box-shadow: 0 0 0 6px transparent; opacity: 0.6; }
+    }
+
+    /* Progress bar shine */
+    @keyframes progress-shine {
+        0%   { opacity: 0; transform: translateX(-16px); }
+        40%  { opacity: 0.7; }
+        100% { opacity: 0; transform: translateX(16px); }
+    }
+
+    /* Click ripple */
+    @keyframes ripple-anim {
+        to { transform: scale(4); opacity: 0; }
+    }
+
+    /* Error shake-in */
+    @keyframes error-in {
+        0%   { transform: translateX(-6px); opacity: 0; }
+        50%  { transform: translateX(3px); }
+        100% { transform: translateX(0);    opacity: 1; }
+    }
+
+    /* Toast slide in from right */
+    @keyframes toast-slide-in {
+        from { transform: translateX(110%); opacity: 0; }
+        to   { transform: translateX(0);    opacity: 1; }
+    }
+
+    /* Modal entrance */
+    @keyframes modal-in {
+        from { transform: translateY(24px) scale(0.97); opacity: 0; }
+        to   { transform: translateY(0)    scale(1);    opacity: 1; }
+    }
+
+    /* Modal overlay fade */
+    @keyframes overlay-in {
+        from { opacity: 0; }
+        to   { opacity: 1; }
+    }
+
+    /* Timer urgent shake — more aggressive */
+    @keyframes timer-shake {
+        0%   { transform: translateX(0); }
+        20%  { transform: translateX(-3px) rotate(-1deg); }
+        40%  { transform: translateX(3px)  rotate(1deg); }
+        60%  { transform: translateX(-2px); }
+        80%  { transform: translateX(2px); }
+        100% { transform: translateX(0); }
+    }
+
+    /* Vote button selected flash */
+    @keyframes vote-select {
+        0%   { background-color: var(--color-accent); }
+        60%  { background-color: var(--color-accent-glow); }
+        100% { background-color: transparent; }
+    }
+
+    /* Score pop */
+    @keyframes score-pop {
+        0%   { transform: scale(1); }
+        50%  { transform: scale(1.12); }
+        100% { transform: scale(1); }
+    }
+
+    /* Nav active indicator slide */
+    @keyframes nav-indicator-in {
+        from { transform: scaleX(0); }
+        to   { transform: scaleX(1); }
+    }
+}
+
+/* ─────────────────────────────────────────────────────────────────────────────
+   COMPONENT CLASSES
 ───────────────────────────────────────────────────────────────────────────── */
 
 @layer components {
-    /* ── Buttons ─────────────────────────────────────────────────────────── */
 
-    /**
-     * Base button — all shared interactive states.
-     * Size and colour variants are applied alongside this class.
-     */
+    /* ═══════════════════════════════════════════════════════════════════════
+       BUTTON
+       Three variants of weight, one interaction model (lift → stamp)
+    ═══════════════════════════════════════════════════════════════════════ */
+
     .btn {
+        /* Layout */
         @apply inline-flex items-center justify-center gap-2;
-        @apply font-black uppercase tracking-wide;
-        @apply border-2 border-black rounded-[var(--radius-md)];
-        @apply shadow-brutal;
-        @apply transition-[transform,box-shadow] duration-[var(--duration-base)];
-        @apply focus-visible:outline-none focus-visible:ring-2
-        focus-visible:ring-[var(--color-accent)]
-        focus-visible:ring-offset-2
-        focus-visible:ring-offset-[var(--color-background)];
-        @apply disabled:opacity-50 disabled:cursor-not-allowed
-        disabled:translate-y-0 disabled:shadow-brutal;
-    }
+        @apply relative overflow-hidden;
+        @apply cursor-pointer select-none whitespace-nowrap;
 
-    .btn:not(:disabled):hover  { transform: translateY(2px); box-shadow: var(--shadow-brutal-sm); }
-    .btn:not(:disabled):active { transform: translateY(4px); box-shadow: none; }
+        /* Typography — display font, all caps, tight tracking */
+        font-family: var(--font-bebas-neue), sans-serif;
+        letter-spacing: var(--tracking-display);
+        @apply uppercase;
 
-    /* Size modifiers */
-    .btn-sm { min-height: var(--btn-height-sm); @apply px-4 text-sm; }
-    .btn-md { min-height: var(--btn-height-md); @apply px-6 text-base; }
-    .btn-lg { min-height: var(--btn-height-lg); @apply px-6 text-xl; }
-
-    /* Colour modifiers */
-    .btn-primary   { background-color: var(--color-accent);     color: var(--color-accent-fg);     @apply border-black; }
-    .btn-secondary { background-color: var(--color-secondary);  color: var(--color-secondary-fg);  @apply border-black; }
-    .btn-ghost     { background-color: var(--color-surface);    color: var(--color-foreground);    @apply border-[var(--color-border-subtle)]; }
-    .btn-danger    { background-color: var(--color-danger);     color: white;                      @apply border-black; }
-
-    /* ── Cards ───────────────────────────────────────────────────────────── */
-
-    /** Base card — surface colour + border + rounded corners. */
-    .card {
-        @apply bg-[var(--color-surface)] border border-[var(--color-border)] rounded-[var(--radius-lg)];
-    }
-
-    .card-brutal {
-        background-color: var(--color-surface);
-        border: 1px solid var(--color-border);
-        border-radius: var(--radius-lg);
+        /* Border — always 3px black for brutalist definition */
+        border: 3px solid #000;
         box-shadow: var(--shadow-brutal);
+
+        /* Transitions */
+        transition:
+                transform     var(--duration-fast) var(--ease-out),
+                box-shadow    var(--duration-fast) var(--ease-out),
+                background-color var(--duration-fast) linear,
+                border-color  var(--duration-fast) linear;
+
+        /* Focus */
+        @apply focus-visible:outline-none;
+        &:focus-visible {
+            outline: 3px solid var(--color-accent);
+            outline-offset: 3px;
+        }
+
+        /* Disabled */
+        @apply disabled:opacity-40 disabled:cursor-not-allowed;
+        &:disabled { box-shadow: none; }
     }
 
-    /** Elevated card with accent border — used for important reveals. */
-    .card-accent {
+    /* Hover lift — moves up-left 2px, shadow shrinks */
+    .btn:not(:disabled):hover {
+        transform: translate(-2px, -2px);
+        box-shadow: var(--shadow-brutal-lg);
+    }
+
+    /* Active stamp — moves to shadow origin */
+    .btn:not(:disabled):active {
+        transform: translate(4px, 4px);
+        box-shadow: none;
+        transition-duration: var(--duration-instant);
+    }
+
+    /* Ripple element (DOM-injected by Button.tsx) */
+    .btn .ripple {
+        @apply absolute rounded-full pointer-events-none;
+        background: rgba(255,255,255,0.25);
+        transform: scale(0);
+        animation: ripple-anim 500ms linear forwards;
+    }
+
+    /* ── Button sizes ─────────────────────────────────── */
+
+    .btn-xs {
+        min-height: var(--height-btn-xs);
+        @apply px-3;
+        font-size: var(--text-label-sm);
+    }
+
+    .btn-sm {
+        min-height: var(--height-btn-sm);
+        @apply px-4;
+        font-size: var(--text-body-sm);
+    }
+
+    .btn-md {
+        min-height: var(--height-btn-md);
+        @apply px-6;
+        font-size: var(--text-ui);
+    }
+
+    .btn-lg {
+        min-height: var(--height-btn-lg);
+        @apply px-8;
+        font-size: 1.5rem;
+        letter-spacing: 0.08em;
+    }
+
+    /* ── Button colour variants ───────────────────────── */
+
+    /* Primary — accent yellow, black text, black border */
+    .btn-primary {
+        background-color: var(--color-accent);
+        color: var(--color-accent-fg);
+        border-color: #000;
+    }
+    .btn-primary:not(:disabled):hover {
+        background-color: var(--color-accent-dim);
+    }
+
+    /* Secondary — pink/red pop */
+    .btn-secondary {
+        background-color: #e63980;
+        color: #fff;
+        border-color: #000;
+    }
+    .btn-secondary:not(:disabled):hover {
+        background-color: #c42d6a;
+    }
+
+    /* Ghost — surface bg, strong border */
+    .btn-ghost {
         background-color: var(--color-surface);
-        border: 2px solid var(--color-accent);
-        border-radius: var(--radius-lg);
+        color: var(--color-foreground);
+        border-color: var(--color-border-strong);
+        box-shadow: var(--shadow-brutal-xs);
+    }
+    .btn-ghost:not(:disabled):hover {
+        background-color: var(--color-surface-raised);
+        border-color: var(--color-accent);
         box-shadow: var(--shadow-brutal-accent);
     }
 
-    /* ── Inputs ──────────────────────────────────────────────────────────── */
+    /* Danger — red, critical destructive actions */
+    .btn-danger {
+        background-color: var(--color-danger);
+        color: #fff;
+        border-color: #000;
+    }
+    .btn-danger:not(:disabled):hover {
+        background-color: #c93232;
+        box-shadow: var(--shadow-brutal-danger);
+    }
+
+    /* Success — green confirmation */
+    .btn-success {
+        background-color: var(--color-success);
+        color: #000;
+        border-color: #000;
+    }
+    .btn-success:not(:disabled):hover {
+        background-color: #1aad50;
+        box-shadow: var(--shadow-brutal-success);
+    }
+
+    /* ═══════════════════════════════════════════════════════════════════════
+       CARD
+    ═══════════════════════════════════════════════════════════════════════ */
+
+    /* Base — minimal, 1px border */
+    .card {
+        background-color: var(--color-surface);
+        border: 1px solid var(--color-border);
+    }
+
+    /* Brutal — the standard game card, 2px + offset shadow */
+    .card-brutal {
+        background-color: var(--color-surface);
+        border: 2px solid var(--color-border-subtle);
+        box-shadow: var(--shadow-brutal);
+    }
+
+    /* Accent — yellow border + shadow, use for featured/active state */
+    .card-accent {
+        background-color: var(--color-surface);
+        border: 3px solid var(--color-accent);
+        box-shadow: var(--shadow-brutal-accent), var(--shadow-glow-accent);
+    }
+
+    /* Interactive — has full lift/stamp lifecycle */
+    .card-interactive {
+        background-color: var(--color-surface);
+        border: 2px solid var(--color-border-subtle);
+        box-shadow: var(--shadow-brutal);
+        cursor: pointer;
+        transition:
+                transform     var(--duration-base) var(--ease-spring),
+                box-shadow    var(--duration-base) var(--ease-spring),
+                border-color  var(--duration-base) linear,
+                background-color var(--duration-fast) linear;
+    }
+
+    .card-interactive:hover {
+        border-color: var(--color-accent);
+        box-shadow: var(--shadow-brutal-accent-lg), var(--shadow-glow-accent);
+        transform: translate(-3px, -3px);
+        background-color: var(--color-surface-raised);
+    }
+
+    .card-interactive:active {
+        transform: translate(4px, 4px);
+        box-shadow: none;
+        transition-duration: var(--duration-instant);
+    }
+
+    /* ═══════════════════════════════════════════════════════════════════════
+       INPUT
+    ═══════════════════════════════════════════════════════════════════════ */
 
     .input {
-        @apply w-full bg-[var(--color-surface)] border-2 border-[var(--color-border-subtle)];
-        @apply rounded-[var(--radius-md)] px-4;
-        min-height: var(--input-height);
-        @apply text-[var(--color-foreground)] text-base font-bold;
-        @apply placeholder:text-[var(--color-subtle)];
-        @apply transition-colors duration-[var(--duration-base)];
-        @apply focus:outline-none focus:border-[var(--color-accent)]
-        focus:ring-2 focus:ring-[var(--color-accent)]/20;
+        width: 100%;
+        background-color: var(--color-surface);
+        border: 2px solid var(--color-border-strong);
+        color: var(--color-foreground);
+        font-family: var(--font-inter), sans-serif;
+        font-size: var(--text-body-lg);
+        font-weight: 600;
+        min-height: var(--height-input);
+        @apply px-4;
+
+        /* Placeholder */
+        &::placeholder {
+            color: var(--color-subtle);
+            font-weight: 400;
+        }
+
+        /* Transitions */
+        transition:
+                border-color var(--duration-fast) linear,
+                box-shadow   var(--duration-fast) linear;
+
+        /* Focus — accent ring */
+        &:focus {
+            outline: none;
+            border-color: var(--color-accent);
+            box-shadow: 0 0 0 3px var(--color-accent-glow), var(--shadow-brutal-accent);
+        }
     }
 
-    /* ── Badges ──────────────────────────────────────────────────────────── */
+    /* Code variant — large, centred, display font, wide tracking */
+    .input-code {
+        font-family: var(--font-bebas-neue), sans-serif;
+        font-size: 2.5rem;
+        letter-spacing: 0.4em;
+        text-align: center;
+        text-transform: uppercase;
+        color: var(--color-accent);
+        min-height: var(--height-input-lg);
+        border-width: 3px;
+        padding-left: 0.5em; /* compensate for tracking */
+
+        &::placeholder {
+            color: var(--color-subtle);
+            letter-spacing: 0.2em;
+        }
+    }
+
+    /* Error state — overrides border + shadow to red */
+    .input-error {
+        border-color: var(--color-danger) !important;
+        box-shadow: 0 0 0 3px rgba(240,62,62,0.15) !important;
+    }
+
+    /* Input label — sits above input, always visible */
+    .input-label {
+        font-family: var(--font-bebas-neue), sans-serif;
+        font-size: var(--text-label-sm);
+        letter-spacing: var(--tracking-label);
+        text-transform: uppercase;
+        color: var(--color-muted);
+        display: block;
+        margin-bottom: 0.375rem;
+    }
+
+    /* ═══════════════════════════════════════════════════════════════════════
+       BADGE
+       Two sizes. Five variants. Pill shape forbidden — always rectangular.
+    ═══════════════════════════════════════════════════════════════════════ */
 
     .badge {
-        @apply inline-flex items-center px-2 py-0.5 rounded text-xs font-black uppercase tracking-wide;
+        display: inline-flex;
+        align-items: center;
+        gap: 0.3em;
+        font-family: var(--font-bebas-neue), sans-serif;
+        text-transform: uppercase;
+        letter-spacing: var(--tracking-label);
+        border: 2px solid transparent;
+        line-height: 1;
+        /* Default = sm */
+        font-size: var(--text-label-xs);
+        padding: 0.25rem 0.5rem;
+        min-height: var(--height-badge-sm);
     }
 
-    .badge-accent   {
-        display: inline-flex; align-items: center; padding: 0.125rem 0.5rem;
-        border-radius: 0.25rem; font-size: 0.75rem; font-weight: 900;
-        text-transform: uppercase; letter-spacing: 0.05em;
-        background-color: var(--color-accent); color: var(--color-accent-fg);
-    }
-    .badge-success  {
-        display: inline-flex; align-items: center; padding: 0.125rem 0.5rem;
-        border-radius: 0.25rem; font-size: 0.75rem; font-weight: 900;
-        text-transform: uppercase; letter-spacing: 0.05em;
-        background-color: var(--color-success-bg); color: var(--color-success);
-        border: 1px solid color-mix(in srgb, var(--color-success) 30%, transparent);
-    }
-    .badge-danger   {
-        display: inline-flex; align-items: center; padding: 0.125rem 0.5rem;
-        border-radius: 0.25rem; font-size: 0.75rem; font-weight: 900;
-        text-transform: uppercase; letter-spacing: 0.05em;
-        background-color: var(--color-danger-bg); color: var(--color-danger);
-        border: 1px solid color-mix(in srgb, var(--color-danger) 30%, transparent);
-    }
-    .badge-muted    {
-        display: inline-flex; align-items: center; padding: 0.125rem 0.5rem;
-        border-radius: 0.25rem; font-size: 0.75rem; font-weight: 900;
-        text-transform: uppercase; letter-spacing: 0.05em;
-        background-color: var(--color-border); color: var(--color-muted);
+    /* Size modifier */
+    .badge-lg {
+        font-size: var(--text-label-sm);
+        padding: 0.375rem 0.75rem;
+        min-height: var(--height-badge-md);
     }
 
-    /* ── Divider ─────────────────────────────────────────────────────────── */
+    /* Colour variants */
+    .badge-accent  {
+        background-color: var(--color-accent);
+        color: var(--color-accent-fg);
+        border-color: var(--color-accent);
+    }
+
+    .badge-success {
+        background-color: var(--color-success-bg);
+        color: var(--color-success);
+        border-color: var(--color-success-border);
+    }
+
+    .badge-danger {
+        background-color: var(--color-danger-bg);
+        color: var(--color-danger);
+        border-color: var(--color-danger-border);
+    }
+
+    .badge-warning {
+        background-color: var(--color-warning-bg);
+        color: var(--color-warning);
+        border-color: var(--color-warning-border);
+    }
+
+    .badge-muted {
+        background-color: var(--color-surface-raised);
+        color: var(--color-muted);
+        border-color: var(--color-border-strong);
+    }
+
+    .badge-outline {
+        background-color: transparent;
+        color: var(--color-foreground);
+        border-color: var(--color-border-strong);
+    }
+
+    /* Live pulse — only for broadcasting/live states */
+    .badge-pulse { animation: badge-pulse 1.8s ease-in-out infinite; }
+
+    /* ═══════════════════════════════════════════════════════════════════════
+       VOTE BUTTON
+    ═══════════════════════════════════════════════════════════════════════ */
+
+    .vote-btn {
+        @apply flex flex-col items-center justify-center gap-2;
+        min-height: 6rem;
+        background-color: var(--color-surface);
+        border: 3px solid var(--color-border-subtle);
+        box-shadow: var(--shadow-brutal);
+        cursor: pointer;
+        position: relative;
+        overflow: hidden;
+        transition:
+                transform     var(--duration-base) var(--ease-spring),
+                box-shadow    var(--duration-base) var(--ease-spring),
+                border-color  var(--duration-fast) linear,
+                background-color var(--duration-fast) linear;
+
+        &:focus-visible {
+            outline: 3px solid var(--color-accent);
+            outline-offset: 3px;
+        }
+
+        &:disabled {
+            opacity: 0.4;
+            cursor: not-allowed;
+        }
+    }
+
+    /* Yellow wash overlay */
+    .vote-btn::before {
+        content: '';
+        position: absolute;
+        inset: 0;
+        background-color: var(--color-accent);
+        opacity: 0;
+        transition: opacity var(--duration-base) linear;
+        z-index: 0;
+        pointer-events: none;
+    }
+
+    /* Content above overlay */
+    .vote-btn > * { position: relative; z-index: 1; }
+
+    .vote-btn:not(:disabled):hover {
+        border-color: var(--color-accent);
+        box-shadow: var(--shadow-brutal-accent-lg), var(--shadow-glow-accent);
+        transform: translate(-3px, -3px);
+    }
+    .vote-btn:not(:disabled):hover::before { opacity: 0.06; }
+    .vote-btn:not(:disabled):active {
+        transform: translate(4px, 4px);
+        box-shadow: none;
+        transition-duration: var(--duration-instant);
+    }
+
+    /* Selected state — persists after vote */
+    .vote-btn.voted {
+        border-color: var(--color-accent);
+        background-color: rgba(245, 200, 0, 0.08);
+        box-shadow: var(--shadow-brutal-accent), var(--shadow-glow-accent);
+        transform: translate(0, 0) !important;
+    }
+    .vote-btn.voted::before { opacity: 0; }
+
+    /* ═══════════════════════════════════════════════════════════════════════
+       SKELETON
+    ═══════════════════════════════════════════════════════════════════════ */
+
+    .skeleton {
+        background-color: var(--color-surface-raised);
+        position: relative;
+        overflow: hidden;
+    }
+
+    .skeleton::after {
+        content: '';
+        position: absolute;
+        inset: 0;
+        background: linear-gradient(
+                90deg,
+                transparent 0%,
+                rgba(255, 255, 255, 0.05) 50%,
+                transparent 100%
+        );
+        animation: skeleton-sweep 1.6s ease-in-out infinite;
+    }
+
+    /* ═══════════════════════════════════════════════════════════════════════
+       STATUS DOT
+    ═══════════════════════════════════════════════════════════════════════ */
+
+    .status-dot {
+        width: 0.5rem;
+        height: 0.5rem;
+        border-radius: var(--radius-pill);
+        flex-shrink: 0;
+    }
+
+    .status-dot-live {
+        background-color: var(--color-success);
+        animation: status-ping 1.4s cubic-bezier(0, 0, 0.2, 1) infinite;
+    }
+
+    .status-dot-idle { background-color: var(--color-muted); }
+
+    .status-dot-warn {
+        background-color: var(--color-warning);
+        animation: status-ping 0.9s cubic-bezier(0, 0, 0.2, 1) infinite;
+    }
+
+    .status-dot-danger {
+        background-color: var(--color-danger);
+        animation: status-ping 0.7s cubic-bezier(0, 0, 0.2, 1) infinite;
+    }
+
+    /* ═══════════════════════════════════════════════════════════════════════
+       PROGRESS BAR
+    ═══════════════════════════════════════════════════════════════════════ */
+
+    .progress-track {
+        width: 100%;
+        height: 10px;
+        position: relative;
+        overflow: hidden;
+        background-color: var(--color-border);
+        border: 2px solid var(--color-border-subtle);
+    }
+
+    .progress-fill {
+        height: 100%;
+        background-color: var(--color-accent);
+        position: relative;
+        transition: width 350ms var(--ease-out);
+
+        /* Shine — only plays during active animation via JS class */
+        &::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            right: 0;
+            height: 100%;
+            width: 1rem;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.5), transparent);
+        }
+    }
+
+    /* Shine active — toggled via JS when value changes */
+    .progress-fill.is-updating::after {
+        animation: progress-shine 600ms ease-out forwards;
+    }
+
+    .progress-track.danger  .progress-fill { background-color: var(--color-danger); }
+    .progress-track.success .progress-fill { background-color: var(--color-success); }
+
+    /* ═══════════════════════════════════════════════════════════════════════
+       TIMER RING
+    ═══════════════════════════════════════════════════════════════════════ */
+
+    .timer-ring-track {
+        fill: none;
+        stroke: var(--color-border-subtle);
+        stroke-width: 5;
+    }
+
+    .timer-ring-fill {
+        fill: none;
+        stroke: var(--color-accent);
+        stroke-linecap: square;
+        transition:
+                stroke-dashoffset 1s linear,
+                stroke 300ms linear;
+    }
+
+    .timer-ring-fill.urgent {
+        stroke: var(--color-danger);
+        filter: drop-shadow(0 0 4px var(--color-danger));
+    }
+
+    .timer-ring-label {
+        position: absolute;
+        font-family: var(--font-bebas-neue), sans-serif;
+        font-size: 2rem;
+        letter-spacing: var(--tracking-display);
+        color: var(--color-foreground);
+    }
+
+    .timer-ring-label.urgent {
+        color: var(--color-danger);
+        animation: timer-shake 0.25s ease-in-out infinite;
+    }
+
+    /* Outer ring turns red when urgent */
+    .timer-ring-container.urgent {
+        outline: 3px solid var(--color-danger);
+        outline-offset: 4px;
+        box-shadow: var(--shadow-glow-danger);
+    }
+
+    /* ═══════════════════════════════════════════════════════════════════════
+       ERROR MESSAGE
+    ═══════════════════════════════════════════════════════════════════════ */
+
+    .error-message {
+        display: flex;
+        align-items: center;
+        gap: 0.375rem;
+        padding: 0.5rem 0.75rem;
+        background-color: var(--color-danger-bg);
+        border: 2px solid var(--color-danger);
+        color: var(--color-danger);
+        font-size: var(--text-body-sm);
+        font-weight: 700;
+        box-shadow: var(--shadow-brutal-xs);
+        animation: error-in 220ms var(--ease-spring) both;
+    }
+
+    /* ═══════════════════════════════════════════════════════════════════════
+       MODAL
+    ═══════════════════════════════════════════════════════════════════════ */
+
+    .modal-overlay {
+        position: fixed;
+        inset: 0;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 1rem;
+        z-index: 100;
+        background: rgba(0, 0, 0, 0.88);
+        backdrop-filter: blur(2px);
+        animation: overlay-in 180ms ease both;
+    }
+
+    .modal-box {
+        width: 100%;
+        max-width: 460px;
+        background-color: var(--color-surface);
+        border: 3px solid var(--color-border-strong);
+        box-shadow: var(--shadow-brutal-xl);
+        animation: modal-in 280ms var(--ease-spring) both;
+        position: relative;
+    }
+
+    /* Accent stripe at top — visual anchor */
+    .modal-box::before {
+        content: '';
+        display: block;
+        height: 3px;
+        background: var(--color-accent);
+        position: absolute;
+        top: -3px;
+        left: 0;
+        right: 0;
+    }
+
+    .modal-close {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        width: 2.25rem;
+        height: 2.25rem;
+        border: 2px solid var(--color-border-strong);
+        background: transparent;
+        color: var(--color-muted);
+        cursor: pointer;
+        font-size: 0.875rem;
+        font-weight: 900;
+        transition:
+                border-color var(--duration-fast) linear,
+                color        var(--duration-fast) linear,
+                transform    var(--duration-base) var(--ease-spring),
+                background-color var(--duration-fast) linear;
+        flex-shrink: 0;
+    }
+
+    .modal-close:hover {
+        border-color: var(--color-danger);
+        color: var(--color-danger);
+        background-color: var(--color-danger-bg);
+        transform: rotate(90deg) scale(1.1);
+    }
+
+    .modal-close:active {
+        transform: rotate(90deg) scale(0.95);
+    }
+
+    /* ═══════════════════════════════════════════════════════════════════════
+       NAVIGATION
+    ═══════════════════════════════════════════════════════════════════════ */
+
+    .nav-item {
+        font-family: var(--font-bebas-neue), sans-serif;
+        font-size: var(--text-label-sm);
+        letter-spacing: var(--tracking-label);
+        text-transform: uppercase;
+        color: var(--color-muted);
+        cursor: pointer;
+        background: transparent;
+        /* Border-bottom indicator */
+        border-bottom: 2px solid transparent;
+        padding-bottom: 2px;
+        padding-left: 0;
+        padding-right: 0;
+        border-top: none;
+        border-left: none;
+        border-right: none;
+        text-decoration: none;
+        transition:
+                color        var(--duration-fast) linear,
+                border-color var(--duration-fast) linear;
+    }
+
+    .nav-item:hover {
+        color: var(--color-foreground);
+        border-bottom-color: var(--color-border-strong);
+    }
+
+    .nav-item.active {
+        color: var(--color-accent);
+        border-bottom-color: var(--color-accent);
+    }
+
+    /* ═══════════════════════════════════════════════════════════════════════
+       TOAST
+    ═══════════════════════════════════════════════════════════════════════ */
+
+    .toast {
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+        padding: 0.875rem 1.25rem;
+        background-color: var(--color-surface-raised);
+        border: 2px solid var(--color-border-strong);
+        box-shadow: var(--shadow-brutal);
+        max-width: 22rem;
+        animation: toast-slide-in 300ms var(--ease-spring) both;
+    }
+
+    .toast-accent  {
+        border-color: var(--color-accent);
+        box-shadow: var(--shadow-brutal-accent), var(--shadow-glow-accent);
+    }
+
+    .toast-success {
+        border-color: var(--color-success);
+        box-shadow: var(--shadow-brutal-success), var(--shadow-glow-success);
+    }
+
+    .toast-danger  {
+        border-color: var(--color-danger);
+        box-shadow: var(--shadow-brutal-danger), var(--shadow-glow-danger);
+    }
+
+    /* ═══════════════════════════════════════════════════════════════════════
+       PLAYER ROW
+    ═══════════════════════════════════════════════════════════════════════ */
+
+    .player-row {
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+        padding: 0.625rem 1rem;
+        border-bottom: 1px solid var(--color-border);
+        transition: background-color var(--duration-fast) linear;
+
+        &:last-child { border-bottom: none; }
+        &:hover { background-color: var(--color-surface-raised); }
+    }
+
+    /* ═══════════════════════════════════════════════════════════════════════
+       STAT CHIP / STATUS PANEL
+    ═══════════════════════════════════════════════════════════════════════ */
+
+    .stat-chip {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+        padding: 0.375rem 0.75rem;
+        background-color: var(--color-surface);
+        border: 2px solid var(--color-border-subtle);
+        font-family: var(--font-bebas-neue), sans-serif;
+        font-size: var(--text-label-sm);
+        letter-spacing: var(--tracking-label);
+        text-transform: uppercase;
+    }
+
+    /* ═══════════════════════════════════════════════════════════════════════
+       DIVIDER
+    ═══════════════════════════════════════════════════════════════════════ */
 
     .divider {
-        @apply flex items-center gap-3;
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+        font-family: var(--font-bebas-neue), sans-serif;
+        font-size: var(--text-label-xs);
+        letter-spacing: 0.22em;
+        text-transform: uppercase;
+        color: var(--color-muted);
     }
 
     .divider::before,
     .divider::after {
         content: '';
-        @apply flex-1 h-px bg-[var(--color-border)];
+        flex: 1;
+        height: 1px;
+        background-color: var(--color-border-subtle);
     }
 
-    /* ── Vote button ─────────────────────────────────────────────────────── */
+    /* ═══════════════════════════════════════════════════════════════════════
+       SECTION HEADER
+    ═══════════════════════════════════════════════════════════════════════ */
 
-    /**
-     * Player voting card — the 2×N grid of player options.
-     * Has its own hover/active colour distinct from btn-primary.
-     */
-    .vote-btn {
-        @apply flex flex-col items-center gap-2 p-4;
-        min-height: 6rem;
-        @apply bg-[var(--color-surface)] border-2 border-[var(--color-border-subtle)];
-        @apply rounded-[var(--radius-xl)];
-        @apply transition-all duration-[var(--duration-base)];
-        @apply focus-visible:outline-none focus-visible:ring-2
-        focus-visible:ring-[var(--color-accent)]
-        focus-visible:ring-offset-2
-        focus-visible:ring-offset-[var(--color-background)];
-        @apply disabled:opacity-50 disabled:cursor-not-allowed;
+    .section-header {
+        display: flex;
+        align-items: baseline;
+        gap: 0.75rem;
+        padding-bottom: 0.75rem;
+        border-bottom: 3px solid var(--color-border-subtle);
+        margin-bottom: 1.25rem;
     }
 
-    .vote-btn:not(:disabled):hover {
-        border-color: var(--color-accent);
-        background-color: var(--color-surface-raised);
-        transform: translateY(-1px);
-        box-shadow: var(--shadow-brutal-accent);
+    /* ═══════════════════════════════════════════════════════════════════════
+       GAME CARD STRIPE
+    ═══════════════════════════════════════════════════════════════════════ */
+
+    .game-card-stripe {
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        height: 3px;
+        background-color: var(--color-accent);
     }
 
-    .vote-btn:not(:disabled):active {
-        transform: translateY(2px);
-        box-shadow: none;
+    /* ═══════════════════════════════════════════════════════════════════════
+       PAGE LOADER
+    ═══════════════════════════════════════════════════════════════════════ */
+
+    .page-loader-emoji {
+        animation: brutal-bounce 0.65s var(--ease-spring) infinite alternate;
     }
 
-    /* ── Skeleton pulse ──────────────────────────────────────────────────── */
-
-    .skeleton {
-        @apply bg-[var(--color-surface)] rounded-[var(--radius-md)] animate-pulse;
+    .page-loader-label {
+        animation: brutal-pulse 1.2s ease-in-out infinite;
+        font-family: var(--font-bebas-neue), sans-serif;
+        font-size: var(--text-title-sm);
+        letter-spacing: 0.15em;
+        text-transform: uppercase;
+        color: var(--color-accent);
     }
 }

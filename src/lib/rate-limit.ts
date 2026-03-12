@@ -35,6 +35,8 @@ export type ActionType =
     | 'submitVote'
     | 'importReels'
     | 'startRound'
+    | 'revealRound'
+    | 'completeRound'
 
 /**
  * Per-action limits using sliding window strategy.
@@ -46,15 +48,19 @@ export type ActionType =
  * | startGame    | 1 min  | 5   | Host-only; prevents re-trigger spam          |
  * | submitVote   | 1 min  | 20  | 1 vote/round + generous retry budget         |
  * | importReels  | 1 hour | 5   | File processing is expensive                 |
- * | startRound   | 1 min  | 5   | Host-only; prevents rapid-start abuse        |
+ * | startRound   | 1 min  | 20  | Host-only; prevents rapid-start abuse        |
+ * | revealRound  | 1 min  | 20  | Host-only; prevents rapid-reveal abuse       |
+ * | completeRound| 1 min  | 20  | Host-only; prevents rapid-complete abuse     |
  */
 const LIMITS: Record<ActionType, { window: `${number} ${'s' | 'm' | 'h' | 'd'}`; limit: number }> = {
-    createLobby: { window: '10 m', limit: 3  },
-    joinLobby:   { window: '1 m',  limit: 10 },
-    startGame:   { window: '1 m',  limit: 5  },
-    submitVote:  { window: '1 m',  limit: 20 },
-    importReels: { window: '1 h',  limit: 5  },
-    startRound:  { window: '1 m',  limit: 5  },
+    createLobby:   { window: '10 m', limit: 3  },
+    joinLobby:     { window: '1 m',  limit: 10 },
+    startGame:     { window: '1 m',  limit: 5  },
+    submitVote:    { window: '1 m',  limit: 20 },
+    importReels:   { window: '1 h',  limit: 5  },
+    startRound:    { window: '1 m',  limit: 20 },
+    revealRound:   { window: '1 m',  limit: 20 },
+    completeRound: { window: '1 m',  limit: 20 },
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -66,6 +72,21 @@ export type RateLimitResult = {
     remaining: number
     reset:     number
     headers:   Record<string, string>
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Dev bypass — set RATE_LIMIT_DISABLED=true in .env.local to skip all checks
+// ─────────────────────────────────────────────────────────────────────────────
+
+const BYPASS_RESULT: RateLimitResult = {
+    success:   true,
+    remaining: 999,
+    reset:     0,
+    headers:   {},
+}
+
+function isDisabled(): boolean {
+    return process.env.RATE_LIMIT_DISABLED === 'true'
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -161,31 +182,28 @@ function getLimiter(action: ActionType): Ratelimit | null {
 // ─────────────────────────────────────────────────────────────────────────────
 
 /**
+/**
  * Checks and records a rate-limit hit for a given action + identifier.
  *
- * - In production (Upstash configured): uses Redis sliding window.
- * - In development (no env vars): uses in-memory fallback (allows all).
+ * - `RATE_LIMIT_DISABLED=true` in env  → always allow (local dev).
+ * - In production (Upstash configured) → Redis sliding window.
+ * - In development (no Upstash env)    → in-memory fallback (allows all).
  *
  * @param action     - The action type (must be in {@link LIMITS}).
  * @param identifier - Unique key for the caller (IP, playerId, sessionId).
- *
- * @example
- * ```ts
- * const rl = await checkRateLimit('submitVote', playerId)
- * if (!rl.success) return { ok: false, error: { type: 'RATE_LIMITED' } }
- * ```
  */
 export async function checkRateLimit(
     action: ActionType,
     identifier: string,
 ): Promise<RateLimitResult> {
+    if (isDisabled()) return BYPASS_RESULT
+
     const limiter = getLimiter(action)
 
     // No Upstash configured → in-memory fallback
     if (!limiter) return memoryRateLimit(action, identifier)
 
     try {
-        const cfg = LIMITS[action]
         const { success, limit, remaining, reset } = await limiter.limit(identifier)
 
         const headers: Record<string, string> = {

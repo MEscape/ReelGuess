@@ -1,15 +1,15 @@
-import { ResultAsync } from 'neverthrow'
-import { createClient } from '@/lib/supabase/server'
+import { ResultAsync }       from 'neverthrow'
+import { createClient }      from '@/lib/supabase/server'
+import { mapReelRow }        from './types'
 import type { Reel, ReelRow } from './types'
-import { mapReelRow }         from './types'
 import type { ReelImportError } from './errors'
 
 /**
  * Fetches all reels imported by a specific player in a lobby.
- * Used to check import status and to enforce the "no import twice" rule.
+ * Used by the game layer to enforce "no duplicate import" and to check status.
  */
 export function getReelsByPlayer(
-    lobbyId: string,
+    lobbyId:  string,
     playerId: string,
 ): ResultAsync<Reel[], ReelImportError> {
     return ResultAsync.fromPromise(
@@ -29,17 +29,14 @@ export function getReelsByPlayer(
 }
 
 /**
- * Returns the distinct set of player IDs who have imported at least one reel
- * for a given lobby and a given list of candidate player IDs.
+ * Returns the distinct set of player IDs who have already imported reels for
+ * a lobby, filtered to the provided candidate list.
  *
- * Used by the lobby service to find players who haven't imported yet —
- * single `.in()` query, no N+1.
- *
- * @param lobbyId   - Target lobby.
- * @param playerIds - Candidate player IDs to check against.
+ * Single `.in()` query — no N+1. Used by the lobby service to surface which
+ * players are still missing their reels.
  */
 export function getReelOwnersByLobby(
-    lobbyId: string,
+    lobbyId:   string,
     playerIds: string[],
 ): ResultAsync<Set<string>, ReelImportError> {
     return ResultAsync.fromPromise(
@@ -59,10 +56,8 @@ export function getReelOwnersByLobby(
 }
 
 /**
- * Returns all unused reels for a lobby (only the columns needed to start a round).
- * Used by the game service to pick a random reel — no Supabase in service layer.
- *
- * @param lobbyId - Target lobby.
+ * Returns all unused reels for a lobby — only the columns needed to start a round.
+ * Used by the game service to pick the next reel; keeps Supabase out of the service layer.
  */
 export function getUnusedReels(
     lobbyId: string,
@@ -78,12 +73,11 @@ export function getUnusedReels(
 
             if (error) throw { type: 'REEL_DATABASE_ERROR', message: error.message } satisfies ReelImportError
             return (data ?? []).map((r) => ({
-                id:           r.id as string,
-                ownerId:      r.owner_id as string,
+                id:           r.id           as string,
+                ownerId:      r.owner_id     as string,
                 instagramUrl: r.instagram_url as string,
             }))
         })(),
         (e) => e as ReelImportError,
     )
 }
-
