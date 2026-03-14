@@ -1,24 +1,18 @@
 'use client'
 
 import { useState, useCallback }       from 'react'
+import { useTranslations }             from 'next-intl'
 import { Input, ErrorMessage, Button }  from '@/components/ui'
 import { useJoinLobby }                 from '../hooks/use-lobby'
 import { cn }                           from '@/lib/utils/cn'
 
-// ─────────────────────────────────────────────────────────────────────────────
-// Component
-// ─────────────────────────────────────────────────────────────────────────────
-
-/**
- * Two-field form: lobby code (large display input) + player name.
- *
- * Uses a `<div>` container with `onClick` on the button and `onKeyDown` (Enter)
- * on both inputs — no HTML `<form>` element, per project rules.
- */
 export function JoinForm() {
     const [code, setCode] = useState('')
     const [name, setName] = useState('')
     const { joinLobby, isPending, error } = useJoinLobby()
+    const t = useTranslations('lobby')
+    const tPlayer = useTranslations('player')
+    const tAria = useTranslations('aria')
 
     const codeReady = code.length === 6
     const nameReady = name.trim().length >= 2
@@ -27,7 +21,7 @@ export function JoinForm() {
     const hint = !codeReady
         ? `${6 - code.length} more character${6 - code.length !== 1 ? 's' : ''} needed`
         : !nameReady
-            ? 'Enter your display name'
+            ? tPlayer('nameRequired')
             : null
 
     const handleSubmit = useCallback(() => {
@@ -37,9 +31,9 @@ export function JoinForm() {
     return (
         <div className="flex flex-col gap-4 w-full">
 
-            {/* ── Code input — large display variant ── */}
+            {/* ── Code input ── */}
             <div className="flex flex-col gap-1.5">
-                <label className="input-label">Lobby Code</label>
+                <label className="input-label">{t('code')}</label>
                 <input
                     className={cn(
                         'input input-code',
@@ -53,17 +47,17 @@ export function JoinForm() {
                     autoComplete="off"
                     spellCheck={false}
                     inputMode="text"
-                    aria-label="6-letter lobby code"
+                    aria-label={tAria('lobbyCode', { code: 'XXXXXX' })}
                 />
             </div>
 
             {/* ── Name input ── */}
             <Input
-                label="Your Name"
+                label={tPlayer('nameLabel')}
                 value={name}
                 onChange={(e) => setName(e.target.value)}
                 onKeyDown={(e) => { if (e.key === 'Enter') handleSubmit() }}
-                placeholder="Display name…"
+                placeholder={tPlayer('namePlaceholder')}
                 maxLength={16}
                 autoComplete="nickname"
             />
@@ -90,7 +84,7 @@ export function JoinForm() {
                 disabled={!canSubmit}
                 onClick={handleSubmit}
             >
-                🔗 Join Lobby
+                🔗 {t('title')}
             </Button>
 
             {hint && !isPending && (

@@ -1,11 +1,12 @@
 'use client'
 
-import { motion }       from 'framer-motion'
-import { Card }         from '@/components/ui'
-import { VoteRow }      from './vote-row'
-import { AbstainRow }   from './abstain-row'
-import type { Vote }    from '@/features/voting'
-import type { Player }  from '@/features/player'
+import { motion }          from 'framer-motion'
+import { useTranslations } from 'next-intl'
+import { Card }            from '@/components/ui'
+import { VoteRow }         from './vote-row'
+import { AbstainRow }      from './abstain-row'
+import type { Vote }       from '@/features/voting'
+import type { Player }     from '@/features/player'
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Types
@@ -37,6 +38,7 @@ export function VoteBreakdown({
                                   totalPlayerCount,
                               }: VoteBreakdownProps) {
     const totalVotes = votes.length
+    const t = useTranslations('reveal')
 
     return (
         <motion.div
@@ -62,13 +64,13 @@ export function VoteBreakdown({
                             color:         'var(--color-muted)',
                         }}
                     >
-                        VOTE BREAKDOWN
+                        {t('voteBreakdown').toUpperCase()}
                     </span>
                     <span
                         className="font-display"
                         style={{ fontSize: 'var(--text-label-sm)', color: 'var(--color-muted)' }}
                     >
-                        {totalVotes}/{totalPlayerCount} VOTED
+                        {t('voted', { total: totalVotes, players: totalPlayerCount })}
                     </span>
                 </div>
 
@@ -86,7 +88,7 @@ export function VoteBreakdown({
                                 letterSpacing: 'var(--tracking-display)',
                             }}
                         >
-                            NO VOTES CAST — TIMER EXPIRED
+                            {t('noVotes').toUpperCase()}
                         </span>
                     </div>
                 )}

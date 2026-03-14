@@ -63,9 +63,10 @@ export async function joinLobby(
     )
     if (nameConflict) {
         return err({
-            type:    'LOBBY_VALIDATION_ERROR',
-            message: `"${playerName.trim()}" is already taken. Choose a different name.`,
-            issues:  [],
+            type:      'LOBBY_VALIDATION_ERROR',
+            message:   'NAME_TAKEN', // opaque token — client uses t('lobby.errors.nameTaken', { name })
+            nameTaken: playerName.trim(),
+            issues:    [],
         })
     }
 

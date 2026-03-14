@@ -1,6 +1,7 @@
 'use client'
 
 import { useMemo }                               from 'react'
+import { useTranslations }                       from 'next-intl'
 import { HeroOverlay }                           from '@/features/scoring'
 import { useGameSession, useGameRound }          from '@/features/game'
 import { RevealHeroCard }                        from './reveal-hero-card'
@@ -37,6 +38,7 @@ import { ErrorMessage }                          from '@/components/ui'
 export function RevealScreen() {
     const { isHost }                                    = useGameSession()
     const { reveal, revealError, livePlayers: players, onRevealComplete } = useGameRound()
+    const t = useTranslations('reveal')
 
     // ── Derived data (unconditional — must precede early returns) ─────────
     const voterMap = useMemo(
@@ -66,7 +68,7 @@ export function RevealScreen() {
                         className="text-center font-sans"
                         style={{ fontSize: 'var(--text-body-sm)', color: 'var(--color-muted)' }}
                     >
-                        Waiting for reveal data… It will appear automatically.
+                        {t('waitingForReveal')}
                     </p>
                 </div>
             )

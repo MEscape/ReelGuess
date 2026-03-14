@@ -1,5 +1,6 @@
 'use client'
 
+import { useTranslations }     from 'next-intl'
 import { Button, ErrorMessage } from '@/components/ui'
 import { usePlayers }          from '@/features/player'
 import { useStartGame }         from '../hooks/use-lobby'
@@ -10,41 +11,23 @@ import { SettingsSummary }      from './settings-summary'
 import { cn }                   from '@/lib/utils/cn'
 import type { Lobby }           from '../types'
 
-// ─────────────────────────────────────────────────────────────────────────────
-// Types
-// ─────────────────────────────────────────────────────────────────────────────
-
 type LobbyRoomProps = {
     lobby:           Lobby
     currentPlayerId: string
 }
 
-// ─────────────────────────────────────────────────────────────────────────────
-// Component
-// ─────────────────────────────────────────────────────────────────────────────
-
-/**
- * Waiting-room UI — five visual zones:
- *   1. Header     — page title + subtitle
- *   2. Share code — dominant tap-to-copy block
- *   3. Settings   — host: editable preset chips / guest: read-only summary
- *   4. Players    — real-time player list with quorum indicator
- *   5. Action     — host START / guest WAITING panel
- *
- * Business logic (startGame, updateSettings) lives in hooks — this component
- * is pure UI. `useTransition` / `useState` for the action have been removed.
- */
 export function LobbyRoom({ lobby, currentPlayerId }: LobbyRoomProps) {
     const players    = usePlayers(lobby.id, lobby.players)
     const isHost     = lobby.hostId === currentPlayerId
     const hasEnough  = players.length >= 2
+    const t          = useTranslations('lobby')
 
     const { startGame, isPending, error } = useStartGame(lobby.id, currentPlayerId)
 
     return (
         <div className="flex flex-col items-center gap-5 w-full max-w-md mx-auto px-4 pb-safe">
 
-            {/* ── ZONE 1: Header ────────────────────────────────────────── */}
+            {/* ── ZONE 1: Header ── */}
             <div className="text-center pt-4 w-full">
                 <h1
                     className="font-display uppercase leading-none text-[var(--color-accent)]"
@@ -54,22 +37,22 @@ export function LobbyRoom({ lobby, currentPlayerId }: LobbyRoomProps) {
                         textShadow:    '0 0 20px rgba(245,200,0,0.4), 0 0 60px rgba(245,200,0,0.15)',
                     }}
                 >
-                    Waiting Room
+                    {t('title')}
                 </h1>
                 <p
                     className="font-sans text-[var(--color-muted)] mt-2"
                     style={{ fontSize: 'var(--text-body-sm)' }}
                 >
-                    Share the code — friends join instantly
+                    {t('shareCode')}
                 </p>
             </div>
 
-            {/* ── ZONE 2: Share code ────────────────────────────────────── */}
+            {/* ── ZONE 2: Share code ── */}
             <div className="w-full">
                 <ShareCode code={lobby.id} />
             </div>
 
-            {/* ── ZONE 3: Settings ──────────────────────────────────────── */}
+            {/* ── ZONE 3: Settings ── */}
             <div className="w-full">
                 {isHost ? (
                     <SettingsPanel
@@ -82,18 +65,14 @@ export function LobbyRoom({ lobby, currentPlayerId }: LobbyRoomProps) {
                 )}
             </div>
 
-            {/* ── ZONE 4: Players ───────────────────────────────────────── */}
+            {/* ── ZONE 4: Players ── */}
             <div className="w-full card-brutal overflow-hidden">
 
                 {/* Section header */}
                 <div className="flex items-center justify-between px-4 py-3 border-b-2 border-[var(--color-border)]">
                     <div className="flex items-center gap-2">
-                        <span className="input-label" style={{ marginBottom: 0 }}>
-                            Players
-                        </span>
-                        <span className="badge badge-muted">
-                            {players.length}
-                        </span>
+                        <span className="input-label" style={{ marginBottom: 0 }}>{t('players')}</span>
+                        <span className="badge badge-muted">{players.length}</span>
                     </div>
 
                     <div className="flex items-center gap-1.5">
@@ -105,7 +84,7 @@ export function LobbyRoom({ lobby, currentPlayerId }: LobbyRoomProps) {
                             className="font-sans text-[var(--color-muted)]"
                             style={{ fontSize: 'var(--text-body-sm)' }}
                         >
-                            {hasEnough ? 'Ready to start' : 'Need 2+ players'}
+                            {hasEnough ? t('waiting').replace('…', '') : t('minPlayers')}
                         </span>
                     </div>
                 </div>
@@ -134,14 +113,13 @@ export function LobbyRoom({ lobby, currentPlayerId }: LobbyRoomProps) {
                             className="font-sans text-[var(--color-subtle)]"
                             style={{ fontSize: 'var(--text-body-sm)' }}
                         >
-                            Waiting for more players to join…
+                            {t('waiting')}
                         </p>
                     </div>
                 )}
             </div>
 
-            {/* ── ZONE 5: Action ────────────────────────────────────────── */}
-
+            {/* ── ZONE 5: Action ── */}
             {isHost ? (
                 <div className="w-full flex flex-col gap-3">
                     <Button
@@ -151,7 +129,7 @@ export function LobbyRoom({ lobby, currentPlayerId }: LobbyRoomProps) {
                         disabled={!hasEnough || isPending}
                         onClick={startGame}
                     >
-                        🚀 Start Game
+                        🚀 {t('startGame')}
                     </Button>
 
                     {!hasEnough && (
@@ -159,7 +137,7 @@ export function LobbyRoom({ lobby, currentPlayerId }: LobbyRoomProps) {
                             className="text-center font-sans text-[var(--color-subtle)]"
                             style={{ fontSize: 'var(--text-body-sm)' }}
                         >
-                            Need at least 2 players to start
+                            {t('minPlayers')}
                         </p>
                     )}
 
@@ -174,11 +152,8 @@ export function LobbyRoom({ lobby, currentPlayerId }: LobbyRoomProps) {
                             style={{ animation: 'brutal-pulse 1.2s ease-in-out infinite' }}
                             aria-hidden
                         />
-                        <p
-                            className="font-sans text-[var(--color-muted)]"
-                            style={{ fontSize: 'var(--text-body)' }}
-                        >
-                            Waiting for host to start…
+                        <p className="font-sans text-[var(--color-muted)]" style={{ fontSize: 'var(--text-body)' }}>
+                            {t('waitingForHost')}
                         </p>
                     </div>
                 </div>

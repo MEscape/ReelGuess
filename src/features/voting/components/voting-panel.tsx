@@ -2,52 +2,35 @@
 
 import { memo }                         from 'react'
 import { motion }                       from 'framer-motion'
+import { useTranslations }              from 'next-intl'
 import { PlayerAvatar }                 from '@/features/player'
 import { ErrorMessage }                 from '@/components/ui'
 import { VoteLockCard }                 from './vote-lock-card'
 import { useGameRound }                 from '@/features/game'
 
-// ─────────────────────────────────────────────────────────────────────────────
-// Component
-// ─────────────────────────────────────────────────────────────────────────────
-
-/**
- * Voting panel — reads from context, no props needed.
- *
- * Two states:
- * - Unvoted: staggered player grid where any tile submits a vote.
- * - Voted:   delegates to {@link VoteLockCard} (confirmation + Double-or-Nothing).
- *
- * Memo'd — only re-renders when `useGameRound` context values change.
- * `VoteLockCard` reads `useGameSession` itself; this component does not need
- * to call it.
- */
 export const VotingPanel = memo(function VotingPanel() {
-    const { livePlayers, onVote, hasVoted,
-        isVotePending, voteError } = useGameRound()
+    const { livePlayers, onVote, hasVoted, isVotePending, voteError } = useGameRound()
+    const t     = useTranslations('voting')
+    const tAria = useTranslations('aria')
 
     if (hasVoted) return <VoteLockCard />
 
     return (
         <div className="w-full space-y-3 pb-4">
 
-            {/* ── Header ─────────────────────────────────────────── */}
+            {/* ── Header ── */}
             <div className="flex items-center gap-3">
                 <div style={{ flex: 1, height: '2px', background: 'var(--color-border-subtle)' }} />
                 <span
                     className="font-display uppercase shrink-0"
-                    style={{
-                        fontSize:      'var(--text-label-sm)',
-                        letterSpacing: 'var(--tracking-loose)',
-                        color:         'var(--color-muted)',
-                    }}
+                    style={{ fontSize: 'var(--text-label-sm)', letterSpacing: 'var(--tracking-loose)', color: 'var(--color-muted)' }}
                 >
-                    WHO LIKED THIS REEL?
+                    {t('title').toUpperCase()}
                 </span>
                 <div style={{ flex: 1, height: '2px', background: 'var(--color-border-subtle)' }} />
             </div>
 
-            {/* ── Player grid ────────────────────────────────────── */}
+            {/* ── Player grid ── */}
             <div className="grid grid-cols-2 gap-2.5">
                 {livePlayers.map((player, i) => (
                     <motion.button
@@ -59,16 +42,12 @@ export const VotingPanel = memo(function VotingPanel() {
                         disabled={isVotePending}
                         className="vote-btn"
                         style={{ minHeight: '7rem' }}
+                        aria-label={tAria('voteFor', { name: player.displayName })}
                     >
                         <PlayerAvatar seed={player.avatarSeed} size={56} />
                         <span
                             className="font-display uppercase truncate w-full text-center px-2"
-                            style={{
-                                fontSize:      'var(--text-ui)',
-                                letterSpacing: 'var(--tracking-display)',
-                                color:         'var(--color-foreground)',
-                                lineHeight:    1.1,
-                            }}
+                            style={{ fontSize: 'var(--text-ui)', letterSpacing: 'var(--tracking-display)', color: 'var(--color-foreground)', lineHeight: 1.1 }}
                         >
                             {player.displayName}
                         </span>

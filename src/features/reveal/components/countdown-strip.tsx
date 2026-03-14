@@ -1,10 +1,11 @@
 'use client'
 
-import { useEffect, useRef }        from 'react'
-import { motion }                   from 'framer-motion'
-import { ProgressBar }              from '@/components/ui'
-import { useRevealCountdown }       from '../hooks/use-reveal-countdown'
-import { REVEAL_SECONDS }           from '../constants'
+import { useEffect, useRef }  from 'react'
+import { motion }             from 'framer-motion'
+import { useTranslations }    from 'next-intl'
+import { ProgressBar }        from '@/components/ui'
+import { useRevealCountdown } from '../hooks/use-reveal-countdown'
+import { REVEAL_SECONDS }     from '../constants'
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Types
@@ -42,6 +43,7 @@ type CountdownStripProps = {
 export function CountdownStrip({ roundId, isHost, onComplete }: CountdownStripProps) {
     const { countdown, isDone } = useRevealCountdown(roundId, REVEAL_SECONDS)
     const firedRef              = useRef(false)
+    const t                     = useTranslations('reveal')
 
     useEffect(() => {
         // Reset the guard when the round changes so a new countdown can fire.
@@ -76,7 +78,7 @@ export function CountdownStrip({ roundId, isHost, onComplete }: CountdownStripPr
                         color:         'var(--color-muted)',
                     }}
                 >
-                    {isHost ? 'NEXT ROUND IN' : 'WAITING FOR HOST'}
+                {isHost ? t('nextRoundIn').toUpperCase() : t('waitingForNextRound').toUpperCase()}
                 </span>
                 <span
                     className="font-display"

@@ -2,8 +2,9 @@
 
 import { useRouter }               from 'next/navigation'
 import { useMutation }             from '@tanstack/react-query'
+import { useTranslations }         from 'next-intl'
 import { usePlayerStore }          from '@/features/player'
-import { createRematchAction, submitLocalReelsToDB }     from '@/features/lobby'
+import { createRematchAction, submitLocalReelsToDB } from '@/features/lobby'
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Types
@@ -47,6 +48,7 @@ export function useRematch({
                            }: UseRematchOptions): UseRematchResult {
     const router      = useRouter()
     const setPlayerId = usePlayerStore((s) => s.setPlayerId)
+    const t           = useTranslations('lobby.errors')
 
     const mutation = useMutation<void, Error>({
         mutationFn: async () => {
@@ -54,7 +56,7 @@ export function useRematch({
             if (!result.ok) {
                 const message = 'message' in result.error
                     ? result.error.message
-                    : 'Failed to create rematch. Please try again.'
+                    : t('failedToRematch')
                 throw new Error(message)
             }
 

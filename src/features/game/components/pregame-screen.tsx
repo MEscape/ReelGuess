@@ -1,49 +1,32 @@
 'use client'
 
 import { motion }                        from 'framer-motion'
+import { useTranslations }               from 'next-intl'
 import { Button, Card, ErrorMessage,
     Badge }                          from '@/components/ui'
 import { PlayerAvatar }                  from '@/features/player'
 import { useGameSession, useGameRound }  from '../game-context'
 import type { Lobby }                    from '@/features/lobby'
 
-// ─────────────────────────────────────────────────────────────────────────────
-// Types
-// ─────────────────────────────────────────────────────────────────────────────
+type PregamePanelProps = { lobby: Lobby }
 
-type PregamePanelProps = {
-    /** Lobby with live player list already merged in (from `usePlayers`). */
-    lobby: Lobby
-}
-
-// ─────────────────────────────────────────────────────────────────────────────
-// Component
-// ─────────────────────────────────────────────────────────────────────────────
-
-/**
- * Pre-game waiting screen — reads session/action state from context.
- *
- * - Header strip: lobby code + player count
- * - Animated player roster (staggered reveal)
- * - Game settings strip (rounds + timer)
- * - Host: dominant CTA with error recovery
- * - Guest: minimal pulsing wait state
- */
 export function PregameScreen({ lobby }: PregamePanelProps) {
     const { currentPlayerId, isHost, settings }            = useGameSession()
     const { isStartPending, startError, onStartNextRound } = useGameRound()
+    const t  = useTranslations('game')
+    const tLobby = useTranslations('lobby')
 
     const playerCount = lobby.players.length
 
     const settings2Col = [
-        { label: 'ROUNDS', value: settings.roundsCount },
-        { label: 'TIMER',  value: `${settings.timerSeconds}s` },
+        { label: t('settingRounds'), value: settings.roundsCount },
+        { label: t('settingTimer'),  value: `${settings.timerSeconds}s` },
     ]
 
     return (
         <div className="w-full space-y-4">
 
-            {/* ── Lobby status strip ──────────────────────────────── */}
+            {/* ── Lobby status strip ── */}
             <div
                 className="flex items-center justify-between px-4 py-3"
                 style={{
@@ -56,13 +39,9 @@ export function PregameScreen({ lobby }: PregamePanelProps) {
                 <div className="flex items-center gap-3">
                     <span
                         className="font-display uppercase"
-                        style={{
-                            fontSize:      'var(--text-label-sm)',
-                            letterSpacing: 'var(--tracking-label)',
-                            color:         'var(--color-muted)',
-                        }}
+                        style={{ fontSize: 'var(--text-label-sm)', letterSpacing: 'var(--tracking-label)', color: 'var(--color-muted)' }}
                     >
-                        LOBBY
+                        {tLobby('title').toUpperCase()}
                     </span>
                     <span
                         className="font-display"
@@ -71,10 +50,10 @@ export function PregameScreen({ lobby }: PregamePanelProps) {
                         {lobby.id}
                     </span>
                 </div>
-                <Badge variant="muted" size="lg">{playerCount} PLAYERS</Badge>
+                <Badge variant="muted" size="lg">{tLobby('playerCount', { count: playerCount })}</Badge>
             </div>
 
-            {/* ── Player roster ───────────────────────────────────── */}
+            {/* ── Player roster ── */}
             <Card variant="brutal" stripe className="overflow-hidden">
                 <div
                     className="px-4 py-2.5 flex items-center gap-2"
@@ -82,18 +61,11 @@ export function PregameScreen({ lobby }: PregamePanelProps) {
                 >
                     <span
                         className="font-display uppercase"
-                        style={{
-                            fontSize:      'var(--text-label-sm)',
-                            letterSpacing: 'var(--tracking-label)',
-                            color:         'var(--color-muted)',
-                        }}
+                        style={{ fontSize: 'var(--text-label-sm)', letterSpacing: 'var(--tracking-label)', color: 'var(--color-muted)' }}
                     >
-                        PLAYERS
+                        {tLobby('players').toUpperCase()}
                     </span>
-                    <span
-                        className="font-display"
-                        style={{ fontSize: 'var(--text-label-sm)', color: 'var(--color-accent)' }}
-                    >
+                    <span className="font-display" style={{ fontSize: 'var(--text-label-sm)', color: 'var(--color-accent)' }}>
                         {playerCount}
                     </span>
                 </div>
@@ -118,12 +90,7 @@ export function PregameScreen({ lobby }: PregamePanelProps) {
                             >
                                 <span
                                     className="font-display shrink-0 tabular-nums"
-                                    style={{
-                                        fontSize:  'var(--text-label-sm)',
-                                        color:     'var(--color-subtle)',
-                                        width:     '1.25rem',
-                                        textAlign: 'right',
-                                    }}
+                                    style={{ fontSize: 'var(--text-label-sm)', color: 'var(--color-subtle)', width: '1.25rem', textAlign: 'right' }}
                                 >
                                     {i + 1}
                                 </span>
@@ -132,18 +99,14 @@ export function PregameScreen({ lobby }: PregamePanelProps) {
 
                                 <span
                                     className="flex-1 min-w-0 font-display uppercase truncate"
-                                    style={{
-                                        fontSize:      'var(--text-ui)',
-                                        letterSpacing: 'var(--tracking-display)',
-                                        color:         isCurrentPlayer ? 'var(--color-accent)' : 'var(--color-foreground)',
-                                    }}
+                                    style={{ fontSize: 'var(--text-ui)', letterSpacing: 'var(--tracking-display)', color: isCurrentPlayer ? 'var(--color-accent)' : 'var(--color-foreground)' }}
                                 >
                                     {p.displayName}
                                 </span>
 
                                 <div className="flex items-center gap-1.5 shrink-0">
-                                    {isLobbyHost     && <Badge variant="accent" size="sm">HOST</Badge>}
-                                    {isCurrentPlayer && !isLobbyHost && <Badge variant="muted" size="sm">YOU</Badge>}
+                                    {isLobbyHost     && <Badge variant="accent" size="sm">{tLobby('hostLabel').toUpperCase()}</Badge>}
+                                    {isCurrentPlayer && !isLobbyHost && <Badge variant="muted" size="sm">{tLobby('youLabel').toUpperCase()}</Badge>}
                                 </div>
                             </motion.div>
                         )
@@ -151,36 +114,23 @@ export function PregameScreen({ lobby }: PregamePanelProps) {
                 </div>
             </Card>
 
-            {/* ── Game settings strip ─────────────────────────────── */}
+            {/* ── Game settings strip ── */}
             <div className="grid grid-cols-2 gap-2">
                 {settings2Col.map(({ label, value }) => (
                     <div
                         key={label}
                         className="flex flex-col items-center justify-center py-3 gap-1"
-                        style={{
-                            background: 'var(--color-surface)',
-                            border:     '2px solid var(--color-border-subtle)',
-                            boxShadow:  'var(--shadow-brutal-xs)',
-                        }}
+                        style={{ background: 'var(--color-surface)', border: '2px solid var(--color-border-subtle)', boxShadow: 'var(--shadow-brutal-xs)' }}
                     >
                         <span
                             className="font-display uppercase"
-                            style={{
-                                fontSize:      'var(--text-label-xs)',
-                                letterSpacing: 'var(--tracking-loose)',
-                                color:         'var(--color-muted)',
-                            }}
+                            style={{ fontSize: 'var(--text-label-xs)', letterSpacing: 'var(--tracking-loose)', color: 'var(--color-muted)' }}
                         >
                             {label}
                         </span>
                         <span
                             className="font-display"
-                            style={{
-                                fontSize:      'var(--text-title)',
-                                letterSpacing: 'var(--tracking-display)',
-                                color:         'var(--color-foreground)',
-                                lineHeight:    1,
-                            }}
+                            style={{ fontSize: 'var(--text-title)', letterSpacing: 'var(--tracking-display)', color: 'var(--color-foreground)', lineHeight: 1 }}
                         >
                             {value}
                         </span>
@@ -188,7 +138,7 @@ export function PregameScreen({ lobby }: PregamePanelProps) {
                 ))}
             </div>
 
-            {/* ── CTA ─────────────────────────────────────────────── */}
+            {/* ── CTA ── */}
             {isHost ? (
                 <div className="space-y-3 pt-1">
                     <Button
@@ -198,19 +148,15 @@ export function PregameScreen({ lobby }: PregamePanelProps) {
                         loading={isStartPending}
                         disabled={playerCount < 2}
                     >
-                        {isStartPending ? 'STARTING…' : '▶ START GAME'}
+                        {isStartPending ? `${t('starting').toUpperCase()}` : `▶ ${t('phase.pregame').toUpperCase()}`}
                     </Button>
 
                     {playerCount < 2 && (
                         <p
                             className="text-center font-display uppercase"
-                            style={{
-                                fontSize:      'var(--text-label-sm)',
-                                letterSpacing: 'var(--tracking-label)',
-                                color:         'var(--color-muted)',
-                            }}
+                            style={{ fontSize: 'var(--text-label-sm)', letterSpacing: 'var(--tracking-label)', color: 'var(--color-muted)' }}
                         >
-                            Need at least 2 players
+                            {tLobby('minPlayers')}
                         </p>
                     )}
 
@@ -224,16 +170,13 @@ export function PregameScreen({ lobby }: PregamePanelProps) {
                     <span className="status-dot status-dot-warn" style={{ width: '0.6rem', height: '0.6rem' }} />
                     <span
                         className="font-display uppercase"
-                        style={{
-                            fontSize:      'var(--text-ui)',
-                            letterSpacing: 'var(--tracking-display)',
-                            color:         'var(--color-muted)',
-                        }}
+                        style={{ fontSize: 'var(--text-ui)', letterSpacing: 'var(--tracking-display)', color: 'var(--color-muted)' }}
                     >
-                        Waiting for host…
+                        {t('waitingForHost')}
                     </span>
                 </div>
             )}
         </div>
     )
 }
+

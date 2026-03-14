@@ -2,6 +2,7 @@
 
 import { useState, useCallback, useRef } from 'react'
 import { useMutation }                   from '@tanstack/react-query'
+import { useTranslations }               from 'next-intl'
 import { submitVoteAction,
     checkExistingVoteAction }       from '../actions'
 import type { Vote }                     from '../types'
@@ -53,6 +54,7 @@ type VoteMutationResult =
 export function useVote({ currentPlayerId, onVoteSettled }: UseVoteOptions) {
     const [hasVoted, setHasVoted] = useState(false)
     const isSubmittingRef         = useRef(false)
+    const t                       = useTranslations('voting')
 
     const mutation = useMutation<VoteMutationResult, Error, SubmitVoteArgs>({
         mutationFn: async ({ roundId, voterId, votedForId }) => {
@@ -61,13 +63,11 @@ export function useVote({ currentPlayerId, onVoteSettled }: UseVoteOptions) {
             if (!result.ok) {
                 switch (result.error.type) {
                     case 'ALREADY_VOTED':
-                        // Return a sentinel — state is set in onSuccess so that
-                        // React Query's own state machine stays consistent.
                         return { alreadyVoted: true, vote: null }
                     case 'NOT_VOTING_PHASE':
-                        throw new Error('Voting has ended')
+                        throw new Error(t('votingEnded'))
                     default:
-                        throw new Error('Failed to submit vote')
+                        throw new Error(t('failedToVote'))
                 }
             }
 

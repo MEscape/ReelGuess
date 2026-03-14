@@ -2,6 +2,7 @@
 
 import { memo }            from 'react'
 import { motion }          from 'framer-motion'
+import { useTranslations } from 'next-intl'
 import { PlayerAvatar }    from '@/features/player'
 import type { ScoreEntry } from '@/features/scoring'
 
@@ -145,6 +146,8 @@ function Podium({ scores }: { scores: ScoreEntry[] }) {
  * duplicate O(n log n) sort.
  */
 export const FinalLeaderboard = memo(function FinalLeaderboard({ scores }: FinalLeaderboardProps) {
+    const t = useTranslations('scoring')
+
     if (scores.length === 0) return (
         <div
             className="w-full text-center py-6"
@@ -155,7 +158,7 @@ export const FinalLeaderboard = memo(function FinalLeaderboard({ scores }: Final
                 fontSize:   'var(--text-body-sm)',
             }}
         >
-            No scores yet.
+            {t('noScores')}
         </div>
     )
 
@@ -185,7 +188,7 @@ export const FinalLeaderboard = memo(function FinalLeaderboard({ scores }: Final
                         color:         'var(--color-accent)',
                     }}
                 >
-                    🏆 FINAL STANDINGS
+                    🏆 {t('finalStandings').toUpperCase()}
                 </span>
                 <span
                     className="font-display uppercase"
@@ -195,7 +198,7 @@ export const FinalLeaderboard = memo(function FinalLeaderboard({ scores }: Final
                         color:         'var(--color-muted)',
                     }}
                 >
-                    {scores.length} PLAYER{scores.length !== 1 ? 'S' : ''}
+                    {t('playerCount', { count: scores.length })}
                 </span>
             </div>
 
@@ -227,6 +230,7 @@ export const FinalLeaderboard = memo(function FinalLeaderboard({ scores }: Final
                                         :                    '4px solid transparent',
                                 background:   isFirst ? 'rgba(245,200,0,0.04)' : 'transparent',
                             }}
+                            aria-label={t('scoreboardEntry', { name: entry.displayName, points: entry.points, rank: idx + 1 })}
                         >
                             {/* Rank */}
                             <span
@@ -275,7 +279,7 @@ export const FinalLeaderboard = memo(function FinalLeaderboard({ scores }: Final
                                             lineHeight:    1.2,
                                         }}
                                     >
-                                        🔥 {entry.streak}× STREAK
+                                        🔥 {t('streak', { streak: entry.streak })}
                                     </p>
                                 )}
                             </div>

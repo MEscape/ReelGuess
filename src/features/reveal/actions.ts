@@ -3,6 +3,7 @@
 import { revealRound }           from './service'
 import { RevealRoundSchema }     from './validations'
 import { rateLimitFromIP }       from '@/lib/rate-limit'
+import { withSentry }            from '@/lib/sentry-action'
 import type { GameError }        from '@/features/game'
 import type { SerializedResult } from '@/lib/errors/error-handler'
 import type { RoundReveal }      from './types'
@@ -21,20 +22,21 @@ import type { RoundReveal }      from './types'
  * Rate limited per IP: 20 reveals per minute.
  * The underlying service is idempotent — concurrent calls are safe.
  */
-export async function revealRoundAction(
-    roundId: string,
-): Promise<SerializedResult<RoundReveal, GameError>> {
-    const rl = await rateLimitFromIP('revealRound')
-    if (!rl.success) {
-        return { ok: false, error: { type: 'GAME_DATABASE_ERROR', message: 'Too many requests. Please wait.' } }
-    }
+export const revealRoundAction = withSentry(
+    'revealRoundAction',
+    async (roundId: string): Promise<SerializedResult<RoundReveal, GameError>> => {
+        const rl = await rateLimitFromIP('revealRound')
+        if (!rl.success) {
+            return { ok: false, error: { type: 'GAME_DATABASE_ERROR', message: 'Too many requests. Please wait.' } }
+        }
 
-    const parsed = RevealRoundSchema.safeParse({ roundId })
-    if (!parsed.success) {
-        return { ok: false, error: { type: 'GAME_DATABASE_ERROR', message: 'Invalid round ID' } }
-    }
+        const parsed = RevealRoundSchema.safeParse({ roundId })
+        if (!parsed.success) {
+            return { ok: false, error: { type: 'GAME_DATABASE_ERROR', message: 'Invalid round ID' } }
+        }
 
-    const result = await revealRound(parsed.data.roundId)
-    if (result.isErr()) return { ok: false, error: result.error }
-    return { ok: true, value: result.value }
-}
+        const result = await revealRound(parsed.data.roundId)
+        if (result.isErr()) return { ok: false, error: result.error }
+        return { ok: true, value: result.value }
+    },
+)

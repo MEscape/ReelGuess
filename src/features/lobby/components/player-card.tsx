@@ -1,12 +1,9 @@
 'use client'
 
+import { useTranslations }  from 'next-intl'
 import { PlayerAvatar }  from '@/features/player'
 import type { Player }   from '@/features/player'
 import { cn }            from '@/lib/utils/cn'
-
-// ─────────────────────────────────────────────────────────────────────────────
-// Types
-// ─────────────────────────────────────────────────────────────────────────────
 
 type PlayerCardProps = {
     player:  Player
@@ -14,21 +11,9 @@ type PlayerCardProps = {
     isYou?:  boolean
 }
 
-// ─────────────────────────────────────────────────────────────────────────────
-// Component
-// ─────────────────────────────────────────────────────────────────────────────
-
-/**
- * Single player row in the lobby waiting room.
- *
- * Visual hierarchy (left → right):
- *   [accent stripe?] | Avatar | Name + YOU badge | HOST badge
- *
- * `name` is passed to `PlayerAvatar` so screen readers announce each player
- * by name rather than the generic "Player avatar" fallback. This is especially
- * important in the lobby list where multiple avatars are rendered side-by-side.
- */
 export function PlayerCard({ player, isHost = false, isYou = false }: PlayerCardProps) {
+    const t = useTranslations('lobby')
+
     return (
         <div
             className={cn(
@@ -39,24 +24,15 @@ export function PlayerCard({ player, isHost = false, isYou = false }: PlayerCard
         >
             {/* Accent left stripe — current player only */}
             {isYou && (
-                <div
-                    className="absolute left-0 top-0 bottom-0 w-[3px] bg-[var(--color-accent)]"
-                    aria-hidden
-                />
+                <div className="absolute left-0 top-0 bottom-0 w-[3px] bg-[var(--color-accent)]" aria-hidden />
             )}
 
-            {/* Avatar — host gets accent border */}
+            {/* Avatar */}
             <div className={cn(
                 'shrink-0 border-2',
-                isHost
-                    ? 'border-[var(--color-accent)]'
-                    : 'border-[var(--color-border-subtle)]',
+                isHost ? 'border-[var(--color-accent)]' : 'border-[var(--color-border-subtle)]',
             )}>
-                <PlayerAvatar
-                    seed={player.avatarSeed}
-                    name={player.displayName}
-                    size={36}
-                />
+                <PlayerAvatar seed={player.avatarSeed} name={player.displayName} size={36} />
             </div>
 
             {/* Name + YOU badge */}
@@ -69,7 +45,7 @@ export function PlayerCard({ player, isHost = false, isYou = false }: PlayerCard
                 </p>
                 {isYou && (
                     <span className="badge badge-accent badge-sm shrink-0">
-                        You
+                        {t('youLabel')}
                     </span>
                 )}
             </div>
@@ -77,7 +53,7 @@ export function PlayerCard({ player, isHost = false, isYou = false }: PlayerCard
             {/* Host badge */}
             {isHost && (
                 <span className="badge badge-accent shrink-0">
-                    👑 Host
+                    👑 {t('hostLabel')}
                 </span>
             )}
         </div>

@@ -2,6 +2,7 @@
 
 import { useState, useCallback, useRef } from 'react'
 import { motion, AnimatePresence }       from 'framer-motion'
+import { useTranslations }               from 'next-intl'
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Types
@@ -59,8 +60,9 @@ export function DoubleButton({
     const [used,      setUsed]      = useState(false)
     const [isPending, setIsPending] = useState(false)
     const [error,     setError]     = useState<string | null>(null)
-
     const guardRef = useRef(false)
+    const t        = useTranslations('voting')
+    const tAria    = useTranslations('aria')
 
     const handleClick = useCallback(async () => {
         if (guardRef.current || !canActivate) return
@@ -71,12 +73,12 @@ export function DoubleButton({
             await onDoubleAction(roundId, voterId)
             setUsed(true)
         } catch (e) {
-            setError(e instanceof Error ? e.message : 'Failed to activate double')
+            setError(e instanceof Error ? e.message : t('failedToVote'))
         } finally {
             setIsPending(false)
             guardRef.current = false
         }
-    }, [onDoubleAction, roundId, voterId, canActivate])
+    }, [onDoubleAction, roundId, voterId, canActivate, t])
 
     const isDisabled = isPending || !canActivate
 
@@ -93,46 +95,34 @@ export function DoubleButton({
                     <button
                         onClick={handleClick}
                         disabled={isDisabled}
-                        aria-label={canActivate ? 'Activate Double-or-Nothing' : `Need ${minPoints} pts to activate Double-or-Nothing`}
+                        aria-label={canActivate
+                            ? tAria('activateDouble')
+                            : tAria('doubleDisabled', { minPoints })}
                         style={{
-                            width:      '100%',
-                            padding:    '0.75rem 1.5rem',
+                            width: '100%', padding: '0.75rem 1.5rem',
                             background: isDisabled
                                 ? 'var(--color-surface-raised)'
                                 : 'linear-gradient(135deg, rgba(245,200,0,0.15) 0%, rgba(245,200,0,0.05) 100%)',
-                            border:     `2px solid ${isDisabled ? 'var(--color-border-strong)' : 'var(--color-accent)'}`,
-                            boxShadow:  isDisabled ? 'none' : '4px 4px 0px var(--color-accent)',
-                            cursor:     isDisabled ? 'not-allowed' : 'pointer',
-                            opacity:    !canActivate ? 0.5 : 1,
+                            border:    `2px solid ${isDisabled ? 'var(--color-border-strong)' : 'var(--color-accent)'}`,
+                            boxShadow: isDisabled ? 'none' : '4px 4px 0px var(--color-accent)',
+                            cursor:    isDisabled ? 'not-allowed' : 'pointer',
+                            opacity:   !canActivate ? 0.5 : 1,
                             transition: 'box-shadow 0.1s, transform 0.1s',
-                            transform:  isPending ? 'translate(2px, 2px)' : undefined,
+                            transform: isPending ? 'translate(2px, 2px)' : undefined,
                         }}
                     >
                         <div className="flex items-center justify-center gap-3">
                             <span style={{ fontSize: '1.5rem', lineHeight: 1 }}>⚡</span>
                             <div className="text-center">
-                                <p
-                                    className="font-display uppercase"
-                                    style={{
-                                        fontSize:      'var(--text-title-sm)',
-                                        letterSpacing: 'var(--tracking-display)',
-                                        color:         isDisabled ? 'var(--color-muted)' : 'var(--color-accent)',
-                                        lineHeight:    1,
-                                    }}
-                                >
-                                    DOUBLE OR NOTHING
+                                <p className="font-display uppercase"
+                                    style={{ fontSize: 'var(--text-title-sm)', letterSpacing: 'var(--tracking-display)', color: isDisabled ? 'var(--color-muted)' : 'var(--color-accent)', lineHeight: 1 }}>
+                                    {isPending ? t('doubleActivating').toUpperCase() : t('doubleOrNothing').toUpperCase()}
                                 </p>
-                                <p
-                                    className="font-sans"
-                                    style={{
-                                        fontSize:  'var(--text-label-xs)',
-                                        color:     'var(--color-muted)',
-                                        marginTop: '0.2rem',
-                                    }}
-                                >
+                                <p className="font-sans"
+                                    style={{ fontSize: 'var(--text-label-xs)', color: 'var(--color-muted)', marginTop: '0.2rem' }}>
                                     {canActivate
-                                        ? 'Correct → ×2 pts · Wrong → −50% of your points'
-                                        : `Requires ${minPoints} pts to activate`}
+                                        ? t('doubleSubtitleActive')
+                                        : t('doubleSubtitleLocked', { minPoints })}
                                 </p>
                             </div>
                             <span style={{ fontSize: '1.5rem', lineHeight: 1 }}>⚡</span>
@@ -140,13 +130,8 @@ export function DoubleButton({
                     </button>
 
                     {error && (
-                        <p
-                            className="text-center font-sans"
-                            style={{
-                                fontSize: 'var(--text-label-sm)',
-                                color:    'var(--color-danger)',
-                            }}
-                        >
+                        <p className="text-center font-sans"
+                            style={{ fontSize: 'var(--text-label-sm)', color: 'var(--color-danger)' }}>
                             {error}
                         </p>
                     )}
@@ -159,21 +144,12 @@ export function DoubleButton({
                     animate={{ opacity: 1, scale: 1 }}
                     transition={{ type: 'spring', stiffness: 300, damping: 20 }}
                     className="flex items-center justify-center gap-2 py-3 px-4"
-                    style={{
-                        background: 'rgba(245,200,0,0.08)',
-                        border:     '2px solid var(--color-accent)',
-                    }}
+                    style={{ background: 'rgba(245,200,0,0.08)', border: '2px solid var(--color-accent)' }}
                 >
                     <span style={{ fontSize: '1.25rem' }}>⚡</span>
-                    <span
-                        className="font-display uppercase"
-                        style={{
-                            fontSize:      'var(--text-ui)',
-                            letterSpacing: 'var(--tracking-display)',
-                            color:         'var(--color-accent)',
-                        }}
-                    >
-                        DOUBLE ACTIVATED!
+                    <span className="font-display uppercase"
+                        style={{ fontSize: 'var(--text-ui)', letterSpacing: 'var(--tracking-display)', color: 'var(--color-accent)' }}>
+                        {t('doubleActivated').toUpperCase()}
                     </span>
                 </motion.div>
             )}

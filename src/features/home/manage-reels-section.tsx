@@ -1,6 +1,7 @@
 'use client'
 
 import { useState }        from 'react'
+import { useTranslations } from 'next-intl'
 import { Button }          from '@/components/ui'
 import { ImportFlow }      from '@/features/reel-import/components/import-flow'
 import { useLocalReels }   from '@/features/reel-import/hooks/use-local-reels'
@@ -24,6 +25,7 @@ const MAX_PREVIEW = 10
 export function ManageReelsSection() {
     const [showImport, setShowImport] = useState(false)
     const { reels, count, clear } = useLocalReels()
+    const t = useTranslations('home')
 
     /* ── Importing ── */
     if (showImport) {
@@ -43,22 +45,19 @@ export function ManageReelsSection() {
                     <div className="flex flex-col gap-1.5">
                         <p
                             className="font-display uppercase text-[var(--color-muted)]"
-                            style={{
-                                fontSize:      'var(--text-title-sm)',
-                                letterSpacing: 'var(--tracking-display)',
-                            }}
+                            style={{ fontSize: 'var(--text-title-sm)', letterSpacing: 'var(--tracking-display)' }}
                         >
-                            No Reels yet
+                            {t('noReelsTitle')}
                         </p>
                         <p
                             className="font-sans text-[var(--color-subtle)] leading-relaxed"
                             style={{ fontSize: 'var(--text-body-sm)' }}
                         >
-                            Import your liked Reels from Instagram — you need them to play
+                            {t('noReelsDescription')}
                         </p>
                     </div>
                     <Button size="md" variant="ghost" onClick={() => setShowImport(true)}>
-                        📥 Import Reels
+                        📥 {t('importReel')}
                     </Button>
                 </div>
             </div>
@@ -72,17 +71,16 @@ export function ManageReelsSection() {
             {/* Header row */}
             <div className="flex items-center justify-between px-4 py-3 border-b-2 border-[var(--color-border)]">
                 <div className="flex items-center gap-2.5">
-                    <span className="badge badge-accent tabular-nums">
-                        {count}
-                    </span>
+                    <span className="badge badge-accent tabular-nums">{count}</span>
                     <span className="input-label" style={{ marginBottom: 0, color: 'var(--color-muted)' }}>
-                        Reels ready
+                        {t('reelCount', { count })}
                     </span>
                 </div>
 
                 <div className="flex items-center gap-3">
                     <button
                         onClick={clear}
+                        aria-label={t('clearAll')}
                         className={cn(
                             'input-label',
                             'text-[var(--color-faint)]',
@@ -91,10 +89,10 @@ export function ManageReelsSection() {
                         )}
                         style={{ marginBottom: 0 }}
                     >
-                        Clear all
+                        {t('clearAll')}
                     </button>
                     <Button size="sm" variant="ghost" onClick={() => setShowImport(true)}>
-                        + Add
+                        + {t('addMore')}
                     </Button>
                 </div>
             </div>
@@ -112,6 +110,7 @@ export function ManageReelsSection() {
                                 'hover:border-[var(--color-accent)] hover:bg-[var(--color-surface-raised)]',
                             )}
                             title={`Reel ${i + 1}`}
+                            aria-hidden
                         >
                             🎬
                         </div>
@@ -129,7 +128,7 @@ export function ManageReelsSection() {
             <div className="px-3 pb-3">
                 <div className="flex items-center justify-between mb-1.5">
                     <span className="input-label" style={{ marginBottom: 0, color: 'var(--color-subtle)' }}>
-                        Ready to play
+                        {t('manageReels')}
                     </span>
                     <span className="input-label" style={{ marginBottom: 0, color: 'var(--color-success)' }}>
                         ✓ {count} loaded
@@ -143,4 +142,3 @@ export function ManageReelsSection() {
         </div>
     )
 }
-

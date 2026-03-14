@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useCallback, useEffect, useRef } from 'react'
+import { useTranslations }                          from 'next-intl'
 import { revealRoundAction }                        from '../actions'
 import type { RoundReveal }                         from '../types'
 
@@ -40,17 +41,11 @@ export function useRevealFlow({ onRevealReady }: UseRevealFlowOptions = {}) {
     const [reveal, setReveal]           = useState<RoundReveal | null>(null)
     const [revealError, setRevealError] = useState<string | null>(null)
     const fetchedRoundRef               = useRef<string | null>(null)
+    const t                             = useTranslations('reveal')
 
-    /** Always holds the latest `onRevealReady` without affecting `fetchReveal` stability. */
     const onRevealReadyRef = useRef(onRevealReady)
     useEffect(() => { onRevealReadyRef.current = onRevealReady }, [onRevealReady])
 
-    /**
-     * Fetches reveal data for a round. No-ops if the same round was already
-     * fetched — safe to call from multiple code paths (Realtime + polling).
-     *
-     * Stable reference: deps are refs only, so identity never changes.
-     */
     const fetchReveal = useCallback(async (roundId: string) => {
         if (fetchedRoundRef.current === roundId) return
         fetchedRoundRef.current = roundId
@@ -61,13 +56,11 @@ export function useRevealFlow({ onRevealReady }: UseRevealFlowOptions = {}) {
             setRevealError(null)
             onRevealReadyRef.current?.(result.value)
         } else {
-            // Non-fatal: the host timer is the guaranteed delivery path.
-            // Log for observability but don't surface to the user.
             console.error('[useRevealFlow] revealRoundAction failed', result.error)
-            setRevealError('Failed to load reveal data')
-            fetchedRoundRef.current = null // allow retry
+            setRevealError(t('waitingForReveal'))
+            fetchedRoundRef.current = null
         }
-    }, []) // stable — only uses refs and stable setState setters
+    }, [t])
 
     /** Clears reveal state and the de-dupe guard for the next round. */
     const clearReveal = useCallback(() => {

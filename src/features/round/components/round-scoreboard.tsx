@@ -2,6 +2,7 @@
 
 import { memo, useMemo }        from 'react'
 import { motion }               from 'framer-motion'
+import { useTranslations }      from 'next-intl'
 import { PlayerAvatar }         from '@/features/player'
 import { Badge, ProgressBar }   from '@/components/ui'
 import type { ScoreEntry }      from '@/features/scoring'
@@ -37,6 +38,7 @@ export const RoundScoreboard = memo(function RoundScoreboard({ scores }: RoundSc
     )
 
     const maxPoints = Math.max(sorted[0]?.points ?? 0, 1)
+    const t = useTranslations('scoring')
 
     if (sorted.length === 0) return null
 
@@ -61,9 +63,9 @@ export const RoundScoreboard = memo(function RoundScoreboard({ scores }: RoundSc
                         color:         'var(--color-foreground)',
                     }}
                 >
-                    SCOREBOARD
+                    {t('title').toUpperCase()}
                 </span>
-                <Badge variant="muted" size="sm">{sorted.length} PLAYERS</Badge>
+                <Badge variant="muted" size="sm">{t('playerCount', { count: sorted.length })}</Badge>
             </div>
 
             {/* ── Score list ────────────────────────────────────────── */}
@@ -126,7 +128,7 @@ export const RoundScoreboard = memo(function RoundScoreboard({ scores }: RoundSc
                                             lineHeight:    1.2,
                                         }}
                                     >
-                                        🔥 {entry.streak}× STREAK
+                                        🔥 {t('streak', { streak: entry.streak })}
                                     </p>
                                 )}
                             </div>

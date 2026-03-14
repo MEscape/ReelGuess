@@ -1,60 +1,32 @@
+import { useTranslations } from 'next-intl'
 import { Button } from '@/components/ui'
 import { MAX_REELS } from '../constants'
 import { cn }        from '@/lib/utils/cn'
 
-// ─────────────────────────────────────────────────────────────────────────────
-// Constants
-// ─────────────────────────────────────────────────────────────────────────────
-
 const MAX_PREVIEW = 24
 
-// ─────────────────────────────────────────────────────────────────────────────
-// Types
-// ─────────────────────────────────────────────────────────────────────────────
-
 type ImportStepConfirmProps = {
-    /** Total reels found in the parsed file. */
     urlCount:   number
-    /** Reels already in the local pool (shown in subtitle). */
     localCount: number
     onSubmit:   () => void
     onBack:     () => void
 }
 
-// ─────────────────────────────────────────────────────────────────────────────
-// Component
-// ─────────────────────────────────────────────────────────────────────────────
-
-/**
- * Step 2 — Confirm & save to local pool.
- *
- * Standalone-only now (lobby import has been removed from this flow).
- * Removed `isLobbyMode`, `isPending`, `error` props — saving to localStorage
- * is synchronous and cannot fail in any user-visible way.
- */
-export function ImportStepConfirm({
-                                      urlCount,
-                                      localCount,
-                                      onSubmit,
-                                      onBack,
-                                  }: ImportStepConfirmProps) {
+export function ImportStepConfirm({ urlCount, localCount, onSubmit, onBack }: ImportStepConfirmProps) {
+    const t = useTranslations('reelImport')
     const previewCount = Math.min(urlCount, MAX_PREVIEW)
     const overflow     = urlCount - previewCount
 
     return (
         <div className="flex flex-col gap-4 p-4">
 
-            {/* ── Header ────────────────────────────────────────────────── */}
+            {/* ── Header ── */}
             <div>
                 <h2
                     className="font-display uppercase leading-none text-[var(--color-accent)]"
-                    style={{
-                        fontSize:      'var(--text-title)',
-                        letterSpacing: 'var(--tracking-display)',
-                        textShadow:    '0 0 20px rgba(245,200,0,0.3)',
-                    }}
+                    style={{ fontSize: 'var(--text-title)', letterSpacing: 'var(--tracking-display)', textShadow: '0 0 20px rgba(245,200,0,0.3)' }}
                 >
-                    Ready!
+                    {t('successTitle')}
                 </h2>
                 <p
                     className="font-sans text-[var(--color-subtle)] mt-1.5 leading-relaxed"
@@ -67,10 +39,8 @@ export function ImportStepConfirm({
                 </p>
             </div>
 
-            {/* ── Preview card ──────────────────────────────────────────── */}
+            {/* ── Preview card ── */}
             <div className="card-brutal flex flex-col gap-0">
-
-                {/* Card header */}
                 <div className="flex items-center justify-between px-4 py-3 border-b-2 border-[var(--color-border)]">
                     <div className="flex items-center gap-2">
                         <span className="badge badge-accent font-display tabular-nums" style={{ fontSize: 'var(--text-ui)' }}>
@@ -80,15 +50,11 @@ export function ImportStepConfirm({
                             Reels found
                         </span>
                     </div>
-                    <span
-                        className="font-sans text-[var(--color-subtle)]"
-                        style={{ fontSize: 'var(--text-body-sm)' }}
-                    >
+                    <span className="font-sans text-[var(--color-subtle)]" style={{ fontSize: 'var(--text-body-sm)' }}>
                         {MAX_REELS} used per game
                     </span>
                 </div>
 
-                {/* Reel preview grid */}
                 <div className="p-3">
                     <div className="grid grid-cols-8 gap-1">
                         {Array.from({ length: previewCount }).map((_, i) => (
@@ -98,6 +64,7 @@ export function ImportStepConfirm({
                                     'aspect-square flex items-center justify-center text-sm leading-none',
                                     'bg-[var(--color-border)] border border-[var(--color-border-subtle)]',
                                 )}
+                                aria-hidden
                             >
                                 🎬
                             </div>
@@ -111,12 +78,11 @@ export function ImportStepConfirm({
                 </div>
             </div>
 
-            {/* ── CTA ───────────────────────────────────────────────────── */}
+            {/* ── CTA ── */}
             <Button size="lg" fullWidth onClick={onSubmit}>
-                💾 Save to my pool
+                💾 {t('importButton')}
             </Button>
 
-            {/* Back link */}
             <button
                 onClick={onBack}
                 className="font-sans text-[var(--color-subtle)] text-center hover:text-[var(--color-muted)] transition-colors duration-[var(--duration-fast)]"
@@ -124,7 +90,6 @@ export function ImportStepConfirm({
             >
                 ← Upload a different file
             </button>
-
         </div>
     )
 }

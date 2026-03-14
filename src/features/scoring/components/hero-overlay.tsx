@@ -2,30 +2,41 @@
 
 import { useEffect, useState, useRef, useCallback } from 'react'
 import { motion, AnimatePresence }                   from 'framer-motion'
+import { useTranslations }                           from 'next-intl'
 import type { Achievement }                          from '../types'
-import { achievementKey, formatAchievement }         from '../utils'
-import {OVERLAY_DISPLAY_MS, OVERLAY_EXIT_MS} from "../constants";
+import { achievementKey }                            from '../utils'
+import { OVERLAY_DISPLAY_MS, OVERLAY_EXIT_MS }       from '../constants'
 
 type HeroOverlayProps = {
     achievements: Achievement[]
 }
 
-/**
- * Full-screen hero overlay that celebrates in-game achievements.
- *
- * - Queues multiple achievements and shows them one at a time.
- * - Auto-dismisses after {@link OVERLAY_DISPLAY_MS} ms, or immediately on backdrop click.
- * - Deduplicates via `seenRef` (`type:playerId`) to prevent repeated overlays.
- */
+type FormattedAchievement = { emoji: string; title: string; subtitle: string }
+
 export function HeroOverlay({ achievements }: HeroOverlayProps) {
     const [current, setCurrent] = useState<Achievement | null>(null)
     const [visible, setVisible] = useState(false)
+    const t = useTranslations('scoring.achievements')
 
     const queueRef    = useRef<Achievement[]>([])
     const timerRef    = useRef<ReturnType<typeof setTimeout> | null>(null)
     const showingRef  = useRef(false)
     const seenRef     = useRef(new Set<string>())
     const showNextRef = useRef<() => void>(() => {})
+
+    /** Formats an achievement using translated strings — called inside the component. */
+    const formatAchievement = useCallback((a: Achievement): FormattedAchievement => {
+        switch (a.type) {
+            case 'STREAK_5':
+                return { emoji: '🔥', title: t('streak5Title', { name: a.playerName }), subtitle: t('streak5Subtitle', { streak: a.streak }) }
+            case 'STREAK_10':
+                return { emoji: '💥', title: t('streak10Title', { name: a.playerName }), subtitle: t('streak10Subtitle', { streak: a.streak }) }
+            case 'DOUBLE_SUCCESS':
+                return { emoji: '💰', title: t('doubleSuccessTitle', { name: a.playerName }), subtitle: t('doubleSuccessSubtitle', { points: a.pointsEarned }) }
+            case 'BIG_POINTS':
+                return { emoji: '🚀', title: t('bigPointsTitle', { name: a.playerName }), subtitle: t('bigPointsSubtitle', { points: a.pointsEarned }) }
+        }
+    }, [t])
 
     const dismiss = useCallback(() => {
         if (timerRef.current) clearTimeout(timerRef.current)

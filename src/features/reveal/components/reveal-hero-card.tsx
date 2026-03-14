@@ -1,8 +1,9 @@
 'use client'
 
-import { motion }          from 'framer-motion'
-import { PlayerAvatar, type Player }    from '@/features/player'
-import { Card, Badge }     from '@/components/ui'
+import { useTranslations }         from 'next-intl'
+import { motion }                   from 'framer-motion'
+import { PlayerAvatar, type Player } from '@/features/player'
+import { Card, Badge }              from '@/components/ui'
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Types
@@ -28,6 +29,8 @@ type RevealHeroCardProps = {
  * Purely presentational — receives all data as props.
  */
 export function RevealHeroCard({ correctPlayer, correctCount, totalVotes }: RevealHeroCardProps) {
+    const t = useTranslations('reveal')
+
     return (
         <motion.div
             initial={{ scale: 0.9, opacity: 0 }}
@@ -52,7 +55,7 @@ export function RevealHeroCard({ correctPlayer, correctCount, totalVotes }: Reve
                             color:         'var(--color-accent)',
                         }}
                     >
-                        IT WAS…
+                        {t('itWas')}
                     </span>
 
                     {correctPlayer && (
@@ -87,7 +90,7 @@ export function RevealHeroCard({ correctPlayer, correctCount, totalVotes }: Reve
                     )}
 
                     <Badge variant="success" size="lg">
-                        {correctCount}/{totalVotes} CORRECT
+                        {t('correct', { count: correctCount, total: totalVotes })}
                     </Badge>
                 </div>
             </Card>

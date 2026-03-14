@@ -7,7 +7,7 @@ export type LobbyError =
     | { type: 'LOBBY_ALREADY_STARTED' }
     | { type: 'INVALID_LOBBY_CODE';     code: string }
     | { type: 'LOBBY_DATABASE_ERROR';   message: string; cause?: unknown }
-    | { type: 'LOBBY_VALIDATION_ERROR'; message: string; issues: Array<{ path: string; message: string }> }
+    | { type: 'LOBBY_VALIDATION_ERROR'; message: string; issues: Array<{ path: string; message: string }>; nameTaken?: string }
     | { type: 'NOT_HOST';               playerId: string }
 
 export type LobbyResult<T> = Result<T, LobbyError>

@@ -1,7 +1,8 @@
 'use client'
 
-import { Button }        from '@/components/ui'
-import { useRematch }    from '../hooks/use-rematch'
+import { useTranslations } from 'next-intl'
+import { Button }          from '@/components/ui'
+import { useRematch }      from '../hooks/use-rematch'
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Types
@@ -35,8 +36,9 @@ type RematchButtonProps = {
  */
 export function RematchButton({ lobbyId, currentPlayerId, rematchId }: RematchButtonProps) {
     const { handleRematch, isPending, error } = useRematch({ lobbyId, currentPlayerId })
+    const t = useTranslations('scoring')
 
-    const label = rematchId ? '⚔️ JOIN REMATCH' : '⚔️ REMATCH'
+    const label = rematchId ? t('joinRematch') : t('rematch')
 
     return (
         <div className="flex flex-col items-stretch gap-2 w-full">
@@ -48,7 +50,7 @@ export function RematchButton({ lobbyId, currentPlayerId, rematchId }: RematchBu
                 loading={isPending}
                 disabled={isPending}
             >
-                {isPending ? 'CREATING…' : label}
+                {isPending ? t('creatingRematch') : label}
             </Button>
 
             {error && (

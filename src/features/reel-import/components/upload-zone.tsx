@@ -1,5 +1,6 @@
 import type React          from 'react'
 import { useCallback }     from 'react'
+import { useTranslations } from 'next-intl'
 import { cn }              from '@/lib/utils/cn'
 import { ErrorMessage }    from '@/components/ui'
 
@@ -38,36 +39,20 @@ export function UploadZone({
                                fileInputRef,
                                fileError,
                            }: UploadZoneProps) {
-    const handleDragOver = useCallback((e: React.DragEvent) => {
-        e.preventDefault()
-        setIsDragging(true)
-    }, [setIsDragging])
+    const t = useTranslations('reelImport')
 
-    const handleDragLeave = useCallback(() => {
-        setIsDragging(false)
-    }, [setIsDragging])
-
-    const handleDrop = useCallback((e: React.DragEvent) => {
-        e.preventDefault()
-        setIsDragging(false)
-        const f = e.dataTransfer.files?.[0]
-        if (f) processFile(f)
-    }, [setIsDragging, processFile])
-
-    const handleClick = useCallback(() => {
-        fileInputRef.current?.click()
-    }, [fileInputRef])
-
-    const handleKeyDown = useCallback((e: React.KeyboardEvent) => {
-        if (e.key === 'Enter') fileInputRef.current?.click()
-    }, [fileInputRef])
+    const handleDragOver  = useCallback((e: React.DragEvent) => { e.preventDefault(); setIsDragging(true) }, [setIsDragging])
+    const handleDragLeave = useCallback(() => { setIsDragging(false) }, [setIsDragging])
+    const handleDrop      = useCallback((e: React.DragEvent) => { e.preventDefault(); setIsDragging(false); const f = e.dataTransfer.files?.[0]; if (f) processFile(f) }, [setIsDragging, processFile])
+    const handleClick     = useCallback(() => { fileInputRef.current?.click() }, [fileInputRef])
+    const handleKeyDown   = useCallback((e: React.KeyboardEvent) => { if (e.key === 'Enter') fileInputRef.current?.click() }, [fileInputRef])
 
     return (
         <div className="flex flex-col gap-2">
             <div
                 role="button"
                 tabIndex={0}
-                aria-label="Upload liked_posts.json"
+                aria-label={t('uploadHint', { filename: 'liked_posts.json' })}
                 onDragOver={handleDragOver}
                 onDragLeave={handleDragLeave}
                 onDrop={handleDrop}
@@ -79,10 +64,7 @@ export function UploadZone({
                     'transition-[border-color,background-color] duration-[var(--duration-base)]',
                     isDragging
                         ? 'border-[var(--color-accent)] bg-[var(--color-accent)]/[0.06]'
-                        : [
-                            'border-[var(--color-border-subtle)] bg-[var(--color-surface)]',
-                            'hover:border-[var(--color-border-strong)] hover:bg-[var(--color-surface-raised)]',
-                        ].join(' '),
+                        : ['border-[var(--color-border-subtle)] bg-[var(--color-surface)]', 'hover:border-[var(--color-border-strong)] hover:bg-[var(--color-surface-raised)]'].join(' '),
                 )}
             >
                 {/* Icon */}
@@ -103,20 +85,13 @@ export function UploadZone({
                             letterSpacing: 'var(--tracking-display)',
                         }}
                     >
-                        {isDragging ? 'Drop it!' : 'Drop or tap to browse'}
+                        {isDragging ? t('dropIt').toUpperCase() : t('dropOrTap').toUpperCase()}
                     </p>
                     <p
                         className="font-sans text-[var(--color-subtle)] mt-1"
                         style={{ fontSize: 'var(--text-body-sm)' }}
                     >
-                        Upload{' '}
-                        <code
-                            className="font-bold text-[var(--color-accent)]"
-                            style={{ fontSize: 'var(--text-body-sm)' }}
-                        >
-                            liked_posts.json
-                        </code>
-                        {' '}from your Instagram export
+                        {t('uploadHint', { filename: 'liked_posts.json' })}
                     </p>
                 </div>
 
@@ -126,10 +101,7 @@ export function UploadZone({
                     type="file"
                     accept=".json,application/json"
                     className="hidden"
-                    onChange={(e) => {
-                        const f = e.target.files?.[0]
-                        if (f) processFile(f)
-                    }}
+                    onChange={(e) => { const f = e.target.files?.[0]; if (f) processFile(f) }}
                 />
             </div>
 

@@ -1,15 +1,37 @@
-import { getLobbyByCode }         from '@/features/lobby/queries'
-import { getCurrentRound, getVoteCountForRound, getReelForRound } from '@/features/round'
-import { getScoresForLobby }     from '@/features/scoring'
-import type { ReelData }          from '@/features/reel-player/types'
-import { notFound }               from 'next/navigation'
-import { GameClient }             from './game-client'
+/**
+ * Game page under [locale] routing.
+ */
+import { getLobbyByCode }                                            from '@/features/lobby/queries'
+import { getCurrentRound, getVoteCountForRound, getReelForRound }  from '@/features/round'
+import { getScoresForLobby }                                        from '@/features/scoring'
+import type { ReelData }                                            from '@/features/reel-player/types'
+import { notFound }                                                 from 'next/navigation'
+import { GameClient }                                               from '@/app/[locale]/(game)/game/[code]/game-client'
+import type { Metadata }                                            from 'next'
+import { getTranslations }                                          from 'next-intl/server'
 
 // ─────────────────────────────────────────────────────────────────────────────
-// GamePage — server component
+// Metadata — noindex (active game sessions)
 // ─────────────────────────────────────────────────────────────────────────────
 
-type Props = { params: Promise<{ code: string }> }
+export async function generateMetadata({
+    params,
+}: {
+    params: Promise<{ locale: string; code: string }>
+}): Promise<Metadata> {
+    const { locale } = await params
+    const t = await getTranslations({ locale, namespace: 'seo.game' })
+    return {
+        title:  t('title'),
+        robots: { index: false, follow: false },
+    }
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Page
+// ─────────────────────────────────────────────────────────────────────────────
+
+type Props = { params: Promise<{ locale: string; code: string }> }
 
 export default async function GamePage({ params }: Props) {
     const { code }  = await params
@@ -35,7 +57,6 @@ export default async function GamePage({ params }: Props) {
         const reelResult = await getReelForRound(currentRound.reelId)
         if (reelResult.isOk()) reelData = reelResult.value
 
-        // Seed vote count for page-refresh recovery (only needed during active voting)
         if (currentRound.status === 'voting') {
             const voteCountResult = await getVoteCountForRound(currentRound.id)
             if (voteCountResult.isOk()) initialVoteCount = voteCountResult.value
@@ -54,3 +75,4 @@ export default async function GamePage({ params }: Props) {
         </main>
     )
 }
+

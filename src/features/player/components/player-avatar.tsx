@@ -1,6 +1,7 @@
 'use client'
 
 import { memo, useMemo } from 'react'
+import { useTranslations } from 'next-intl'
 import { createAvatar }  from '@dicebear/core'
 import * as bottts       from '@dicebear/bottts'
 
@@ -57,11 +58,12 @@ export const PlayerAvatar = memo(function PlayerAvatar({
         () => createAvatar(bottts, { seed, size }).toDataUri(),
         [seed, size],
     )
+    const t       = useTranslations('player')
 
     return (
         <img
             src={dataUri}
-            alt={name ? `Avatar for ${name}` : 'Player avatar'}
+            alt={name ? t('avatarAlt', { name }) : t('avatarAltGeneric')}
             width={size}
             height={size}
             className={`rounded-full border-2 ${className}`}

@@ -1,0 +1,300 @@
+{
+  "common": {
+    "appName": "ReelGuess",
+    "appTagline": "Guess which friend liked the Reel",
+    "or": "or",
+    "back": "← Go Back",
+    "home": "← Go Home",
+    "loading": "Loading…",
+    "cancel": "Cancel",
+    "confirm": "Confirm",
+    "save": "Save",
+    "close": "Close",
+    "share": "Share",
+    "copy": "Copy",
+    "copied": "Copied!",
+    "madeWith": "Made with ❤️"
+  },
+
+  "home": {
+    "howToPlay": {
+      "title": "How to Play",
+      "step1": { "step": "01", "emoji": "📥", "label": "Import Reels" },
+      "step2": { "step": "02", "emoji": "🎮", "label": "Create Lobby" },
+      "step3": { "step": "03", "emoji": "🏆", "label": "Guess & Win" }
+    },
+    "createLobby": "Create Lobby",
+    "joinLobby": "Join Lobby",
+    "myReels": "my reels",
+    "createTitle": "Create Lobby",
+    "createDescription": "Enter a display name to host the game",
+    "createButton": "Create Lobby",
+    "joinTitle": "Join Lobby",
+    "joinDescription": "Enter the 6-letter code from your host",
+    "joinButton": "Join Game",
+    "joinCodePlaceholder": "Lobby Code",
+    "reelsRequired": "Import your Reels below first",
+    "noReelsTitle": "No Reels yet",
+    "noReelsDescription": "Import your liked Reels from Instagram — you need them to play",
+    "importReel": "Import Reels",
+    "manageReels": "Ready to play",
+    "addMore": "Add",
+    "clearAll": "Clear all",
+    "reelCount": "{count, plural, one {# Reel ready} other {# Reels ready}}"
+  },
+
+  "lobby": {
+    "title": "Waiting Room",
+    "code": "Lobby Code",
+    "shareCode": "Share the code — friends join instantly",
+    "waiting": "Waiting for more players to join…",
+    "waitingForHost": "Waiting for host to start…",
+    "startGame": "Start Game",
+    "leaveLobby": "Leave Lobby",
+    "players": "Players",
+    "playerCount": "{count, plural, one {# Player} other {# Players}}",
+    "minPlayers": "Need at least 2 players to start",
+    "hostLabel": "Host",
+    "youLabel": "You",
+    "readyToStart": "Ready to start",
+    "needMorePlayers": "Need 2+ players",
+    "settings": {
+      "title": "Game Settings",
+      "rounds": "Rounds",
+      "timePerRound": "Timer",
+      "saving": "Saving…"
+    },
+    "copied": "Code copied!",
+    "copyFailed": "Copy failed — select manually",
+    "tapToCopy": "Tap to copy",
+    "linkCopied": "Link copied!",
+    "errors": {
+      "lobbyNotFound": "Lobby not found. Check the code!",
+      "lobbyFull": "This lobby is full!",
+      "lobbyAlreadyStarted": "This game has already started!",
+      "validationError": "Invalid input.",
+      "failedToCreate": "Could not create lobby. Try again!",
+      "failedToStart": "Failed to start game.",
+      "failedToUpdate": "Failed to update settings.",
+      "failedToRematch": "Failed to create rematch. Please try again.",
+      "nameTaken": "\"{name}\" is already taken. Choose a different name."
+    }
+  },
+
+  "game": {
+    "phase": {
+      "pregame": "Start Game",
+      "voting": "Who liked this?",
+      "reveal": "Reveal",
+      "complete": "Scores",
+      "finished": "Game Over"
+    },
+    "round": "Round {current} of {total}",
+    "roundLabel": "Round",
+    "timeLeft": "{seconds}s left",
+    "waitingForHost": "Waiting for host…",
+    "nextRound": "Next Round",
+    "nextRoundNumber": "▶ Round {next} / {total}",
+    "viewResults": "Scores",
+    "starting": "Starting…",
+    "loadingResults": "Game Over — Loading results…",
+    "noReels": "No more reels available",
+    "alreadyFinished": "Game is already finished",
+    "onlyHostCanStart": "Only the host can start rounds",
+    "failedToStart": "Failed to start round",
+    "settingRounds": "Rounds",
+    "settingTimer": "Timer"
+  },
+
+  "voting": {
+    "title": "Who liked this Reel?",
+    "locked": "Vote Locked",
+    "waitingVotes": "Waiting for others to vote…",
+    "voted": "{count}/{total} voted",
+    "doubleOrNothing": "Double or Nothing",
+    "doubleSubtitleActive": "Correct → ×2 pts · Wrong → −50% of your points",
+    "doubleSubtitleLocked": "Requires {minPoints} pts to activate",
+    "doubleActivated": "Double Activated!",
+    "doubleActivating": "Activating…",
+    "doubleActivatedTitle": "Double-or-Nothing activated",
+    "votingEnded": "Voting has ended",
+    "failedToVote": "Failed to submit vote"
+  },
+
+  "reveal": {
+    "itWas": "IT WAS…",
+    "voteBreakdown": "Vote Breakdown",
+    "voted": "{total}/{players} voted",
+    "noVotes": "No votes cast — timer expired",
+    "didNotVote": "Did not vote",
+    "waitingForReveal": "Waiting for reveal data… It will appear automatically.",
+    "nextRoundIn": "Next round in",
+    "waitingForNextRound": "Waiting for host",
+    "correct": "{count}/{total} correct"
+  },
+
+  "scoring": {
+    "title": "Scoreboard",
+    "finalTitle": "Final Results 🏆",
+    "finalStandings": "Final Standings",
+    "rank": "#{rank}",
+    "points": "{points} pts",
+    "winner": "Winner",
+    "playAgain": "Play Again",
+    "newGame": "New Game",
+    "streak": "{streak}× Streak",
+    "streakNext": "(×{multiplier} next)",
+    "noScores": "No scores yet.",
+    "playerCount": "{count, plural, one {# Player} other {# Players}}",
+    "rematch": "⚔️ Rematch",
+    "joinRematch": "⚔️ Join Rematch",
+    "creatingRematch": "Creating…",
+    "achievements": {
+      "streak5Title": "{name} is on fire!",
+      "streak5Subtitle": "{streak} correct guesses in a row",
+      "streak10Title": "{name} is unstoppable!",
+      "streak10Subtitle": "{streak} streak — ×2.0 multiplier!",
+      "doubleSuccessTitle": "{name} doubled up!",
+      "doubleSuccessSubtitle": "+{points} pts — Double-or-Nothing paid off",
+      "bigPointsTitle": "{name} is dominating!",
+      "bigPointsSubtitle": "+{points} pts this round"
+    }
+  },
+
+  "player": {
+    "namePlaceholder": "Your name…",
+    "nameLabel": "Your Name",
+    "nameRequired": "Name must be at least {min} characters",
+    "nameTooLong": "Name must be {max} characters or less",
+    "letsGo": "🚀 LET'S GO",
+    "joinAs": "Join as…",
+    "avatar": "Avatar",
+    "avatarAlt": "Avatar for {name}",
+    "avatarAltGeneric": "Player avatar",
+    "randomAvatar": "Random Avatar"
+  },
+
+  "reelImport": {
+    "title": "Import Reels",
+    "uploadDescription": "Upload once — Reels are stored locally on your device, ready for any future game.",
+    "uploadDescriptionHtml": "Upload once — <strong>locally on your device</strong>, ready for any future game.",
+    "openInstagramExport": "Open Instagram Export ↗",
+    "followSteps": "Follow these steps",
+    "steps": {
+      "step1": "Select <strong>\"Download or transfer information\"</strong>",
+      "step2": "Choose <strong>\"Some of your information\"</strong> → check only <strong>Likes</strong> → Next",
+      "step3": "Select <strong>\"Download to device\"</strong> → Next",
+      "step4": "Date range: <strong>Last year</strong> · Format: <strong>JSON</strong> → Create files",
+      "step5": "Unzip → open <code>likes/</code> → upload <code>liked_posts.json</code>"
+    },
+    "urlLabel": "Instagram Reel URL",
+    "urlPlaceholder": "https://www.instagram.com/reel/…",
+    "importButton": "Save to my pool",
+    "importing": "Importing…",
+    "successTitle": "Ready!",
+    "successDescription": "Your Reels are stored locally",
+    "addAnother": "Add Another",
+    "done": "← Back",
+    "deleteConfirm": "Remove this reel?",
+    "unavailableTitle": "Reel Unavailable",
+    "unavailableDesc": "Instagram blocked the embed. The game continues — you can still vote based on the context clues!",
+    "openOnInstagram": "Open on Instagram ↗",
+    "loading": "Loading Reel…",
+    "failedToLoad": "Failed to load",
+    "retry": "↺ Retry",
+    "dropOrTap": "Drop or tap to browse",
+    "dropIt": "Drop it!",
+    "uploadHint": "Upload {filename} from your Instagram export",
+    "errors": {
+      "notJson": "Please upload a .json file from your Instagram data export.",
+      "wrongFile": "Wrong file. Please upload liked_posts.json — not liked_comments.json.",
+      "noReels": "No liked Reels found in this file.",
+      "invalidJson": "Could not read the file. Is it valid JSON?",
+      "tooManyAttempts": "Too many attempts. Please wait and try again."
+    }
+  },
+
+  "errors": {
+    "unexpectedError": "Something went wrong. Please try again.",
+    "networkError": "Network error. Check your connection.",
+    "serverError": "Server error. Please try again later.",
+    "notFound": "Not found.",
+    "lobbyNotFound": "Lobby not found. Check your code.",
+    "lobbyFull": "Lobby is full.",
+    "lobbyExpired": "This lobby has expired.",
+    "invalidCode": "Invalid lobby code.",
+    "playerNotFound": "Player not found.",
+    "alreadyInLobby": "You are already in this lobby.",
+    "gameAlreadyStarted": "Game has already started.",
+    "notHost": "Only the host can do this.",
+    "reelImportFailed": "Could not import this Reel. Make sure the URL is correct.",
+    "reelNotFound": "Reel not found.",
+    "rateLimitExceeded": "Too many requests. Please slow down.",
+    "invalidUrl": "Invalid URL.",
+    "sessionExpired": "Your session has expired. Please rejoin."
+  },
+
+  "validation": {
+    "required": "This field is required.",
+    "email": "Please enter a valid email address.",
+    "minLength": "Must be at least {min} characters.",
+    "maxLength": "Must be at most {max} characters.",
+    "invalidFormat": "Invalid format.",
+    "urlInvalid": "Please enter a valid URL.",
+    "codeTooShort": "Code must be 4 characters.",
+    "codeInvalid": "Code must be letters and numbers only."
+  },
+
+  "share": {
+    "heading": "Enjoying ReelGuess?",
+    "subheading": "Share it with your friends!",
+    "shareTitle": "ReelGuess — Guess Who Liked the Reel!",
+    "shareText": "🎬 Play ReelGuess with me — guess which friend liked which Instagram Reel!",
+    "cta": "Share the game",
+    "copied": "Link copied!",
+    "ariaLabel": "Share ReelGuess with friends"
+  },
+
+  "notFound": {
+    "title": "ReelGuess",
+    "subtitle": "Page Not Found",
+    "description": "This lobby or game doesn't exist anymore. It may have expired or the code was wrong.",
+    "goHome": "← Go Home"
+  },
+
+  "seo": {
+    "home": {
+      "title": "ReelGuess — Guess Who Liked the Reel! 🎬",
+      "description": "The viral party game where you guess which friend liked an Instagram Reel. Play with up to 8 friends, earn points, and crown the ultimate Reel reader!"
+    },
+    "lobby": {
+      "title": "Lobby {code} — ReelGuess",
+      "description": "Join the ReelGuess lobby and start guessing who liked which Instagram Reel."
+    },
+    "game": {
+      "title": "Game in Progress — ReelGuess",
+      "description": "A ReelGuess game is in progress. Guess who liked the Reel and earn points!"
+    },
+    "notFound": {
+      "title": "Not Found — ReelGuess",
+      "description": "This page could not be found."
+    }
+  },
+
+  "aria": {
+    "mainNavigation": "Main navigation",
+    "lobbyCode": "Lobby code: {code}",
+    "playerAvatar": "{name}'s avatar",
+    "copyCode": "Copy lobby code",
+    "shareLink": "Share game link",
+    "closeModal": "Close dialog",
+    "loadingSpinner": "Loading",
+    "voteFor": "Vote for {name}",
+    "voteButton": "Vote for {name}",
+    "activateDouble": "Activate Double-or-Nothing",
+    "doubleDisabled": "Need {minPoints} pts to activate Double-or-Nothing",
+    "currentRound": "Round {current} of {total}",
+    "scoreboardEntry": "{name}: {points} points, rank {rank}",
+    "timerSeconds": "{seconds} seconds remaining"
+  }
+}

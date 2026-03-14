@@ -1,10 +1,11 @@
 'use client'
 
-import { useTransition, useState }  from 'react'
-import { useRouter }                 from 'next/navigation'
+import { useTransition, useState } from 'react'
+import { useRouter }               from 'next/navigation'
+import { useTranslations }         from 'next-intl'
 import { createLobbyAction, joinLobbyAction, startGameAction, updateLobbySettingsAction } from '../actions'
-import { usePlayerStore }            from '@/features/player'
-import { submitLocalReelsToDB }      from '../utils'
+import { usePlayerStore }          from '@/features/player'
+import { submitLocalReelsToDB }    from '../utils'
 
 // ─────────────────────────────────────────────────────────────────────────────
 // useCreateLobby
@@ -22,6 +23,7 @@ export function useCreateLobby() {
     const [error,     setError]        = useState<string | null>(null)
     const router      = useRouter()
     const setPlayerId = usePlayerStore((s) => s.setPlayerId)
+    const t           = useTranslations('lobby.errors')
 
     function createLobby(playerName: string) {
         setError(null)
@@ -31,7 +33,7 @@ export function useCreateLobby() {
 
             const result = await createLobbyAction(fd)
             if (!result.ok) {
-                setError('message' in result.error ? result.error.message : 'Something went wrong. Try again!')
+                setError('message' in result.error ? result.error.message : t('failedToCreate'))
                 return
             }
 
@@ -61,6 +63,7 @@ export function useJoinLobby() {
     const [error,     setError]        = useState<string | null>(null)
     const router      = useRouter()
     const setPlayerId = usePlayerStore((s) => s.setPlayerId)
+    const t           = useTranslations('lobby.errors')
 
     function joinLobby(code: string, playerName: string) {
         setError(null)
@@ -73,11 +76,17 @@ export function useJoinLobby() {
             if (!result.ok) {
                 const e = result.error
                 switch (e.type) {
-                    case 'LOBBY_NOT_FOUND':        setError('Lobby not found. Check the code!'); break
-                    case 'LOBBY_FULL':             setError('This lobby is full!'); break
-                    case 'LOBBY_ALREADY_STARTED':  setError('This game has already started!'); break
-                    case 'LOBBY_VALIDATION_ERROR': setError('message' in e ? e.message : 'Validation error'); break
-                    default:                       setError('Something went wrong. Try again!')
+                    case 'LOBBY_NOT_FOUND':        setError(t('lobbyNotFound')); break
+                    case 'LOBBY_FULL':             setError(t('lobbyFull')); break
+                    case 'LOBBY_ALREADY_STARTED':  setError(t('lobbyAlreadyStarted')); break
+                    case 'LOBBY_VALIDATION_ERROR':
+                        if ('nameTaken' in e && e.nameTaken) {
+                            setError(t('nameTaken', { name: e.nameTaken }))
+                        } else {
+                            setError(t('validationError'))
+                        }
+                        break
+                    default:                       setError(t('failedToCreate'))
                 }
                 return
             }
@@ -105,13 +114,14 @@ export function useStartGame(lobbyCode: string, hostPlayerId: string) {
     const [isPending, startTransition] = useTransition()
     const [error,     setError]        = useState<string | null>(null)
     const router = useRouter()
+    const t      = useTranslations('lobby.errors')
 
     function startGame() {
         setError(null)
         startTransition(async () => {
             const result = await startGameAction(lobbyCode, hostPlayerId)
             if (!result.ok) {
-                setError('message' in result.error ? result.error.message : 'Failed to start game')
+                setError('message' in result.error ? result.error.message : t('failedToStart'))
                 return
             }
             // Host navigates immediately — Realtime handles all other players.
@@ -135,13 +145,14 @@ export function useStartGame(lobbyCode: string, hostPlayerId: string) {
 export function useUpdateSettings(lobbyCode: string, hostPlayerId: string) {
     const [isPending, startTransition] = useTransition()
     const [error,     setError]        = useState<string | null>(null)
+    const t = useTranslations('lobby.errors')
 
     function updateSettings(settings: { roundsCount: number; timerSeconds: number }) {
         setError(null)
         startTransition(async () => {
             const result = await updateLobbySettingsAction(lobbyCode, hostPlayerId, settings)
             if (!result.ok) {
-                setError('message' in result.error ? result.error.message : 'Failed to update settings')
+                setError('message' in result.error ? result.error.message : t('failedToUpdate'))
             }
         })
     }

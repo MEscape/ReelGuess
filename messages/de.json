@@ -1,0 +1,300 @@
+{
+  "common": {
+    "appName": "ReelGuess",
+    "appTagline": "Rate, wer das Reel geliked hat",
+    "or": "oder",
+    "back": "← Zurück",
+    "home": "← Zur Startseite",
+    "loading": "Lädt…",
+    "cancel": "Abbrechen",
+    "confirm": "Bestätigen",
+    "save": "Speichern",
+    "close": "Schließen",
+    "share": "Teilen",
+    "copy": "Kopieren",
+    "copied": "Kopiert!",
+    "madeWith": "Gemacht mit ❤️"
+  },
+
+  "home": {
+    "howToPlay": {
+      "title": "So funktioniert's",
+      "step1": { "step": "01", "emoji": "📥", "label": "Reels importieren" },
+      "step2": { "step": "02", "emoji": "🎮", "label": "Lobby erstellen" },
+      "step3": { "step": "03", "emoji": "🏆", "label": "Raten & gewinnen" }
+    },
+    "createLobby": "Lobby erstellen",
+    "joinLobby": "Lobby beitreten",
+    "myReels": "Meine Reels",
+    "createTitle": "Lobby erstellen",
+    "createDescription": "Gib einen Anzeigenamen ein um das Spiel zu hosten",
+    "createButton": "Lobby erstellen",
+    "joinTitle": "Lobby beitreten",
+    "joinDescription": "Gib den 6-stelligen Code deines Hosts ein",
+    "joinButton": "Spiel beitreten",
+    "joinCodePlaceholder": "Lobby-Code",
+    "reelsRequired": "Importiere zuerst deine Reels unten",
+    "noReelsTitle": "Noch keine Reels",
+    "noReelsDescription": "Importiere deine gelikten Reels von Instagram — du brauchst sie zum Spielen",
+    "importReel": "Reels importieren",
+    "manageReels": "Bereit zum Spielen",
+    "addMore": "Hinzufügen",
+    "clearAll": "Alle löschen",
+    "reelCount": "{count, plural, one {# Reel bereit} other {# Reels bereit}}"
+  },
+
+  "lobby": {
+    "title": "Warteraum",
+    "code": "Lobby-Code",
+    "shareCode": "Teile den Code — Freunde treten sofort bei",
+    "waiting": "Warte auf weitere Spieler…",
+    "waitingForHost": "Warte darauf, dass der Host startet…",
+    "startGame": "Spiel starten",
+    "leaveLobby": "Lobby verlassen",
+    "players": "Spieler",
+    "playerCount": "{count, plural, one {# Spieler} other {# Spieler}}",
+    "minPlayers": "Mindestens 2 Spieler benötigt",
+    "hostLabel": "Host",
+    "youLabel": "Du",
+    "readyToStart": "Bereit zum Start",
+    "needMorePlayers": "Mindestens 2 Spieler nötig",
+    "settings": {
+      "title": "Spieleinstellungen",
+      "rounds": "Runden",
+      "timePerRound": "Timer",
+      "saving": "Speichere…"
+    },
+    "copied": "Code kopiert!",
+    "copyFailed": "Kopieren fehlgeschlagen — manuell auswählen",
+    "tapToCopy": "Tippen zum Kopieren",
+    "linkCopied": "Link kopiert!",
+    "errors": {
+      "lobbyNotFound": "Lobby nicht gefunden. Überprüfe den Code!",
+      "lobbyFull": "Diese Lobby ist voll!",
+      "lobbyAlreadyStarted": "Dieses Spiel hat bereits begonnen!",
+      "validationError": "Ungültige Eingabe.",
+      "failedToCreate": "Lobby konnte nicht erstellt werden. Versuche es erneut!",
+      "failedToStart": "Spiel konnte nicht gestartet werden.",
+      "failedToUpdate": "Einstellungen konnten nicht aktualisiert werden.",
+      "failedToRematch": "Rematch konnte nicht erstellt werden. Versuche es erneut.",
+      "nameTaken": "\"{name}\" ist bereits vergeben. Wähle einen anderen Namen."
+    }
+  },
+
+  "game": {
+    "phase": {
+      "pregame": "Spiel starten",
+      "voting": "Wer hat das geliked?",
+      "reveal": "Auflösung",
+      "complete": "Punkte",
+      "finished": "Spiel vorbei"
+    },
+    "round": "Runde {current} von {total}",
+    "roundLabel": "Runde",
+    "timeLeft": "{seconds} Sek. übrig",
+    "waitingForHost": "Warte auf Host…",
+    "nextRound": "Nächste Runde",
+    "nextRoundNumber": "▶ Runde {next} / {total}",
+    "viewResults": "Punkte",
+    "starting": "Startet…",
+    "loadingResults": "Spiel vorbei — Lade Ergebnisse…",
+    "noReels": "Keine Reels mehr verfügbar",
+    "alreadyFinished": "Spiel ist bereits beendet",
+    "onlyHostCanStart": "Nur der Host kann Runden starten",
+    "failedToStart": "Runde konnte nicht gestartet werden",
+    "settingRounds": "Runden",
+    "settingTimer": "Timer"
+  },
+
+  "voting": {
+    "title": "Wer hat diesen Reel geliked?",
+    "locked": "Stimme abgegeben",
+    "waitingVotes": "Warte auf andere Stimmen…",
+    "voted": "{count}/{total} abgestimmt",
+    "doubleOrNothing": "Doppelt oder Nichts",
+    "doubleSubtitleActive": "Richtig → ×2 Punkte · Falsch → −50% deiner Punkte",
+    "doubleSubtitleLocked": "Benötigt {minPoints} Punkte zum Aktivieren",
+    "doubleActivated": "Verdoppelt!",
+    "doubleActivating": "Aktiviere…",
+    "doubleActivatedTitle": "Doppelt oder Nichts aktiviert",
+    "votingEnded": "Abstimmung beendet",
+    "failedToVote": "Stimme konnte nicht abgegeben werden"
+  },
+
+  "reveal": {
+    "itWas": "ES WAR…",
+    "voteBreakdown": "Stimmübersicht",
+    "voted": "{total}/{players} abgestimmt",
+    "noVotes": "Keine Stimmen abgegeben — Timer abgelaufen",
+    "didNotVote": "Nicht abgestimmt",
+    "waitingForReveal": "Warte auf Auflösungsdaten… Erscheint automatisch.",
+    "nextRoundIn": "Nächste Runde in",
+    "waitingForNextRound": "Warte auf Host",
+    "correct": "{count}/{total} richtig"
+  },
+
+  "scoring": {
+    "title": "Rangliste",
+    "finalTitle": "Endergebnis 🏆",
+    "finalStandings": "Abschlusstabelle",
+    "rank": "#{rank}",
+    "points": "{points} Pkt.",
+    "winner": "Gewinner",
+    "playAgain": "Nochmal spielen",
+    "newGame": "Neues Spiel",
+    "streak": "{streak}× Serie",
+    "streakNext": "(×{multiplier} nächste)",
+    "noScores": "Noch keine Punkte.",
+    "playerCount": "{count, plural, one {# Spieler} other {# Spieler}}",
+    "rematch": "⚔️ Revanche",
+    "joinRematch": "⚔️ Revanche beitreten",
+    "creatingRematch": "Erstelle…",
+    "achievements": {
+      "streak5Title": "{name} ist in Hochform!",
+      "streak5Subtitle": "{streak} richtige Antworten in Folge",
+      "streak10Title": "{name} ist unaufhaltbar!",
+      "streak10Subtitle": "{streak} Serie — ×2,0 Multiplikator!",
+      "doubleSuccessTitle": "{name} hat verdoppelt!",
+      "doubleSuccessSubtitle": "+{points} Pkt. — Doppelt oder Nichts hat sich gelohnt",
+      "bigPointsTitle": "{name} dominiert!",
+      "bigPointsSubtitle": "+{points} Pkt. in dieser Runde"
+    }
+  },
+
+  "player": {
+    "namePlaceholder": "Dein Name…",
+    "nameLabel": "Dein Name",
+    "nameRequired": "Name muss mindestens {min} Zeichen haben",
+    "nameTooLong": "Name darf maximal {max} Zeichen lang sein",
+    "letsGo": "🚀 LOS GEHT'S",
+    "joinAs": "Beitreten als…",
+    "avatar": "Avatar",
+    "avatarAlt": "Avatar von {name}",
+    "avatarAltGeneric": "Spieler-Avatar",
+    "randomAvatar": "Zufälliger Avatar"
+  },
+
+  "reelImport": {
+    "title": "Reels importieren",
+    "uploadDescription": "Einmal hochladen — Reels werden lokal auf deinem Gerät gespeichert, bereit für jedes zukünftige Spiel.",
+    "uploadDescriptionHtml": "Einmal hochladen — <strong>lokal auf deinem Gerät</strong>, bereit für jedes zukünftige Spiel.",
+    "openInstagramExport": "Instagram-Export öffnen ↗",
+    "followSteps": "Folge diesen Schritten",
+    "steps": {
+      "step1": "Wähle <strong>\"Informationen herunterladen oder übertragen\"</strong>",
+      "step2": "Wähle <strong>\"Einige deiner Informationen\"</strong> → nur <strong>Likes</strong> anhaken → Weiter",
+      "step3": "Wähle <strong>\"Auf Gerät herunterladen\"</strong> → Weiter",
+      "step4": "Zeitraum: <strong>Letztes Jahr</strong> · Format: <strong>JSON</strong> → Dateien erstellen",
+      "step5": "Entzippen → <code>likes/</code> öffnen → <code>liked_posts.json</code> hochladen"
+    },
+    "urlLabel": "Instagram Reel URL",
+    "urlPlaceholder": "https://www.instagram.com/reel/…",
+    "importButton": "In meinen Pool speichern",
+    "importing": "Importiere…",
+    "successTitle": "Bereit!",
+    "successDescription": "Deine Reels wurden lokal gespeichert",
+    "addAnother": "Weiteren hinzufügen",
+    "done": "← Zurück",
+    "deleteConfirm": "Diesen Reel entfernen?",
+    "unavailableTitle": "Reel nicht verfügbar",
+    "unavailableDesc": "Instagram hat das Einbetten blockiert. Das Spiel läuft weiter — du kannst trotzdem anhand der Kontext-Hinweise abstimmen!",
+    "openOnInstagram": "Auf Instagram öffnen ↗",
+    "loading": "Lade Reel…",
+    "failedToLoad": "Laden fehlgeschlagen",
+    "retry": "↺ Wiederholen",
+    "dropOrTap": "Ablegen oder tippen zum Durchsuchen",
+    "dropIt": "Loslassen!",
+    "uploadHint": "{filename} aus deinem Instagram-Export hochladen",
+    "errors": {
+      "notJson": "Bitte lade eine .json-Datei aus deinem Instagram-Datenexport hoch.",
+      "wrongFile": "Falsche Datei. Bitte lade liked_posts.json hoch — nicht liked_comments.json.",
+      "noReels": "Keine gelikten Reels in dieser Datei gefunden.",
+      "invalidJson": "Datei konnte nicht gelesen werden. Ist es gültiges JSON?",
+      "tooManyAttempts": "Zu viele Versuche. Bitte warte und versuche es erneut."
+    }
+  },
+
+  "errors": {
+    "unexpectedError": "Etwas ist schiefgelaufen. Bitte versuche es erneut.",
+    "networkError": "Netzwerkfehler. Überprüfe deine Verbindung.",
+    "serverError": "Serverfehler. Bitte versuche es später erneut.",
+    "notFound": "Nicht gefunden.",
+    "lobbyNotFound": "Lobby nicht gefunden. Überprüfe deinen Code.",
+    "lobbyFull": "Die Lobby ist voll.",
+    "lobbyExpired": "Diese Lobby ist abgelaufen.",
+    "invalidCode": "Ungültiger Lobby-Code.",
+    "playerNotFound": "Spieler nicht gefunden.",
+    "alreadyInLobby": "Du bist bereits in dieser Lobby.",
+    "gameAlreadyStarted": "Das Spiel hat bereits begonnen.",
+    "notHost": "Nur der Host kann das tun.",
+    "reelImportFailed": "Dieser Reel konnte nicht importiert werden. Überprüfe die URL.",
+    "reelNotFound": "Reel nicht gefunden.",
+    "rateLimitExceeded": "Zu viele Anfragen. Bitte langsamer.",
+    "invalidUrl": "Ungültige URL.",
+    "sessionExpired": "Deine Sitzung ist abgelaufen. Bitte trete erneut bei."
+  },
+
+  "validation": {
+    "required": "Dieses Feld ist erforderlich.",
+    "email": "Bitte gib eine gültige E-Mail-Adresse ein.",
+    "minLength": "Muss mindestens {min} Zeichen lang sein.",
+    "maxLength": "Darf maximal {max} Zeichen lang sein.",
+    "invalidFormat": "Ungültiges Format.",
+    "urlInvalid": "Bitte gib eine gültige URL ein.",
+    "codeTooShort": "Code muss 4 Zeichen lang sein.",
+    "codeInvalid": "Code darf nur Buchstaben und Zahlen enthalten."
+  },
+
+  "share": {
+    "heading": "Gefällt dir ReelGuess?",
+    "subheading": "Teile es mit deinen Freunden!",
+    "shareTitle": "ReelGuess — Rate, wer das Reel geliked hat!",
+    "shareText": "🎬 Spiel ReelGuess mit mir — rate, wer welchen Instagram Reel geliked hat!",
+    "cta": "Spiel teilen",
+    "copied": "Link kopiert!",
+    "ariaLabel": "ReelGuess mit Freunden teilen"
+  },
+
+  "notFound": {
+    "title": "ReelGuess",
+    "subtitle": "Seite nicht gefunden",
+    "description": "Diese Lobby oder dieses Spiel existiert nicht mehr. Es ist möglicherweise abgelaufen oder der Code war falsch.",
+    "goHome": "← Zur Startseite"
+  },
+
+  "seo": {
+    "home": {
+      "title": "ReelGuess — Rate, wer das Reel geliked hat! 🎬",
+      "description": "Das virale Party-Spiel, bei dem du rätst, welcher Freund einen Instagram Reel geliked hat. Spiele mit bis zu 8 Freunden, sammle Punkte und kröne den ultimativen Reel-Ratemeister!"
+    },
+    "lobby": {
+      "title": "Lobby {code} — ReelGuess",
+      "description": "Tritt der ReelGuess-Lobby bei und fange an zu raten, wer welchen Instagram Reel geliked hat."
+    },
+    "game": {
+      "title": "Spiel läuft — ReelGuess",
+      "description": "Ein ReelGuess-Spiel ist im Gange. Rate wer den Reel geliked hat und sammle Punkte!"
+    },
+    "notFound": {
+      "title": "Nicht gefunden — ReelGuess",
+      "description": "Diese Seite konnte nicht gefunden werden."
+    }
+  },
+
+  "aria": {
+    "mainNavigation": "Hauptnavigation",
+    "lobbyCode": "Lobby-Code: {code}",
+    "playerAvatar": "Avatar von {name}",
+    "copyCode": "Lobby-Code kopieren",
+    "shareLink": "Spiel-Link teilen",
+    "closeModal": "Dialog schließen",
+    "loadingSpinner": "Lädt",
+    "voteFor": "Für {name} abstimmen",
+    "voteButton": "Für {name} abstimmen",
+    "activateDouble": "Doppelt oder Nichts aktivieren",
+    "doubleDisabled": "Benötigt {minPoints} Pkt. um Doppelt oder Nichts zu aktivieren",
+    "currentRound": "Runde {current} von {total}",
+    "scoreboardEntry": "{name}: {points} Punkte, Rang {rank}",
+    "timerSeconds": "{seconds} Sekunden verbleibend"
+  }
+}

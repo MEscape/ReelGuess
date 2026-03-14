@@ -1,6 +1,7 @@
 'use client'
 
 import { motion } from 'framer-motion'
+import { useTranslations } from 'next-intl'
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Types
@@ -33,6 +34,8 @@ export function VoteRow({
                             usedDouble,
                             delay,
                         }: VoteRowProps) {
+    const t = useTranslations('voting')
+
     return (
         <motion.div
             initial={{ opacity: 0, x: -8 }}
@@ -49,82 +52,48 @@ export function VoteRow({
         >
             <span
                 className="font-display shrink-0"
-                style={{
-                    fontSize:  'var(--text-ui)',
-                    color:     isCorrect ? 'var(--color-success)' : 'var(--color-danger)',
-                    width:     '1.4rem',
-                    textAlign: 'center',
-                }}
+                style={{ fontSize: 'var(--text-ui)', color: isCorrect ? 'var(--color-success)' : 'var(--color-danger)', width: '1.4rem', textAlign: 'center' }}
+                aria-label={isCorrect ? '✓' : '✕'}
             >
                 {isCorrect ? '✓' : '✕'}
             </span>
 
-            <span
-                className="font-display uppercase flex-1 min-w-0 truncate"
-                style={{
-                    fontSize:      'var(--text-body)',
-                    letterSpacing: 'var(--tracking-display)',
-                    color:         'var(--color-foreground)',
-                }}
-            >
+            <span className="font-display uppercase flex-1 min-w-0 truncate"
+                style={{ fontSize: 'var(--text-body)', letterSpacing: 'var(--tracking-display)', color: 'var(--color-foreground)' }}>
                 {voterName}
             </span>
 
-            <span style={{ fontSize: 'var(--text-label-sm)', color: 'var(--color-subtle)' }} aria-hidden>
-                →
-            </span>
+            <span style={{ fontSize: 'var(--text-label-sm)', color: 'var(--color-subtle)' }} aria-hidden>→</span>
 
-            <span
-                className="font-sans truncate"
-                style={{ fontSize: 'var(--text-body-sm)', color: 'var(--color-muted)', maxWidth: '6rem' }}
-            >
+            <span className="font-sans truncate"
+                style={{ fontSize: 'var(--text-body-sm)', color: 'var(--color-muted)', maxWidth: '6rem' }}>
                 {votedForName}
             </span>
 
             {pointsAwarded != null && pointsAwarded > 0 && (
-                <span
-                    className="font-display shrink-0"
-                    style={{
-                        fontSize:      'var(--text-ui)',
-                        letterSpacing: 'var(--tracking-display)',
-                        color:         'var(--color-success)',
-                    }}
-                >
+                <span className="font-display shrink-0"
+                    style={{ fontSize: 'var(--text-ui)', letterSpacing: 'var(--tracking-display)', color: 'var(--color-success)' }}>
                     +{pointsAwarded}
                 </span>
             )}
-
             {pointsAwarded != null && pointsAwarded < 0 && (
-                <span
-                    className="font-display shrink-0"
-                    style={{
-                        fontSize:      'var(--text-ui)',
-                        letterSpacing: 'var(--tracking-display)',
-                        color:         'var(--color-danger)',
-                    }}
-                >
+                <span className="font-display shrink-0"
+                    style={{ fontSize: 'var(--text-ui)', letterSpacing: 'var(--tracking-display)', color: 'var(--color-danger)' }}>
                     {pointsAwarded}
                 </span>
             )}
-
             {pointsAwarded != null && pointsAwarded === 0 && (
-                <span
-                    className="font-display shrink-0"
-                    style={{
-                        fontSize:      'var(--text-ui)',
-                        letterSpacing: 'var(--tracking-display)',
-                        color:         'var(--color-muted)',
-                    }}
-                >
+                <span className="font-display shrink-0"
+                    style={{ fontSize: 'var(--text-ui)', letterSpacing: 'var(--tracking-display)', color: 'var(--color-muted)' }}>
                     +0
                 </span>
             )}
 
             {usedDouble && (
-                <span
-                    className="font-display shrink-0"
+                <span className="font-display shrink-0"
                     style={{ fontSize: 'var(--text-label-xs)', color: 'var(--color-accent)' }}
-                    title="Double-or-Nothing activated"
+                    title={t('doubleActivatedTitle')}
+                    aria-label={t('doubleActivatedTitle')}
                 >
                     ⚡
                 </span>

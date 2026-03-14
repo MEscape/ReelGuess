@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useRef, useCallback } from 'react'
+import { useTranslations }               from 'next-intl'
 import {
     isLikedPostsJson,
     extractReelsFromInstagramExport,
@@ -37,12 +38,13 @@ export function useFileImport() {
     const [state,      setState]      = useState<FileImportState>({ status: 'idle' })
     const [isDragging, setIsDragging] = useState(false)
     const fileInputRef = useRef<HTMLInputElement | null>(null)
+    const t            = useTranslations('reelImport.errors')
 
     const processFile = useCallback((file: File): void => {
         setState({ status: 'idle' })
 
         if (!file.name.endsWith('.json')) {
-            setState({ status: 'error', message: 'Please upload a .json file from your Instagram data export.' })
+            setState({ status: 'error', message: t('notJson') })
             return
         }
 
@@ -52,31 +54,27 @@ export function useFileImport() {
                 const json = JSON.parse(e.target?.result as string)
 
                 if (!isLikedPostsJson(json)) {
-                    setState({ status: 'error', message: 'Wrong file. Please upload liked_posts.json — not liked_comments.json.' })
+                    setState({ status: 'error', message: t('wrongFile') })
                     return
                 }
 
-                // Extract all reels (no cap here — confirm step will show count,
-                // cap is applied at save time via MAX_REELS)
                 const urls = extractReelsFromInstagramExport(json, Infinity)
 
                 if (urls.length === 0) {
-                    setState({ status: 'error', message: 'No liked Reels found in this file.' })
+                    setState({ status: 'error', message: t('noReels') })
                     return
                 }
 
                 setState({ status: 'parsed', urls })
             } catch {
-                setState({ status: 'error', message: 'Could not read the file. Is it valid JSON?' })
+                setState({ status: 'error', message: t('invalidJson') })
             }
         }
         reader.readAsText(file)
-    }, [])
+    }, [t])
 
     const reset = useCallback((): void => {
         setState({ status: 'idle' })
-        // Also clear drag state — without this, pressing Back after a drag leaves
-        // the upload zone permanently in its hover style.
         setIsDragging(false)
     }, [])
 

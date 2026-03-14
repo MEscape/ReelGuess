@@ -1,20 +1,21 @@
-import { getLobbyByCode }  from '@/features/lobby'
-import { notFound }        from 'next/navigation'
-import { LobbyClient } from './lobby-client'
-
 // ─────────────────────────────────────────────────────────────────────────────
-// LobbyPage — server component
+// JsonLd — Reusable JSON-LD structured data injector
 // ─────────────────────────────────────────────────────────────────────────────
 
 type Props = {
-    params: Promise<{ code: string }>
+    schema: Record<string, unknown>
 }
 
-export default async function LobbyPage({ params }: Props) {
-    const { code } = await params
-    const result   = await getLobbyByCode(code.toUpperCase())
-
-    if (result.isErr()) notFound()
-
-    return <LobbyClient lobby={result.value} />
+/**
+ * Server Component that injects a JSON-LD <script> tag.
+ * Usage: <JsonLd schema={mySchema} />
+ */
+export function JsonLd({ schema }: Props) {
+    return (
+        <script
+            type="application/ld+json"
+            dangerouslySetInnerHTML={{ __html: JSON.stringify(schema) }}
+        />
+    )
 }
+

@@ -1,53 +1,28 @@
 'use client'
 
-import { SETTINGS_CONFIG } from '../constants'
+import { useTranslations }  from 'next-intl'
+import { SETTINGS_CONFIG }  from '../constants'
 import type { GameSettings } from '../types'
 
-// ─────────────────────────────────────────────────────────────────────────────
-// Types
-// ─────────────────────────────────────────────────────────────────────────────
+type SettingsSummaryProps = { settings: GameSettings }
 
-type SettingsSummaryProps = {
-    settings: GameSettings
-}
-
-// ─────────────────────────────────────────────────────────────────────────────
-// Component
-// ─────────────────────────────────────────────────────────────────────────────
-
-/**
- * Read-only settings display shown to non-host players in the waiting room.
- *
- * Iterates `SETTINGS_CONFIG` so it automatically reflects any setting added
- * to the config — no changes needed here.
- */
 export function SettingsSummary({ settings }: SettingsSummaryProps) {
+    const t = useTranslations('lobby')
+
     return (
         <div className="w-full card-brutal overflow-hidden">
-
-            {/* Section header */}
             <div className="flex items-center px-4 py-3 border-b-2 border-[var(--color-border)]">
-                <span
-                    className="input-label"
-                    style={{ marginBottom: 0 }}
-                >
-                    Game Settings
+                <span className="input-label" style={{ marginBottom: 0 }}>
+                    {t('settings.title')}
                 </span>
             </div>
 
-            {/* Setting rows */}
             <div className="flex divide-x-2 divide-[var(--color-border)]">
                 {SETTINGS_CONFIG.map((cfg) => (
-                    <div
-                        key={cfg.key}
-                        className="flex-1 flex flex-col items-center justify-center gap-0.5 py-3 px-2"
-                    >
+                    <div key={cfg.key} className="flex-1 flex flex-col items-center justify-center gap-0.5 py-3 px-2">
                         <span
                             className="font-display leading-none text-[var(--color-accent)]"
-                            style={{
-                                fontSize:      'var(--text-title)',
-                                letterSpacing: 'var(--tracking-display)',
-                            }}
+                            style={{ fontSize: 'var(--text-title)', letterSpacing: 'var(--tracking-display)' }}
                         >
                             {settings[cfg.key]}{cfg.unit}
                         </span>
@@ -60,8 +35,6 @@ export function SettingsSummary({ settings }: SettingsSummaryProps) {
                     </div>
                 ))}
             </div>
-
         </div>
     )
 }
-

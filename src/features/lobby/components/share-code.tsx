@@ -1,26 +1,15 @@
 'use client'
 
 import { useState, useCallback } from 'react'
+import { useTranslations }       from 'next-intl'
 import { Copy, Check, AlertCircle } from 'lucide-react'
 import { cn }                    from '@/lib/utils/cn'
 
-// ─────────────────────────────────────────────────────────────────────────────
-// Component
-// ─────────────────────────────────────────────────────────────────────────────
-
-/**
- * Lobby code display + one-tap copy to clipboard.
- * Pure UI — no business logic.
- *
- * ### Clipboard error handling
- * `navigator.clipboard.writeText` throws in non-HTTPS contexts, when clipboard
- * permission is denied, and in some browsers when the document is not focused.
- * A `copyFailed` state briefly surfaces a "Copy manually" message instead of
- * letting the rejection propagate silently.
- */
 export function ShareCode({ code }: { code: string }) {
     const [copied,     setCopied]     = useState(false)
     const [copyFailed, setCopyFailed] = useState(false)
+    const t = useTranslations('lobby')
+    const tAria = useTranslations('aria')
 
     const handleCopy = useCallback(async () => {
         try {
@@ -28,9 +17,6 @@ export function ShareCode({ code }: { code: string }) {
             setCopied(true)
             setTimeout(() => setCopied(false), 2200)
         } catch {
-            // Clipboard unavailable — non-HTTPS, permission denied, or document
-            // not focused (common on iOS Safari). Show a brief fallback message
-            // so the user knows to copy the code manually.
             setCopyFailed(true)
             setTimeout(() => setCopyFailed(false), 2200)
         }
@@ -42,16 +28,13 @@ export function ShareCode({ code }: { code: string }) {
     return (
         <div className="flex flex-col items-center gap-2 w-full">
 
-            <span
-                className="input-label"
-                style={{ color: 'var(--color-muted)', marginBottom: 0 }}
-            >
-                Lobby Code
+            <span className="input-label" style={{ color: 'var(--color-muted)', marginBottom: 0 }}>
+                {t('code')}
             </span>
 
             <button
                 onClick={handleCopy}
-                aria-label={isCopied ? 'Code copied' : 'Copy lobby code'}
+                aria-label={isCopied ? t('copied') : tAria('copyCode')}
                 className={cn(
                     'w-full flex items-center justify-between gap-4 px-6 py-4',
                     'border-[3px] transition-[border-color,box-shadow,transform,background-color]',
@@ -93,12 +76,9 @@ export function ShareCode({ code }: { code: string }) {
                     isFailed ? 'text-[var(--color-danger)]'   : '',
                     !isCopied && !isFailed ? 'text-[var(--color-faint)]' : '',
                 )}
-                style={{
-                    fontSize:      'var(--text-label-xs)',
-                    letterSpacing: 'var(--tracking-label)',
-                }}
+                style={{ fontSize: 'var(--text-label-xs)', letterSpacing: 'var(--tracking-label)' }}
             >
-                {isCopied ? '✓ Copied to clipboard' : isFailed ? 'Copy failed — select manually' : 'Tap to copy'}
+                {isCopied ? `✓ ${t('copied')}` : isFailed ? t('copyFailed') : t('tapToCopy')}
             </p>
 
         </div>

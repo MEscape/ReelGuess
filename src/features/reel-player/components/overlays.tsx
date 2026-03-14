@@ -1,6 +1,7 @@
 'use client'
 
 import { motion }  from 'framer-motion'
+import { useTranslations } from 'next-intl'
 import { Button }  from '@/components/ui'
 import {
     UNAVAILABLE_MIN_HEIGHT,
@@ -19,6 +20,7 @@ type UnavailableCardProps = {
  * Directs the user to open the reel directly on Instagram.
  */
 export function UnavailableCard({ instagramUrl }: UnavailableCardProps) {
+    const t = useTranslations('reelImport')
     return (
         <div
             className="w-full max-w-sm mx-auto flex flex-col items-center gap-4 p-6"
@@ -48,7 +50,7 @@ export function UnavailableCard({ instagramUrl }: UnavailableCardProps) {
                         color:         'var(--color-danger)',
                     }}
                 >
-                    REEL UNAVAILABLE
+                    {t('unavailableTitle').toUpperCase()}
                 </p>
                 <p
                     className="font-sans"
@@ -57,8 +59,7 @@ export function UnavailableCard({ instagramUrl }: UnavailableCardProps) {
                         color:    'var(--color-muted)',
                     }}
                 >
-                    Instagram blocked the embed. The game continues — you can
-                    still vote based on the context clues!
+                    {t('unavailableDesc')}
                 </p>
             </div>
 
@@ -68,7 +69,7 @@ export function UnavailableCard({ instagramUrl }: UnavailableCardProps) {
                 fullWidth
                 onClick={() => window.open(instagramUrl, '_blank', 'noopener,noreferrer')}
             >
-                OPEN ON INSTAGRAM ↗
+                {t('openOnInstagram').toUpperCase()}
             </Button>
         </div>
     )
@@ -83,6 +84,7 @@ export function UnavailableCard({ instagramUrl }: UnavailableCardProps) {
  * Sits above the always-visible iframe via `position: absolute`.
  */
 export function LoadingOverlay() {
+    const t = useTranslations('reelImport')
     return (
         <motion.div
             initial={{ opacity: 0 }}
@@ -108,7 +110,7 @@ export function LoadingOverlay() {
                     color:         'var(--color-muted)',
                 }}
             >
-                LOADING REEL…
+                {t('loading').toUpperCase()}
             </span>
         </motion.div>
     )
@@ -128,6 +130,7 @@ type ErrorOverlayProps = {
  * Offers a retry action and a direct link to Instagram as fallback.
  */
 export function ErrorOverlay({ instagramUrl, onRetry }: ErrorOverlayProps) {
+    const t = useTranslations('reelImport')
     return (
         <motion.div
             initial={{ opacity: 0 }}
@@ -144,17 +147,17 @@ export function ErrorOverlay({ instagramUrl, onRetry }: ErrorOverlayProps) {
                     color:         'var(--color-muted)',
                 }}
             >
-                FAILED TO LOAD
+                {t('failedToLoad').toUpperCase()}
             </p>
             <Button variant="ghost" size="sm" onClick={onRetry}>
-                ↺ RETRY
+                {t('retry')}
             </Button>
             <Button
                 variant="ghost"
                 size="sm"
                 onClick={() => window.open(instagramUrl, '_blank', 'noopener,noreferrer')}
             >
-                OPEN ON INSTAGRAM ↗
+                {t('openOnInstagram')}
             </Button>
         </motion.div>
     )
