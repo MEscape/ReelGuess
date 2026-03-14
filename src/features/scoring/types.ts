@@ -65,13 +65,12 @@ export type ScoreOutput = {
  * An achievement event generated during round scoring.
  * `playerName` is populated by the service layer from lobby player data.
  *
- * Note: achievement keys combine `type` and `playerId`. If the same player
- * earns the same achievement type in two consecutive rounds (e.g. STREAK_5
- * after a streak reset), add `roundId` to this union to make keys unique
- * across rounds.
+ * `roundId` is included so that `achievementKey` produces a unique key per
+ * round — preventing cross-round suppression when the same player earns the
+ * same achievement type in consecutive rounds (e.g. STREAK_5 after a reset).
  */
 export type Achievement =
-    | { type: 'STREAK_5';       playerId: string; playerName: string; streak: number }
-    | { type: 'STREAK_10';      playerId: string; playerName: string; streak: number }
-    | { type: 'DOUBLE_SUCCESS'; playerId: string; playerName: string; pointsEarned: number }
-    | { type: 'BIG_POINTS';     playerId: string; playerName: string; pointsEarned: number }
+    | { type: 'STREAK_5';       playerId: string; playerName: string; streak: number;       roundId: string }
+    | { type: 'STREAK_10';      playerId: string; playerName: string; streak: number;       roundId: string }
+    | { type: 'DOUBLE_SUCCESS'; playerId: string; playerName: string; pointsEarned: number; roundId: string }
+    | { type: 'BIG_POINTS';     playerId: string; playerName: string; pointsEarned: number; roundId: string }

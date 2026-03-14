@@ -23,15 +23,12 @@ export function formatMultiplier(value: number): string {
 /**
  * Stable identity key for an achievement.
  *
- * Combines `type` and `playerId` to deduplicate within a component lifetime.
- *
- * Known limitation: if the same player earns the same achievement type in two
- * consecutive rounds (e.g. STREAK_5 → misses → STREAK_5 again), the second
- * occurrence is suppressed because the key is identical. To fix this, add
- * `roundId` to the `Achievement` union and include it in the key here.
+ * Combines `type`, `playerId`, and `roundId` so that the same achievement
+ * type earned by the same player in two different rounds produces distinct
+ * keys — preventing cross-round suppression by `seenRef` in HeroOverlay.
  */
 export function achievementKey(a: Achievement): string {
-    return `${a.type}:${a.playerId}`
+    return `${a.type}:${a.playerId}:${a.roundId}`
 }
 
 /**

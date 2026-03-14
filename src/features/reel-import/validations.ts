@@ -28,7 +28,7 @@ export type SubmitReelsInput = z.infer<typeof SubmitReelsSchema>
 
 /** Matches a clean Instagram Reel URL (no query params). */
 export const InstagramReelUrlSchema = z.string().regex(
-    /^https?:\/\/(?:www\.)?instagram\.com\/reel\/[A-Za-z0-9_-]+$/,
+    /^https?:\/\/(?:www\.)?instagram\.com\/reel\/[A-Za-z0-9_-]+\/?$/,
     "Invalid Instagram reel URL"
 )
 

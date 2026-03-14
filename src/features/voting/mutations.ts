@@ -85,3 +85,40 @@ export function updateVoteDouble(
     )
 }
 
+/**
+ * Persists the `points_awarded` value for each vote after scoring.
+ *
+ * Called by `revealRound` after `calculateRoundScores` so that every
+ * subsequent read of the votes table — including the non-winner concurrent
+ * caller path — sees the final `points_awarded` value rather than `null`.
+ *
+ * Runs all updates in parallel. Non-fatal per-vote errors are collected and
+ * surfaced as a single aggregated error if any fail.
+ */
+export function batchUpdateVotePoints(
+    votes: Array<{ id: string; pointsAwarded: number | null }>,
+): ResultAsync<void, GameError> {
+    return ResultAsync.fromPromise(
+        (async () => {
+            if (votes.length === 0) return
+            const supabase = createClient()
+            const updates = votes
+                .filter((v) => v.pointsAwarded !== null)
+                .map((v) =>
+                    supabase
+                        .from('votes')
+                        .update({ points_awarded: v.pointsAwarded })
+                        .eq('id', v.id),
+                )
+            const results = await Promise.all(updates)
+            const failed  = results.filter((r) => r.error)
+            if (failed.length > 0) {
+                throw {
+                    type:    'GAME_DATABASE_ERROR',
+                    message: `Failed to update points_awarded for ${failed.length} vote(s): ${failed[0]!.error!.message}`,
+                } satisfies GameError
+            }
+        })(),
+        (e): GameError => toAppError<GameError>(e, 'GAME_DATABASE_ERROR'),
+    )
+}

@@ -59,21 +59,25 @@ export function createRound(
  * - `reveal → complete` — only when current status IS `reveal`
  * - Other transitions   — unconditional (e.g. emergency resets)
  *
- * When the predicate fails (another caller already transitioned), the function
- * returns `ok(void)` — the transition is treated as idempotent.
+ * Returns `{ transitioned: true }` when the UPDATE affected a row (this caller
+ * won the race), or `{ transitioned: false }` when the predicate failed
+ * (another concurrent caller already transitioned — treated as idempotent).
  *
  * Sets `revealed_at` automatically when transitioning to `reveal`.
  */
 export function updateRoundStatus(
     roundId: string,
     status:  RoundStatus,
-): ResultAsync<void, GameError> {
+): ResultAsync<{ transitioned: boolean }, GameError> {
     return ResultAsync.fromPromise(
         (async () => {
             const supabase = createClient()
             const update: Record<string, unknown> = { status }
             if (status === 'reveal') update.revealed_at = new Date().toISOString()
 
+            // Build the predicated UPDATE query.
+            // Using .select() after .update() returns the affected rows —
+            // an empty array means the predicate failed (concurrent caller already transitioned).
             let query = supabase
                 .from('rounds')
                 .update(update)
@@ -82,10 +86,12 @@ export function updateRoundStatus(
             if (status === 'reveal')   query = query.eq('status', 'voting')
             if (status === 'complete') query = query.eq('status', 'reveal')
 
-            const { error } = await query
+            const { data, error } = await query.select('id')
+
             if (error) throw { type: 'GAME_DATABASE_ERROR', message: error.message } satisfies GameError
-            // No row updated = predicate failed = concurrent caller already transitioned.
-            // Treat as idempotent success.
+
+            // data is the array of updated rows. Empty = predicate failed = another caller won.
+            return { transitioned: Array.isArray(data) && data.length > 0 }
         })(),
         (e) => toAppError<GameError>(e, 'GAME_DATABASE_ERROR'),
     )

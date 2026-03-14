@@ -53,16 +53,18 @@ function parseLobbyPayload(raw: unknown): LobbyPayload | null {
  * @param onRoundChange    - Called on every `rounds` INSERT or UPDATE.
  * @param initialRoundId   - Active round ID at mount (seeds the vote filter).
  * @param initialVoteCount - Vote count at mount (restores state after refresh).
+ * @param initialRematchId - Rematch ID at mount (restores state after refresh).
  */
 export function useGameRealtime(
     lobbyId:           string,
     onRoundChange?:    (round: Round) => void,
     initialRoundId?:   string | null,
     initialVoteCount?: number,
+    initialRematchId?: string | null,
 ) {
     const [voteCount,   setVoteCount]   = useState(initialVoteCount ?? 0)
     const [lobbyStatus, setLobbyStatus] = useState<string>('playing')
-    const [rematchId,   setRematchId]   = useState<string | null>(null)
+    const [rematchId,   setRematchId]   = useState<string | null>(initialRematchId ?? null)
 
     const currentRoundIdRef = useRef<string | null>(initialRoundId ?? null)
     const onRoundChangeRef  = useRef(onRoundChange)

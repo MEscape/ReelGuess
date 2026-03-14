@@ -2,6 +2,8 @@ import { ok, err }              from 'neverthrow'
 import { getRoundById }          from '@/features/round'
 import { getPlayerCount }        from '@/features/lobby'
 import { revealRound }           from '@/features/reveal'
+import { getScoresForLobby }     from '@/features/scoring'
+import { DOUBLE_MIN_POINTS }     from '@/features/scoring'
 import { getVotesForRound }      from './queries'
 import { updateVoteDouble, insertVote }      from './mutations'
 import type { GameResult }       from '@/features/game'
@@ -94,10 +96,13 @@ export async function submitVote(
  * Business rules:
  * - Round must still be in `voting` status (doubles lock at reveal).
  * - Player must have already voted this round (`HAS_NOT_VOTED` otherwise).
+ * - Player must have at least {@link DOUBLE_MIN_POINTS} points (`INSUFFICIENT_POINTS` otherwise).
+ *   This prevents exploiting Double-or-Nothing with a 0-point balance where
+ *   there is no downside risk.
  * - Idempotent — activating twice is safe (DB predicate guards the update).
  *
- * `HAS_NOT_VOTED` is a domain rule error, not a DB error. The hook can
- * switch on it without fragile message-string matching.
+ * `HAS_NOT_VOTED` and `INSUFFICIENT_POINTS` are domain rule errors, not DB errors.
+ * The hook can switch on them without fragile message-string matching.
  *
  * @param roundId - Target round UUID.
  * @param voterId - The player activating Double-or-Nothing.
@@ -119,6 +124,16 @@ export async function submitDouble(
 
     if (!existingVotesResult.value.some((v) => v.voterId === voterId)) {
         return err({ type: 'HAS_NOT_VOTED', roundId, voterId })
+    }
+
+    // Guard: player must have enough points to risk losing them.
+    const scoresResult = await getScoresForLobby(round.lobbyId)
+    if (scoresResult.isErr()) return err(scoresResult.error)
+
+    const playerScore = scoresResult.value.find((s) => s.playerId === voterId)
+    const currentPoints = playerScore?.points ?? 0
+    if (currentPoints < DOUBLE_MIN_POINTS) {
+        return err({ type: 'INSUFFICIENT_POINTS', required: DOUBLE_MIN_POINTS, actual: currentPoints })
     }
 
     const result = await updateVoteDouble(roundId, voterId)

@@ -5,6 +5,7 @@ import { motion }               from 'framer-motion'
 import { Card }                 from '@/components/ui'
 import { DoubleButton }         from './double-button'
 import { StreakIndicator }       from '@/features/scoring'
+import { DOUBLE_MIN_POINTS }    from '@/features/scoring'
 import { useGameSession, useGameRound }          from '@/features/game'
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -30,8 +31,14 @@ export function VoteLockCard() {
         [scores, currentPlayerId],
     )
 
+    const currentPoints = useMemo(
+        () => scores.find((s) => s.playerId === currentPlayerId)?.points ?? 0,
+        [scores, currentPlayerId],
+    )
+
+    const canUseDouble = currentPoints >= DOUBLE_MIN_POINTS
+
     // Guard: do not render until the active round is known.
-    // This prevents passing an empty string to DoubleButton's roundId prop.
     if (!activeRound) return null
 
     return (
@@ -96,6 +103,8 @@ export function VoteLockCard() {
                 roundId={activeRound.id}
                 voterId={currentPlayerId}
                 onDoubleAction={onDouble}
+                canActivate={canUseDouble}
+                minPoints={DOUBLE_MIN_POINTS}
             />
         </div>
     )

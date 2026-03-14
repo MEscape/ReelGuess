@@ -1,4 +1,3 @@
-
 /**
  * Lobby Service Layer — all lobby business logic.
  *
@@ -13,6 +12,7 @@ import {
     updateLobbyStatus,
     createRematchLobby,
     setRematchId,
+    updateLobbySettings,
 } from './mutations'
 import { getReelOwnersByLobby } from '@/features/reel-import'
 import type { LobbyError }       from './errors'
@@ -234,4 +234,43 @@ async function joinExistingRematch(
     if (addResult.isErr()) return err(addResult.error)
 
     return ok({ newLobbyCode: newLobbyId, newPlayerId: addResult.value.id })
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// updateSettings
+// ─────────────────────────────────────────────────────────────────────────────
+
+/**
+ * Updates the game settings of a waiting lobby.
+ *
+ * Business rules:
+ * - Only the host may change settings.
+ * - Settings may only be changed while the lobby is still `waiting`.
+ *
+ * @param lobbyCode    - The 6-char lobby code.
+ * @param hostPlayerId - Must match `lobby.hostId`.
+ * @param settings     - New settings values (roundsCount, timerSeconds).
+ */
+export async function updateSettings(
+    lobbyCode:    string,
+    hostPlayerId: string,
+    settings:     { roundsCount: number; timerSeconds: number },
+): Promise<Result<void, LobbyError>> {
+    const lobbyResult = await getLobbyByCode(lobbyCode)
+    if (lobbyResult.isErr()) return err(lobbyResult.error)
+
+    const lobby = lobbyResult.value
+
+    if (lobby.hostId !== hostPlayerId) {
+        return err({ type: 'NOT_HOST', playerId: hostPlayerId })
+    }
+    if (lobby.status !== 'waiting') {
+        return err({
+            type:    'LOBBY_VALIDATION_ERROR',
+            message: 'Settings can only be changed while the lobby is waiting.',
+            issues:  [],
+        })
+    }
+
+    return updateLobbySettings(lobbyCode, settings)
 }

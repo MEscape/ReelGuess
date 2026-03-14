@@ -41,6 +41,7 @@ export function mapLobbyRow(row: unknown): Lobby {
         settings: {
             roundsCount:  validated.settings.rounds_count,
             timerSeconds: validated.settings.timer_seconds,
+            rematchId:    validated.settings.rematch_id ?? undefined,
         },
         // Each player element is independently validated by mapPlayerRow.
         players:   (validated.players ?? []).map((p) => mapPlayerRow(p)),

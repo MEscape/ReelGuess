@@ -66,7 +66,9 @@ export function getSpeedMultiplier(voteTimeMs: number | null): number {
  *
  * Formula for incorrect votes:
  *   pointsEarned = 0
- *   If usedDouble: pointsEarned = −⌊0.5 × currentPoints⌋ (min −BASE_POINTS if currentPoints is very low)
+ *   If usedDouble: pointsEarned = −⌊0.5 × currentPoints⌋
+ *   — only applies when currentPoints > 0 (no penalty on an already-negative balance).
+ *   — minimum penalty is BASE_POINTS when currentPoints is low but positive.
  *
  * Streak resets to 0 on incorrect votes regardless of double.
  *
@@ -76,8 +78,12 @@ export function calculateRoundScore(input: ScoreInput): ScoreOutput {
     const { isCorrect, voteTimeMs, streak, usedDouble, currentPoints } = input
 
     if (!isCorrect) {
-        // Penalise by half the player's accumulated points, minimum BASE_POINTS.
-        const pointsEarned = usedDouble ? -Math.max(BASE_POINTS, Math.floor(currentPoints * 0.5)) : 0
+        let pointsEarned = 0
+        if (usedDouble && currentPoints > 0) {
+            // Penalise by half the player's positive balance, minimum BASE_POINTS.
+            // No penalty if the player is already at 0 or below — can't go further into debt.
+            pointsEarned = -Math.max(BASE_POINTS, Math.floor(currentPoints * 0.5))
+        }
         return {
             pointsEarned,
             newStreak:        0,
@@ -106,24 +112,29 @@ export function calculateRoundScore(input: ScoreInput): ScoreOutput {
  *
  * Orchestrates per-vote scoring by:
  * 1. Building a lookup of each player's prior streak from `priorScores`.
- * 2. Running {@link calculateRoundScore} for every vote.
- * 3. Writing `pointsAwarded` back onto each vote (for the reveal UI).
- * 4. Producing updated `ScoreEntry[]` with new totals and streaks.
- * 5. Producing `ScoreRow[]` (snake_case) for the DB upsert.
+ * 2. Resetting streak to 0 for players who did NOT vote this round.
+ * 3. Running {@link calculateRoundScore} for every vote.
+ * 4. Writing `pointsAwarded` back onto each vote (for the reveal UI).
+ * 5. Producing updated `ScoreEntry[]` with new totals and streaks.
+ * 6. Producing `ScoreRow[]` (snake_case) for the DB upsert.
  *
- * Players who did NOT vote this round retain their prior score untouched —
- * their streak is preserved (not reset) because they were absent, not wrong.
+ * Players who did NOT vote this round have their streak reset to 0.
+ * Not voting is treated the same as an incorrect answer for streak purposes —
+ * a streak requires consecutive participation, not merely absence.
  *
  * `ScoreRow` does not include `lobby_id` — that is a write-time concern
  * supplied by the caller of `batchUpsertScores`, not a scoring concern.
  *
- * @param votes       - All votes cast in this round (may be empty if timer expired).
- * @param priorScores - Score entries from BEFORE this round's scoring.
+ * @param votes        - All votes cast in this round (may be empty if timer expired).
+ * @param priorScores  - Score entries from BEFORE this round's scoring.
+ * @param roundNumber  - 1-based round number; used to cap the streak so it
+ *                       can never exceed the number of rounds played.
  * @returns `{ updatedVotes, updatedScores, scoreRows }`.
  */
 export function calculateRoundScores(
     votes:       Vote[],
     priorScores: ScoreEntry[],
+    roundNumber: number,
 ): {
     updatedVotes:  Vote[]
     updatedScores: ScoreEntry[]
@@ -146,6 +157,17 @@ export function calculateRoundScores(
         })
     }
 
+    // Collect the set of players who actually voted this round.
+    const voterIds = new Set(votes.map((v) => v.voterId))
+
+    // Reset streak for all players who did NOT vote this round.
+    // Not voting breaks the streak — consecutive participation is required.
+    for (const [playerId, entry] of scoreMap) {
+        if (!voterIds.has(playerId)) {
+            entry.streak = 0
+        }
+    }
+
     // Score each vote and update the map in place.
     const updatedVotes: Vote[] = votes.map((vote) => {
         const prior       = scoreMap.get(vote.voterId)
@@ -161,12 +183,12 @@ export function calculateRoundScores(
 
         if (prior) {
             prior.points += result.pointsEarned
-            prior.streak  = result.newStreak
+            prior.streak  = Math.min(result.newStreak, roundNumber)
         } else {
             // Player had no prior score row — create one.
             scoreMap.set(vote.voterId, {
                 points:      Math.max(0, result.pointsEarned),
-                streak:      result.newStreak,
+                streak:      Math.min(result.newStreak, roundNumber),
                 displayName: '',
                 avatarSeed:  '',
             })

@@ -18,6 +18,18 @@ type DoubleButtonProps = {
      * Named with "Action" suffix to satisfy Next.js serializable-props convention.
      */
     onDoubleAction: (roundId: string, voterId: string) => Promise<void>
+    /**
+     * Whether the player is eligible to activate Double-or-Nothing.
+     * False when the player's current points are below {@link minPoints}.
+     * @default true
+     */
+    canActivate?: boolean
+    /**
+     * Minimum points required to activate Double-or-Nothing.
+     * Shown in the subtitle when `canActivate` is false.
+     * @default 100
+     */
+    minPoints?: number
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -37,18 +49,21 @@ type DoubleButtonProps = {
  *
  * Animates in with a spring entrance and disappears after activation.
  */
-export function DoubleButton({ roundId, voterId, onDoubleAction }: DoubleButtonProps) {
+export function DoubleButton({
+    roundId,
+    voterId,
+    onDoubleAction,
+    canActivate = true,
+    minPoints   = 100,
+}: DoubleButtonProps) {
     const [used,      setUsed]      = useState(false)
     const [isPending, setIsPending] = useState(false)
     const [error,     setError]     = useState<string | null>(null)
 
-    // Prevents concurrent activations during the async window before setUsed(true).
-    // Note: `used` is not checked here — when `used` is true the button is
-    // unmounted by AnimatePresence, so handleClick cannot be called.
     const guardRef = useRef(false)
 
     const handleClick = useCallback(async () => {
-        if (guardRef.current) return
+        if (guardRef.current || !canActivate) return
         guardRef.current = true
         setIsPending(true)
         setError(null)
@@ -61,7 +76,9 @@ export function DoubleButton({ roundId, voterId, onDoubleAction }: DoubleButtonP
             setIsPending(false)
             guardRef.current = false
         }
-    }, [onDoubleAction, roundId, voterId])
+    }, [onDoubleAction, roundId, voterId, canActivate])
+
+    const isDisabled = isPending || !canActivate
 
     return (
         <AnimatePresence>
@@ -75,17 +92,18 @@ export function DoubleButton({ roundId, voterId, onDoubleAction }: DoubleButtonP
                 >
                     <button
                         onClick={handleClick}
-                        disabled={isPending}
-                        aria-label="Activate Double-or-Nothing"
+                        disabled={isDisabled}
+                        aria-label={canActivate ? 'Activate Double-or-Nothing' : `Need ${minPoints} pts to activate Double-or-Nothing`}
                         style={{
                             width:      '100%',
                             padding:    '0.75rem 1.5rem',
-                            background: isPending
+                            background: isDisabled
                                 ? 'var(--color-surface-raised)'
                                 : 'linear-gradient(135deg, rgba(245,200,0,0.15) 0%, rgba(245,200,0,0.05) 100%)',
-                            border:     '2px solid var(--color-accent)',
-                            boxShadow:  '4px 4px 0px var(--color-accent)',
-                            cursor:     isPending ? 'wait' : 'pointer',
+                            border:     `2px solid ${isDisabled ? 'var(--color-border-strong)' : 'var(--color-accent)'}`,
+                            boxShadow:  isDisabled ? 'none' : '4px 4px 0px var(--color-accent)',
+                            cursor:     isDisabled ? 'not-allowed' : 'pointer',
+                            opacity:    !canActivate ? 0.5 : 1,
                             transition: 'box-shadow 0.1s, transform 0.1s',
                             transform:  isPending ? 'translate(2px, 2px)' : undefined,
                         }}
@@ -98,7 +116,7 @@ export function DoubleButton({ roundId, voterId, onDoubleAction }: DoubleButtonP
                                     style={{
                                         fontSize:      'var(--text-title-sm)',
                                         letterSpacing: 'var(--tracking-display)',
-                                        color:         'var(--color-accent)',
+                                        color:         isDisabled ? 'var(--color-muted)' : 'var(--color-accent)',
                                         lineHeight:    1,
                                     }}
                                 >
@@ -112,7 +130,9 @@ export function DoubleButton({ roundId, voterId, onDoubleAction }: DoubleButtonP
                                         marginTop: '0.2rem',
                                     }}
                                 >
-                                    Correct → ×2 pts · Wrong → −50% of your points
+                                    {canActivate
+                                        ? 'Correct → ×2 pts · Wrong → −50% of your points'
+                                        : `Requires ${minPoints} pts to activate`}
                                 </p>
                             </div>
                             <span style={{ fontSize: '1.5rem', lineHeight: 1 }}>⚡</span>

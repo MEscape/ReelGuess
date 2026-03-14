@@ -166,6 +166,54 @@ export function updateLobbyStatus(
 }
 
 /**
+ * Updates the host-editable settings on a waiting lobby.
+ *
+ * Merges `newSettings` into the existing `settings` JSONB column so that
+ * fields not covered by `newSettings` (e.g. `rematch_id`) are preserved.
+ *
+ * @param lobbyId     - Target lobby code.
+ * @param newSettings - Partial camelCase settings to apply.
+ */
+export function updateLobbySettings(
+    lobbyId:     string,
+    newSettings: { roundsCount: number; timerSeconds: number },
+): ResultAsync<void, LobbyError> {
+    return ResultAsync.fromPromise(
+        (async () => {
+            const supabase = createClient()
+
+            // 1. Fetch existing settings so we can do a safe merge.
+            const { data: existing, error: fetchErr } = await supabase
+                .from('lobbies')
+                .select('settings')
+                .eq('id', lobbyId)
+                .single()
+
+            if (fetchErr || !existing) {
+                throw {
+                    type:    'LOBBY_DATABASE_ERROR',
+                    message: fetchErr?.message ?? 'Lobby not found',
+                } satisfies LobbyError
+            }
+
+            const merged = {
+                ...(existing.settings as Record<string, unknown>),
+                rounds_count:  newSettings.roundsCount,
+                timer_seconds: newSettings.timerSeconds,
+            }
+
+            const { error } = await supabase
+                .from('lobbies')
+                .update({ settings: merged })
+                .eq('id', lobbyId)
+
+            if (error) throw { type: 'LOBBY_DATABASE_ERROR', message: error.message } satisfies LobbyError
+        })(),
+        (e) => toAppError<LobbyError>(e, 'LOBBY_DATABASE_ERROR'),
+    )
+}
+
+/**
  * Atomically sets `settings.rematch_id` on a lobby using a conditional UPDATE.
  *
  * Only writes if `settings->>'rematch_id'` is currently NULL — prevents two

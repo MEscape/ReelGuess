@@ -26,12 +26,14 @@ import {BIG_POINTS_THRESHOLD} from "./constants";
  * - **DOUBLE_SUCCESS**: Player used Double-or-Nothing and guessed correctly.
  * - **BIG_POINTS**:     Player earned ≥250 points in a single round.
  *
+ * @param roundId       - The round ID, embedded in every achievement for cross-round dedup.
  * @param updatedVotes  - All votes for this round WITH `pointsAwarded` filled in.
  * @param updatedScores - Score entries AFTER this round's scoring.
  * @param priorScores   - Score entries BEFORE this round's scoring.
  * @returns Array of achievements to display as hero overlays.
  */
 export function detectAchievements(
+    roundId:       string,
     updatedVotes:  Vote[],
     updatedScores: ScoreEntry[],
     priorScores:   ScoreEntry[]
@@ -53,6 +55,7 @@ export function detectAchievements(
                 playerId:   score.playerId,
                 playerName: score.displayName,
                 streak:     score.streak,
+                roundId,
             })
         }
         // STREAK_5 — crossed the 5-streak boundary (but not 10, to avoid double-fire)
@@ -62,6 +65,7 @@ export function detectAchievements(
                 playerId:   score.playerId,
                 playerName: score.displayName,
                 streak:     score.streak,
+                roundId,
             })
         }
     }
@@ -80,6 +84,7 @@ export function detectAchievements(
                 playerId:     vote.voterId,
                 playerName:   player.displayName,
                 pointsEarned: vote.pointsAwarded,
+                roundId,
             })
         }
 
@@ -90,6 +95,7 @@ export function detectAchievements(
                 playerId:     vote.voterId,
                 playerName:   player.displayName,
                 pointsEarned: vote.pointsAwarded,
+                roundId,
             })
         }
     }

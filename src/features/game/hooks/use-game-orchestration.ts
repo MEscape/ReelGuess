@@ -151,6 +151,7 @@ export function useGameOrchestration({
         },
         activeRound?.id ?? null,
         initialVoteCount,
+        lobby.settings.rematchId ?? null,
     )
 
     // Transition to finished when the lobby status changes via Realtime.

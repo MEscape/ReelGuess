@@ -2,7 +2,7 @@
 
 import { useTransition, useState }  from 'react'
 import { useRouter }                 from 'next/navigation'
-import { createLobbyAction, joinLobbyAction, startGameAction } from '../actions'
+import { createLobbyAction, joinLobbyAction, startGameAction, updateLobbySettingsAction } from '../actions'
 import { usePlayerStore }            from '@/features/player'
 import { submitLocalReelsToDB }      from '../utils'
 
@@ -120,4 +120,31 @@ export function useStartGame(lobbyCode: string, hostPlayerId: string) {
     }
 
     return { startGame, isPending, error }
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// useUpdateSettings
+// ─────────────────────────────────────────────────────────────────────────────
+
+/**
+ * Encapsulates the host's update-settings action.
+ *
+ * Optimistic: the UI reflects the new values immediately while the server
+ * call is in-flight. On error the caller should revert to the previous value.
+ */
+export function useUpdateSettings(lobbyCode: string, hostPlayerId: string) {
+    const [isPending, startTransition] = useTransition()
+    const [error,     setError]        = useState<string | null>(null)
+
+    function updateSettings(settings: { roundsCount: number; timerSeconds: number }) {
+        setError(null)
+        startTransition(async () => {
+            const result = await updateLobbySettingsAction(lobbyCode, hostPlayerId, settings)
+            if (!result.ok) {
+                setError('message' in result.error ? result.error.message : 'Failed to update settings')
+            }
+        })
+    }
+
+    return { updateSettings, isPending, error }
 }

@@ -40,6 +40,7 @@ export type ActionType =
     | 'completeRound'
     | 'rematch'
     | 'submitReaction'
+    | 'updateSettings'
 
 /**
  * Per-action limits using sliding window strategy.
@@ -56,6 +57,7 @@ export type ActionType =
  * | revealRound  | 1 min  | 20  | Host-only; prevents rapid-reveal abuse       |
  * | completeRound| 1 min  | 20  | Host-only; prevents rapid-complete abuse     |
  * | rematch      | 1 min  | 5   | Prevent rematch spam; idempotent by design   |
+ * | updateSettings | 1 min | 30  | Host-only; allows rapid preset switching     |
  */
 const LIMITS: Record<ActionType, { window: `${number} ${'s' | 'm' | 'h' | 'd'}`; limit: number }> = {
     createLobby:   { window: '10 m', limit: 3  },
@@ -67,8 +69,9 @@ const LIMITS: Record<ActionType, { window: `${number} ${'s' | 'm' | 'h' | 'd'}`;
     startRound:    { window: '1 m',  limit: 20 },
     revealRound:   { window: '1 m',  limit: 20 },
     completeRound: { window: '1 m',  limit: 20 },
-    rematch:       { window: '1 m',  limit: 5  },
-    submitReaction:  { window: '10 s', limit: 10 },
+    rematch:        { window: '1 m',  limit: 5  },
+    submitReaction: { window: '10 s', limit: 10 },
+    updateSettings: { window: '1 m',  limit: 30 },
 }
 
 // ─────────────────────────────────────────────────────────────────────────────

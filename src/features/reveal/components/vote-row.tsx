@@ -81,7 +81,7 @@ export function VoteRow({
                 {votedForName}
             </span>
 
-            {isCorrect && pointsAwarded != null && (
+            {pointsAwarded != null && pointsAwarded > 0 && (
                 <span
                     className="font-display shrink-0"
                     style={{
@@ -94,7 +94,7 @@ export function VoteRow({
                 </span>
             )}
 
-            {!isCorrect && pointsAwarded != null && pointsAwarded < 0 && (
+            {pointsAwarded != null && pointsAwarded < 0 && (
                 <span
                     className="font-display shrink-0"
                     style={{
@@ -104,6 +104,19 @@ export function VoteRow({
                     }}
                 >
                     {pointsAwarded}
+                </span>
+            )}
+
+            {pointsAwarded != null && pointsAwarded === 0 && (
+                <span
+                    className="font-display shrink-0"
+                    style={{
+                        fontSize:      'var(--text-ui)',
+                        letterSpacing: 'var(--tracking-display)',
+                        color:         'var(--color-muted)',
+                    }}
+                >
+                    +0
                 </span>
             )}
 

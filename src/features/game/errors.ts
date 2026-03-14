@@ -17,6 +17,7 @@ export type GameError =
     | { type: 'GAME_ALREADY_FINISHED'; lobbyId: string }
     | { type: 'HAS_NOT_VOTED';         roundId: string; voterId: string }
     | { type: 'GAME_VALIDATION_ERROR'; message: string }
+    | { type: 'INSUFFICIENT_POINTS';   required: number; actual: number }
 
 /** Convenience alias — `Result<T>` with {@link GameError} in the Err channel. */
 export type GameResult<T> = Result<T, GameError>

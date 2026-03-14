@@ -5,6 +5,8 @@ import { usePlayers }          from '@/features/player'
 import { useStartGame }         from '../hooks/use-lobby'
 import { PlayerCard }           from './player-card'
 import { ShareCode }            from './share-code'
+import { SettingsPanel }        from './settings-panel'
+import { SettingsSummary }      from './settings-summary'
 import { cn }                   from '@/lib/utils/cn'
 import type { Lobby }           from '../types'
 
@@ -22,14 +24,15 @@ type LobbyRoomProps = {
 // ─────────────────────────────────────────────────────────────────────────────
 
 /**
- * Waiting-room UI — four visual zones:
+ * Waiting-room UI — five visual zones:
  *   1. Header     — page title + subtitle
  *   2. Share code — dominant tap-to-copy block
- *   3. Players    — real-time player list with quorum indicator
- *   4. Action     — host START / guest WAITING panel
+ *   3. Settings   — host: editable preset chips / guest: read-only summary
+ *   4. Players    — real-time player list with quorum indicator
+ *   5. Action     — host START / guest WAITING panel
  *
- * Business logic (startGame) lives in `useStartGame` — this component is
- * pure UI. `useTransition` / `useState` for the action have been removed.
+ * Business logic (startGame, updateSettings) lives in hooks — this component
+ * is pure UI. `useTransition` / `useState` for the action have been removed.
  */
 export function LobbyRoom({ lobby, currentPlayerId }: LobbyRoomProps) {
     const players    = usePlayers(lobby.id, lobby.players)
@@ -66,7 +69,20 @@ export function LobbyRoom({ lobby, currentPlayerId }: LobbyRoomProps) {
                 <ShareCode code={lobby.id} />
             </div>
 
-            {/* ── ZONE 3: Players ───────────────────────────────────────── */}
+            {/* ── ZONE 3: Settings ──────────────────────────────────────── */}
+            <div className="w-full">
+                {isHost ? (
+                    <SettingsPanel
+                        lobbyCode={lobby.id}
+                        hostPlayerId={currentPlayerId}
+                        settings={lobby.settings}
+                    />
+                ) : (
+                    <SettingsSummary settings={lobby.settings} />
+                )}
+            </div>
+
+            {/* ── ZONE 4: Players ───────────────────────────────────────── */}
             <div className="w-full card-brutal overflow-hidden">
 
                 {/* Section header */}
@@ -124,7 +140,7 @@ export function LobbyRoom({ lobby, currentPlayerId }: LobbyRoomProps) {
                 )}
             </div>
 
-            {/* ── ZONE 4: Action ────────────────────────────────────────── */}
+            {/* ── ZONE 5: Action ────────────────────────────────────────── */}
 
             {isHost ? (
                 <div className="w-full flex flex-col gap-3">

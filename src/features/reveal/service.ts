@@ -1,6 +1,6 @@
 import { ok, err }              from 'neverthrow'
 import { getRoundById, updateRoundStatus }         from '@/features/round'
-import { getVotesForRound }     from '@/features/voting'
+import { getVotesForRound, batchUpdateVotePoints } from '@/features/voting'
 import { detectAchievements, calculateRoundScores, batchUpsertScores, getScoresForLobby }   from '@/features/scoring'
 import type { GameResult }      from '@/features/game'
 import type { RoundReveal }     from './types'
@@ -54,13 +54,10 @@ export async function revealRound(roundId: string): Promise<GameResult<RoundReve
 
     const round = roundResult.value
 
-    // Transition to reveal (idempotent — predicate prevents double-transition).
-    const statusResult = await updateRoundStatus(roundId, 'reveal')
-    if (statusResult.isErr()) return err(statusResult.error)
-
-    // NOTE: If either of these fails after the status transition above, the
-    // round will be stuck in `reveal` with no scores. See the partial-failure
-    // risk note in the JSDoc above.
+    // Load votes and PRE-REVEAL scores BEFORE the status transition.
+    // This snapshot is used as the achievement baseline by BOTH the winner
+    // and the non-winner path — ensuring consistent achievement detection
+    // regardless of which concurrent caller "won" the race.
     const [votesResult, priorScoresResult] = await Promise.all([
         getVotesForRound(roundId),
         getScoresForLobby(round.lobbyId),
@@ -72,14 +69,51 @@ export async function revealRound(roundId: string): Promise<GameResult<RoundReve
     const votes       = votesResult.value
     const priorScores = priorScoresResult.value
 
-    const { updatedVotes, updatedScores, scoreRows } = calculateRoundScores(votes, priorScores)
+    // If already past voting, this is a late/retry caller — skip the transition.
+    const alreadyPastVoting = round.status === 'reveal' || round.status === 'complete'
+    let thisCallerTransitioned = false
 
-    // Persist scores (idempotent upsert).
-    const upsertResult = await batchUpsertScores(round.lobbyId, scoreRows)
+    if (!alreadyPastVoting) {
+        // Predicated UPDATE: only succeeds when status = 'voting'.
+        // Returns { transitioned: true } if WE made the transition,
+        // { transitioned: false } if a concurrent caller already did.
+        const statusResult = await updateRoundStatus(roundId, 'reveal')
+        if (statusResult.isErr()) return err(statusResult.error)
+        thisCallerTransitioned = statusResult.value.transitioned
+    }
+
+    // Non-winner path: scores and points_awarded are being written by the winner
+    // concurrently. Re-read both so we have the final persisted values.
+    if (!thisCallerTransitioned) {
+        const [freshVotesResult, persistedScoresResult] = await Promise.all([
+            getVotesForRound(roundId),
+            getScoresForLobby(round.lobbyId),
+        ])
+        if (freshVotesResult.isErr())      return err(freshVotesResult.error)
+        if (persistedScoresResult.isErr()) return err(persistedScoresResult.error)
+
+        const freshVotes      = freshVotesResult.value
+        const persistedScores = persistedScoresResult.value
+        // priorScores (loaded before transition) is the correct baseline for
+        // detecting which thresholds were newly crossed this round.
+        const achievements = detectAchievements(roundId, freshVotes, persistedScores, priorScores)
+        return ok({ round, votes: freshVotes, scores: persistedScores, achievements })
+    }
+
+    // Winner path — calculate, persist scores, and write points_awarded to DB.
+    const { updatedVotes, updatedScores, scoreRows } = calculateRoundScores(votes, priorScores, round.roundNumber)
+
+    // Persist scores and points_awarded in parallel.
+    // points_awarded on the vote row is the source of truth for the reveal UI —
+    // every client (including non-winners) reads it from the DB.
+    const [upsertResult, pointsResult] = await Promise.all([
+        batchUpsertScores(round.lobbyId, scoreRows),
+        batchUpdateVotePoints(updatedVotes.map((v) => ({ id: v.id, pointsAwarded: v.pointsAwarded }))),
+    ])
     if (upsertResult.isErr()) return err(upsertResult.error)
+    if (pointsResult.isErr()) return err(pointsResult.error)
 
-    // Achievements are ephemeral — computed for this session's UI only, not persisted.
-    const achievements = detectAchievements(updatedVotes, updatedScores, priorScores)
+    const achievements = detectAchievements(roundId, updatedVotes, updatedScores, priorScores)
 
     return ok({
         round,
