@@ -1,7 +1,7 @@
 'use client'
 
 import { Button, ErrorMessage } from '@/components/ui'
-import { usePlayers }           from '../hooks/use-players'
+import { usePlayers }          from '@/features/player'
 import { useStartGame }         from '../hooks/use-lobby'
 import { PlayerCard }           from './player-card'
 import { ShareCode }            from './share-code'

@@ -1,14 +1,16 @@
-import { ResultAsync }        from 'neverthrow'
-import { createServiceClient } from '@/lib/supabase/service'
-import { mapReelRow }         from './types'
-import type { Reel, ReelRow } from './types'
+import { ResultAsync }          from 'neverthrow'
+import { toAppError }          from '@/lib/errors/error-handler'
+import { createClient }        from '@/lib/supabase/server'
+import { mapReelRow }           from './mappers'
+import type { Reel }            from './types'
 import type { ReelImportError } from './errors'
 
 /**
  * Bulk-inserts reel URLs for a player in a single DB round-trip.
  *
- * Called by the service layer when a player joins a lobby — their local pool
- * has already been shuffled and capped at MAX_REELS before reaching here.
+ * Raw Supabase data is passed directly to `mapReelRow` as `unknown`.
+ * `mapReelRow` runs `ReelRowSchema.parse` internally — no `as unknown as`
+ * cast is needed or safe here.
  *
  * @param lobbyId  - Target lobby.
  * @param playerId - Player who owns these reels.
@@ -21,7 +23,7 @@ export function insertReels(
 ): ResultAsync<Reel[], ReelImportError> {
     return ResultAsync.fromPromise(
         (async () => {
-            const supabase = createServiceClient()
+            const supabase = createClient()
             const rows = reelUrls.map((url) => ({
                 lobby_id:      lobbyId,
                 owner_id:      playerId,
@@ -40,9 +42,11 @@ export function insertReels(
                     message: error?.message ?? 'Failed to insert reels',
                 } satisfies ReelImportError
             }
-            return (data as unknown as ReelRow[]).map(mapReelRow)
+
+            // Pass each row as unknown — mapReelRow validates via ReelRowSchema.
+            return (data ?? []).map((row) => mapReelRow(row))
         })(),
-        (e) => e as ReelImportError,
+        (e) => toAppError<ReelImportError>(e, 'REEL_DATABASE_ERROR'),
     )
 }
 
@@ -55,7 +59,7 @@ export function insertReels(
 export function markReelUsed(reelId: string): ResultAsync<void, ReelImportError> {
     return ResultAsync.fromPromise(
         (async () => {
-            const supabase = createServiceClient()
+            const supabase = createClient()
             const { error } = await supabase
                 .from('reels')
                 .update({ used: true })
@@ -63,7 +67,7 @@ export function markReelUsed(reelId: string): ResultAsync<void, ReelImportError>
 
             if (error) throw { type: 'REEL_DATABASE_ERROR', message: error.message } satisfies ReelImportError
         })(),
-        (e) => e as ReelImportError,
+        (e) => toAppError<ReelImportError>(e, 'REEL_DATABASE_ERROR'),
     )
 }
 
@@ -79,7 +83,7 @@ export function markReelUsed(reelId: string): ResultAsync<void, ReelImportError>
 export function unmarkReelUsed(reelId: string): ResultAsync<void, ReelImportError> {
     return ResultAsync.fromPromise(
         (async () => {
-            const supabase = createServiceClient()
+            const supabase = createClient()
             const { error } = await supabase
                 .from('reels')
                 .update({ used: false })
@@ -87,7 +91,7 @@ export function unmarkReelUsed(reelId: string): ResultAsync<void, ReelImportErro
 
             if (error) throw { type: 'REEL_DATABASE_ERROR', message: error.message } satisfies ReelImportError
         })(),
-        (e) => e as ReelImportError,
+        (e) => toAppError<ReelImportError>(e, 'REEL_DATABASE_ERROR'),
     )
 }
 
@@ -114,7 +118,7 @@ export function copyReelsToNewLobby(
         (async () => {
             if (reels.length === 0) return
 
-            const supabase = createServiceClient()
+            const supabase = createClient()
 
             const rows = reels
                 .map((r) => {
@@ -134,6 +138,7 @@ export function copyReelsToNewLobby(
             const { error } = await supabase.from('reels').insert(rows)
             if (error) throw { type: 'REEL_DATABASE_ERROR', message: error.message } satisfies ReelImportError
         })(),
-        (e) => e as ReelImportError,
+        (e) => toAppError<ReelImportError>(e, 'REEL_DATABASE_ERROR'),
     )
 }
+

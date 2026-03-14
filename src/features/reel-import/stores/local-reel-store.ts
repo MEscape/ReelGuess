@@ -9,13 +9,7 @@
  */
 
 import type { LocalReel, LocalReelStore, AddReelsResult } from '../types'
-
-// ─────────────────────────────────────────────────────────────────────────────
-// Constants
-// ─────────────────────────────────────────────────────────────────────────────
-
-const STORAGE_KEY     = 'rg_reels_v1'
-const CURRENT_VERSION = 1
+import {CURRENT_STORAGE_VERSION, STORAGE_KEY} from "../constants";
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Internal helpers
@@ -26,17 +20,17 @@ function isServer(): boolean {
 }
 
 function readStore(): LocalReelStore {
-    if (isServer()) return { reels: [], version: CURRENT_VERSION }
+    if (isServer()) return { reels: [], version: CURRENT_STORAGE_VERSION }
     try {
         const raw = localStorage.getItem(STORAGE_KEY)
-        if (!raw) return { reels: [], version: CURRENT_VERSION }
+        if (!raw) return { reels: [], version: CURRENT_STORAGE_VERSION }
         const parsed = JSON.parse(raw) as Partial<LocalReelStore>
-        if (parsed.version !== CURRENT_VERSION) {
-            return { reels: [], version: CURRENT_VERSION }
+        if (parsed.version !== CURRENT_STORAGE_VERSION) {
+            return { reels: [], version: CURRENT_STORAGE_VERSION }
         }
-        return { reels: parsed.reels ?? [], version: CURRENT_VERSION }
+        return { reels: parsed.reels ?? [], version: CURRENT_STORAGE_VERSION }
     } catch {
-        return { reels: [], version: CURRENT_VERSION }
+        return { reels: [], version: CURRENT_STORAGE_VERSION }
     }
 }
 
@@ -56,11 +50,6 @@ function writeStore(store: LocalReelStore): void {
 /** Returns all locally stored reels. */
 export function getLocalReels(): LocalReel[] {
     return readStore().reels
-}
-
-/** Returns the number of stored reels. */
-export function getLocalReelCount(): number {
-    return readStore().reels.length
 }
 
 /**
@@ -99,5 +88,5 @@ export function removeLocalReel(url: string): LocalReel[] {
 
 /** Clears all locally stored reels. */
 export function clearLocalReels(): void {
-    writeStore({ reels: [], version: CURRENT_VERSION })
+    writeStore({ reels: [], version: CURRENT_STORAGE_VERSION })
 }

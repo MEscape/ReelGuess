@@ -1,33 +1,7 @@
 'use client'
 
-import { useState, startTransition } from 'react'
-import { useRouter }           from 'next/navigation'
-import { usePlayerStore }      from '@/features/player/stores/player-store'
-import { createRematchAction } from '@/features/lobby/actions'
-import { submitReelsOnJoinAction } from '@/features/reel-import/actions'
-import { getLocalReels }       from '@/features/reel-import/stores/local-reel-store'
-import { MIN_REELS }           from '@/features/reel-import/validations'
-
-// ─────────────────────────────────────────────────────────────────────────────
-// Internal helper
-// ─────────────────────────────────────────────────────────────────────────────
-
-/**
- * Submits the player's local reel pool to the new lobby after joining.
- * Fire-and-forget — navigation happens regardless of success.
- */
-async function submitLocalReels(lobbyId: string, playerId: string): Promise<void> {
-    const localPool = getLocalReels()
-    if (localPool.length < MIN_REELS) return
-    const fd = new FormData()
-    fd.set('lobbyId',  lobbyId)
-    fd.set('playerId', playerId)
-    fd.set('reelUrls', JSON.stringify(localPool.map((r) => r.url)))
-    const result = await submitReelsOnJoinAction(fd)
-    if (!result.ok) {
-        console.warn('[RematchButton] submitLocalReels failed:', result.error)
-    }
-}
+import { Button }        from '@/components/ui'
+import { useRematch }    from '../hooks/use-rematch'
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Types
@@ -35,14 +9,15 @@ async function submitLocalReels(lobbyId: string, playerId: string): Promise<void
 
 type RematchButtonProps = {
     /** Code of the finished lobby. */
-    lobbyId:           string
+    lobbyId:         string
     /** Current player's UUID in the finished lobby. */
-    currentPlayerId:   string
+    currentPlayerId: string
     /**
-     * If another player already started a rematch (detected via Realtime),
-     * pass the new lobby code here to show a "Join Rematch" CTA instead.
+     * New lobby code if another player already started a rematch.
+     * Used only to set the button label — the underlying action is identical
+     * in both cases (`createRematchAction` is idempotent).
      */
-    rematchId?:        string | null
+    rematchId?:      string | null
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -50,89 +25,36 @@ type RematchButtonProps = {
 // ─────────────────────────────────────────────────────────────────────────────
 
 /**
- * Rematch button — appears on the {@link GameOverScreen}.
+ * Rematch CTA on the {@link GameOverScreen}.
  *
- * Behaviour:
- * - First press: calls {@link createRematchAction}, stores the new player ID,
- *   navigates to the new lobby.
- * - If `rematchId` is already set (another player triggered a rematch first),
- *   the button switches to "Join Rematch" which does the same server-side
- *   lookup but skips lobby creation.
- * - Handles rate-limit and generic errors with inline feedback.
+ * Delegates all logic to {@link useRematch}. Both the "create" and "join"
+ * cases go through the same mutation — `createRematchAction` is idempotent
+ * and returns the existing rematch lobby if one already exists.
+ *
+ * `rematchId` only affects the button label.
  */
 export function RematchButton({ lobbyId, currentPlayerId, rematchId }: RematchButtonProps) {
-    const [isPending, setIsPending] = useState(false)
-    const [error,     setError]     = useState<string | null>(null)
-    const router      = useRouter()
-    const setPlayerId = usePlayerStore((s) => s.setPlayerId)
+    const { handleRematch, isPending, error } = useRematch({ lobbyId, currentPlayerId })
 
-    const isJoin = Boolean(rematchId)
-    const label  = isJoin ? '🔁 JOIN REMATCH' : '🔁 REMATCH'
-
-    async function handleClick() {
-        if (isPending) return
-        setIsPending(true)
-        setError(null)
-
-        const result = await createRematchAction(lobbyId, currentPlayerId)
-
-        if (!result.ok) {
-            const msg =
-                'message' in result.error
-                    ? (result.error as { message: string }).message
-                    : 'Failed to create rematch. Please try again.'
-            startTransition(() => {
-                setError(msg)
-                setIsPending(false)
-            })
-            return
-        }
-
-        const { newLobbyCode, newPlayerId } = result.value
-        setPlayerId(newLobbyCode, newPlayerId)
-        // Submit fresh local reels to the new lobby (fire-and-forget).
-        // The server already seeded unused reels from the previous game as
-        // a fallback; local reels complement them with new content.
-        void submitLocalReels(newLobbyCode, newPlayerId)
-        router.push(`/lobby/${newLobbyCode}`)
-    }
+    const label = rematchId ? '⚔️ JOIN REMATCH' : '⚔️ REMATCH'
 
     return (
         <div className="flex flex-col items-stretch gap-2 w-full">
-            <button
-                onClick={handleClick}
+            <Button
+                size="lg"
+                fullWidth
+                variant="primary"
+                onClick={handleRematch}
+                loading={isPending}
                 disabled={isPending}
-                className="font-display uppercase"
-                style={{
-                    height:        'var(--height-btn-lg)',
-                    fontSize:      'var(--text-ui)',
-                    letterSpacing: 'var(--tracking-display)',
-                    cursor:        isPending ? 'not-allowed' : 'pointer',
-                    padding:       '0 var(--space-6)',
-                    border:        '3px solid var(--color-accent)',
-                    borderTop:     '5px solid var(--color-accent)',
-                    background:    isPending
-                        ? 'var(--color-surface-raised)'
-                        : 'var(--color-accent)',
-                    color:         isPending
-                        ? 'var(--color-muted)'
-                        : 'var(--color-accent-fg)',
-                    boxShadow:     isPending
-                        ? 'none'
-                        : 'var(--shadow-brutal-accent)',
-                    transition:    'background 0.1s ease, color 0.1s ease, box-shadow 0.1s ease',
-                }}
             >
                 {isPending ? 'CREATING…' : label}
-            </button>
+            </Button>
 
             {error && (
                 <p
                     className="text-center"
-                    style={{
-                        fontSize: 'var(--text-body-sm)',
-                        color:    'var(--color-danger)',
-                    }}
+                    style={{ fontSize: 'var(--text-body-sm)', color: 'var(--color-danger)' }}
                 >
                     {error}
                 </p>

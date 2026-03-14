@@ -1,9 +1,9 @@
 'use client'
 
-import { useState }                   from 'react'
-import { Input, ErrorMessage, Button } from '@/components/ui'
-import { useJoinLobby }                from '../hooks/use-lobby'
-import { cn }                          from '@/lib/utils/cn'
+import { useState, useCallback }       from 'react'
+import { Input, ErrorMessage, Button }  from '@/components/ui'
+import { useJoinLobby }                 from '../hooks/use-lobby'
+import { cn }                           from '@/lib/utils/cn'
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Component
@@ -12,8 +12,8 @@ import { cn }                          from '@/lib/utils/cn'
 /**
  * Two-field form: lobby code (large display input) + player name.
  *
- * Note: uses a native <form> with onSubmit so Enter-key submission works on
- * mobile keyboards. The Button has type="submit" — no onClick handler needed.
+ * Uses a `<div>` container with `onClick` on the button and `onKeyDown` (Enter)
+ * on both inputs — no HTML `<form>` element, per project rules.
  */
 export function JoinForm() {
     const [code, setCode] = useState('')
@@ -30,14 +30,13 @@ export function JoinForm() {
             ? 'Enter your display name'
             : null
 
+    const handleSubmit = useCallback(() => {
+        if (canSubmit) joinLobby(code, name.trim())
+    }, [canSubmit, joinLobby, code, name])
+
     return (
-        <form
-            onSubmit={(e) => {
-                e.preventDefault()
-                if (canSubmit) joinLobby(code, name.trim())
-            }}
-            className="flex flex-col gap-4 w-full"
-        >
+        <div className="flex flex-col gap-4 w-full">
+
             {/* ── Code input — large display variant ── */}
             <div className="flex flex-col gap-1.5">
                 <label className="input-label">Lobby Code</label>
@@ -48,6 +47,7 @@ export function JoinForm() {
                     )}
                     value={code}
                     onChange={(e) => setCode(e.target.value.toUpperCase().slice(0, 6))}
+                    onKeyDown={(e) => { if (e.key === 'Enter') handleSubmit() }}
                     placeholder="XXXXXX"
                     maxLength={6}
                     autoComplete="off"
@@ -62,6 +62,7 @@ export function JoinForm() {
                 label="Your Name"
                 value={name}
                 onChange={(e) => setName(e.target.value)}
+                onKeyDown={(e) => { if (e.key === 'Enter') handleSubmit() }}
                 placeholder="Display name…"
                 maxLength={16}
                 autoComplete="nickname"
@@ -81,12 +82,13 @@ export function JoinForm() {
 
             {/* ── Submit ── */}
             <Button
-                type="submit"
+                type="button"
                 variant="secondary"
                 size="lg"
                 fullWidth
                 loading={isPending}
                 disabled={!canSubmit}
+                onClick={handleSubmit}
             >
                 🔗 Join Lobby
             </Button>
@@ -101,6 +103,6 @@ export function JoinForm() {
             )}
 
             <ErrorMessage message={error} />
-        </form>
+        </div>
     )
 }

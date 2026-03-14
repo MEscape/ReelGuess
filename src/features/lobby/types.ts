@@ -1,5 +1,4 @@
-import type { Player }               from '@/features/player/types'
-import { mapPlayerRow, type PlayerRow } from '@/features/player/types'
+import type { Player } from '@/features/player'
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Lobby domain types
@@ -31,36 +30,7 @@ export type Lobby = {
     createdAt: Date
 }
 
-// ─────────────────────────────────────────────────────────────────────────────
-// Raw DB row
-// ─────────────────────────────────────────────────────────────────────────────
-
-/** @internal Raw `lobbies` table row with optional joined players. */
-export type LobbyRow = {
-    id:         string
-    host_id:    string
-    status:     string
-    settings:   { rounds_count: number; timer_seconds: number; rematch_id?: string }
-    created_at: string
-    players?:   PlayerRow[]
-}
-
-// ─────────────────────────────────────────────────────────────────────────────
-// Mapper
-// ─────────────────────────────────────────────────────────────────────────────
-
-/** Converts a raw `lobbies` DB row (with joined players) to a {@link Lobby}. */
-export function mapLobbyRow(row: LobbyRow): Lobby {
-    return {
-        id:       row.id,
-        hostId:   row.host_id,
-        status:   row.status as LobbyStatus,
-        settings: {
-            roundsCount:  row.settings.rounds_count,
-            timerSeconds: row.settings.timer_seconds,
-            ...(row.settings.rematch_id ? { rematchId: row.settings.rematch_id } : {}),
-        },
-        players:   (row.players ?? []).map(mapPlayerRow),
-        createdAt: new Date(row.created_at),
-    }
+export type LobbySettings = {
+    roundsCount:  number
+    timerSeconds: number
 }

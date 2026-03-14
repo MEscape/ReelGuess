@@ -1,45 +1,31 @@
 'use client'
 
-import { Badge, StatusPanel } from '@/components/ui'
-import { RoundTimer }         from './round-timer'
-import type { GamePhase }     from '../types'
-
-// ─────────────────────────────────────────────────────────────────────────────
-// Types
-// ─────────────────────────────────────────────────────────────────────────────
-
-type RoundHeaderProps = {
-    roundNumber:    number
-    totalRounds:    number
-    phase:          GamePhase
-    timerSeconds:   number
-    /** When the current voting round started — used to resume the timer on refresh. */
-    startedAt?:     Date
-    playerCount:    number
-    voteCount:      number
-    onTimerComplete: () => void
-}
+import { Badge, StatusPanel }            from '@/components/ui'
+import { RoundTimer }                    from './round-timer'
+import { useGameSession, useGameRound }  from '../game-context'
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Component
 // ─────────────────────────────────────────────────────────────────────────────
 
 /**
- * Sticky round header bar shown during active play (all phases except `pregame`
- * and `finished`).
+ * Sticky header bar rendered during all active phases (voting, reveal, complete).
  *
- * Displays: round number / total · phase badge · vote count · timer.
+ * Shows the current round number, total rounds, and a phase-specific indicator:
+ * - `voting`   → live vote count + countdown timer
+ * - `reveal`   → "REVEAL" badge
+ * - `complete` → "SCORES" badge
+ *
+ * Reads from both contexts — no props.
  */
-export function RoundHeader({
-                                roundNumber,
-                                totalRounds,
-                                phase,
-                                timerSeconds,
-                                startedAt,
-                                playerCount,
-                                voteCount,
-                                onTimerComplete,
-                            }: RoundHeaderProps) {
+export function RoundHeader() {
+    const { settings }                             = useGameSession()
+    const { activeRound, phase, voteCount,
+        livePlayers, onTimerComplete }         = useGameRound()
+
+    const roundNumber  = activeRound?.roundNumber ?? 0
+    const totalRounds  = settings.roundsCount
+
     return (
         <div
             className="w-full flex items-center justify-between px-4 py-2.5"
@@ -53,7 +39,7 @@ export function RoundHeader({
                 zIndex:     10,
             }}
         >
-            {/* Round counter */}
+            {/* Round counter: "ROUND 2 / 5" */}
             <div className="flex items-center gap-2">
                 <span
                     className="font-display uppercase"
@@ -86,30 +72,23 @@ export function RoundHeader({
                 </span>
             </div>
 
-            {/* Phase badge + timer */}
+            {/* Phase indicator */}
             <div className="flex items-center gap-3">
                 {phase === 'voting' && (
                     <>
                         <StatusPanel status="live" label="VOTING">
-                            {voteCount}/{playerCount}
+                            {voteCount}/{livePlayers.length}
                         </StatusPanel>
                         <RoundTimer
-                            seconds={timerSeconds}
+                            seconds={settings.timerSeconds}
                             isActive
-                            startedAt={startedAt}
+                            startedAt={activeRound?.startedAt}
                             onComplete={onTimerComplete}
                         />
                     </>
                 )}
-                {phase === 'reveal' && (
-                    <Badge variant="success" size="sm" pulse dot>REVEAL</Badge>
-                )}
-                {phase === 'complete' && (
-                    <Badge variant="muted" size="sm">ROUND OVER</Badge>
-                )}
-                {phase === 'countdown' && (
-                    <Badge variant="warning" size="sm" pulse>GET READY</Badge>
-                )}
+                {phase === 'reveal'   && <Badge variant="warning">REVEAL</Badge>}
+                {phase === 'complete' && <Badge variant="muted">SCORES</Badge>}
             </div>
         </div>
     )

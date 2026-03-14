@@ -4,7 +4,7 @@ import { useState, useRef, useCallback } from 'react'
 import {
     isLikedPostsJson,
     extractReelsFromInstagramExport,
-} from '../utils/parse-export'
+} from '../utils'
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Types
@@ -12,8 +12,8 @@ import {
 
 export type FileImportState =
     | { status: 'idle' }
-    | { status: 'error';   message: string }
-    | { status: 'parsed';  urls: string[] }
+    | { status: 'error';  message: string }
+    | { status: 'parsed'; urls: string[] }
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Hook
@@ -27,6 +27,11 @@ export type FileImportState =
  *
  * Returns `fileInputRef` so the caller can forward it to the upload zone
  * without managing a separate ref.
+ *
+ * ### `reset` behaviour
+ * `reset` clears both `state` (back to idle) and `isDragging` (back to false).
+ * Without the `isDragging` reset, pressing Back after dragging a file over the
+ * zone leaves the upload zone permanently in its drag-hover visual state.
  */
 export function useFileImport() {
     const [state,      setState]      = useState<FileImportState>({ status: 'idle' })
@@ -70,6 +75,9 @@ export function useFileImport() {
 
     const reset = useCallback((): void => {
         setState({ status: 'idle' })
+        // Also clear drag state — without this, pressing Back after a drag leaves
+        // the upload zone permanently in its hover style.
+        setIsDragging(false)
     }, [])
 
     return {

@@ -1,6 +1,7 @@
 import { getLobbyByCode }         from '@/features/lobby/queries'
-import { getCurrentRound, getScores, getReelForRound, getVoteCountForRound } from '@/features/game/queries'
-import type { ReelData }          from '@/features/game/types'
+import { getCurrentRound, getVoteCountForRound, getReelForRound } from '@/features/round'
+import { getScoresForLobby }     from '@/features/scoring'
+import type { ReelData }          from '@/features/reel-player/types'
 import { notFound }               from 'next/navigation'
 import { GameClient }             from './game-client'
 
@@ -21,7 +22,7 @@ export default async function GamePage({ params }: Props) {
 
     const [roundResult, scoresResult] = await Promise.all([
         getCurrentRound(upperCode),
-        getScores(upperCode),
+        getScoresForLobby(upperCode),
     ])
 
     const currentRound = roundResult.isOk() ? roundResult.value : null

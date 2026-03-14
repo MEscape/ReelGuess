@@ -18,15 +18,3 @@ export const gameKeys = {
     votes:  (roundId: string)  => ['game', 'votes',  roundId]  as const,
     reel:   (reelId: string)   => ['game', 'reel',   reelId]   as const,
 }
-
-export const lobbyKeys = {
-    all:     ['lobby'] as const,
-    detail:  (code: string)    => ['lobby', 'detail',  code]    as const,
-    players: (lobbyId: string) => ['lobby', 'players', lobbyId] as const,
-}
-
-export const reelKeys = {
-    all:      ['reels'] as const,
-    byPlayer: (lobbyId: string, playerId: string) => ['reels', 'player', lobbyId, playerId] as const,
-    byLobby:  (lobbyId: string)                   => ['reels', 'lobby',  lobbyId]           as const,
-}

@@ -190,7 +190,6 @@ function getLimiter(action: ActionType): Ratelimit | null {
 // ─────────────────────────────────────────────────────────────────────────────
 
 /**
-/**
  * Checks and records a rate-limit hit for a given action + identifier.
  *
  * - `RATE_LIMIT_DISABLED=true` in env  → always allow (local dev).

@@ -1,6 +1,7 @@
-import type React from 'react'
-import { cn }          from '@/lib/utils/cn'
-import { ErrorMessage } from '@/components/ui'
+import type React          from 'react'
+import { useCallback }     from 'react'
+import { cn }              from '@/lib/utils/cn'
+import { ErrorMessage }    from '@/components/ui'
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Types
@@ -22,6 +23,13 @@ type UploadZoneProps = {
  * Drag-and-drop / tap-to-select JSON upload zone.
  *
  * Pure UI — zero business logic. All state is passed in via props.
+ *
+ * ### Event handler stability
+ * All five DOM event handlers are `useCallback`-wrapped. `isDragging` toggles
+ * on every `dragover` event (~60fps during a drag), so without memoisation
+ * each `dragover` creates five new function allocations. `setIsDragging` and
+ * `processFile` are already stable from `useFileImport` — the callbacks here
+ * simply wrap them at a stable identity.
  */
 export function UploadZone({
                                isDragging,
@@ -30,22 +38,41 @@ export function UploadZone({
                                fileInputRef,
                                fileError,
                            }: UploadZoneProps) {
+    const handleDragOver = useCallback((e: React.DragEvent) => {
+        e.preventDefault()
+        setIsDragging(true)
+    }, [setIsDragging])
+
+    const handleDragLeave = useCallback(() => {
+        setIsDragging(false)
+    }, [setIsDragging])
+
+    const handleDrop = useCallback((e: React.DragEvent) => {
+        e.preventDefault()
+        setIsDragging(false)
+        const f = e.dataTransfer.files?.[0]
+        if (f) processFile(f)
+    }, [setIsDragging, processFile])
+
+    const handleClick = useCallback(() => {
+        fileInputRef.current?.click()
+    }, [fileInputRef])
+
+    const handleKeyDown = useCallback((e: React.KeyboardEvent) => {
+        if (e.key === 'Enter') fileInputRef.current?.click()
+    }, [fileInputRef])
+
     return (
         <div className="flex flex-col gap-2">
             <div
                 role="button"
                 tabIndex={0}
                 aria-label="Upload liked_posts.json"
-                onDragOver={(e) => { e.preventDefault(); setIsDragging(true) }}
-                onDragLeave={() => setIsDragging(false)}
-                onDrop={(e) => {
-                    e.preventDefault()
-                    setIsDragging(false)
-                    const f = e.dataTransfer.files?.[0]
-                    if (f) processFile(f)
-                }}
-                onClick={() => fileInputRef.current?.click()}
-                onKeyDown={(e) => e.key === 'Enter' && fileInputRef.current?.click()}
+                onDragOver={handleDragOver}
+                onDragLeave={handleDragLeave}
+                onDrop={handleDrop}
+                onClick={handleClick}
+                onKeyDown={handleKeyDown}
                 className={cn(
                     'w-full flex flex-col items-center gap-3 py-8 px-5 cursor-pointer',
                     'border-2 border-dashed',

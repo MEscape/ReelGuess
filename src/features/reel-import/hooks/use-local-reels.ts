@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useCallback, useEffect, startTransition } from 'react'
+import { useState, useCallback, useEffect } from 'react'
 import {
     getLocalReels,
     addLocalReels,
@@ -8,12 +8,7 @@ import {
     clearLocalReels,
 } from '../stores/local-reel-store'
 import type { LocalReel, AddReelsResult } from '../types'
-
-// ─────────────────────────────────────────────────────────────────────────────
-// Constants
-// ─────────────────────────────────────────────────────────────────────────────
-
-const STORAGE_EVENT_KEY = 'rg_reels_v1'
+import {STORAGE_EVENT_KEY} from "../constants";
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Hook
@@ -31,6 +26,16 @@ const STORAGE_EVENT_KEY = 'rg_reels_v1'
  *   instances update immediately.
  * - `addReels` returns an {@link AddReelsResult} with `added` / `duplicates`
  *   counts for rich UI feedback.
+ *
+ * ### `startTransition` removal
+ * The hydration read (`setReels(getLocalReels())`) is an urgent correction —
+ * the user would briefly see stale `count: 0` if deferred. `startTransition`
+ * is reserved for genuinely non-urgent background updates and is not used here.
+ *
+ * ### `broadcastChange` stability
+ * `broadcastChange` is `useCallback([])` so its identity never changes. This
+ * makes it safe to call from `addReels`, `removeReel`, and `clear` without
+ * adding it to their dependency arrays (a stable reference is never stale).
  */
 export function useLocalReels() {
     // Always initialise to [] so the server render and the client's hydration
@@ -40,8 +45,9 @@ export function useLocalReels() {
 
     // Sync all hook instances (same tab + other tabs) when storage changes.
     useEffect(() => {
-        // Read real data from localStorage immediately after hydration.
-        startTransition(() => setReels(getLocalReels()))
+        // Urgent correction — read real data immediately after hydration.
+        // Not wrapped in startTransition: the user sees stale count if deferred.
+        setReels(getLocalReels())
 
         function handleStorage(e: StorageEvent) {
             // null key = localStorage.clear(); our key = our write
@@ -53,10 +59,14 @@ export function useLocalReels() {
         return () => window.removeEventListener('storage', handleStorage)
     }, [])
 
-    /** Triggers a synthetic storage event so sibling instances on the same page sync. */
-    function broadcastChange(): void {
+    /**
+     * Triggers a synthetic storage event so sibling instances on the same page sync.
+     * Stable reference (useCallback with [] deps) — safe to call from any
+     * useCallback without being listed as a dependency.
+     */
+    const broadcastChange = useCallback((): void => {
         window.dispatchEvent(new StorageEvent('storage', { key: STORAGE_EVENT_KEY }))
-    }
+    }, [])
 
     /** Re-reads from localStorage. Useful after an out-of-band write. */
     const reloadFromStorage = useCallback(() => {
@@ -72,19 +82,19 @@ export function useLocalReels() {
         setReels(result.reels)
         broadcastChange()
         return result
-    }, [])
+    }, [broadcastChange])
 
     const removeReel = useCallback((url: string): void => {
         const updated = removeLocalReel(url)
         setReels(updated)
         broadcastChange()
-    }, [])
+    }, [broadcastChange])
 
     const clear = useCallback((): void => {
         clearLocalReels()
         setReels([])
         broadcastChange()
-    }, [])
+    }, [broadcastChange])
 
     return {
         reels,

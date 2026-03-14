@@ -1,8 +1,9 @@
-import { ResultAsync }        from 'neverthrow'
-import { createClient }       from '@/lib/supabase/server'
-import { mapLobbyRow }        from './types'
-import type { Lobby, LobbyRow } from './types'
-import type { LobbyError }    from './errors'
+import { ResultAsync }  from 'neverthrow'
+import { createClient } from '@/lib/supabase/server'
+import { mapLobbyRow }  from './mappers'
+import { toAppError }   from '@/lib/errors/error-handler'
+import type { Lobby }   from './types'
+import type { LobbyError } from './errors'
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Queries
@@ -11,12 +12,17 @@ import type { LobbyError }    from './errors'
 /**
  * Fetches a lobby by its 6-char code, including all joined players.
  *
+ * Raw Supabase data is passed directly to `mapLobbyRow` as `unknown`.
+ * `mapLobbyRow` runs `LobbyRowSchema.parse` internally — no `as unknown as`
+ * cast is needed or safe here. A schema mismatch surfaces as a ZodError
+ * caught by `ResultAsync.fromPromise` and returned as `LOBBY_DATABASE_ERROR`.
+ *
  * @throws `LOBBY_NOT_FOUND` when the code does not match any lobby.
  */
 export function getLobbyByCode(code: string): ResultAsync<Lobby, LobbyError> {
     return ResultAsync.fromPromise(
         (async () => {
-            const supabase = await createClient()
+            const supabase = createClient()
             const { data, error } = await supabase
                 .from('lobbies')
                 .select('*, players!players_lobby_id_fkey(*)')
@@ -24,9 +30,11 @@ export function getLobbyByCode(code: string): ResultAsync<Lobby, LobbyError> {
                 .single()
 
             if (error || !data) throw { type: 'LOBBY_NOT_FOUND', code } satisfies LobbyError
-            return mapLobbyRow(data as unknown as LobbyRow)
+
+            // Pass raw data as unknown — mapLobbyRow validates via LobbyRowSchema.
+            return mapLobbyRow(data)
         })(),
-        (e) => e as LobbyError,
+        (e) => toAppError<LobbyError>(e, 'LOBBY_DATABASE_ERROR'),
     )
 }
 
@@ -41,7 +49,7 @@ export function getLobbyByCode(code: string): ResultAsync<Lobby, LobbyError> {
 export function getPlayerCount(lobbyId: string): ResultAsync<number, LobbyError> {
     return ResultAsync.fromPromise(
         (async () => {
-            const supabase = await createClient()
+            const supabase = createClient()
             const { count, error } = await supabase
                 .from('players')
                 .select('id', { count: 'exact', head: true })
@@ -50,6 +58,6 @@ export function getPlayerCount(lobbyId: string): ResultAsync<number, LobbyError>
             if (error) throw { type: 'LOBBY_DATABASE_ERROR', message: error.message } satisfies LobbyError
             return count ?? 0
         })(),
-        (e) => e as LobbyError,
+        (e) => toAppError<LobbyError>(e, 'LOBBY_DATABASE_ERROR'),
     )
 }

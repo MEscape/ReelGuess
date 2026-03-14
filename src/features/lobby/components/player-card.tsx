@@ -1,8 +1,8 @@
 'use client'
 
-import { PlayerAvatar } from '@/features/player/components/PlayerAvatar'
-import type { Player }  from '@/features/player/types'
-import { cn }           from '@/lib/utils/cn'
+import { PlayerAvatar }  from '@/features/player'
+import type { Player }   from '@/features/player'
+import { cn }            from '@/lib/utils/cn'
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Types
@@ -23,6 +23,10 @@ type PlayerCardProps = {
  *
  * Visual hierarchy (left → right):
  *   [accent stripe?] | Avatar | Name + YOU badge | HOST badge
+ *
+ * `name` is passed to `PlayerAvatar` so screen readers announce each player
+ * by name rather than the generic "Player avatar" fallback. This is especially
+ * important in the lobby list where multiple avatars are rendered side-by-side.
  */
 export function PlayerCard({ player, isHost = false, isYou = false }: PlayerCardProps) {
     return (
@@ -48,7 +52,11 @@ export function PlayerCard({ player, isHost = false, isYou = false }: PlayerCard
                     ? 'border-[var(--color-accent)]'
                     : 'border-[var(--color-border-subtle)]',
             )}>
-                <PlayerAvatar seed={player.avatarSeed} size={36} />
+                <PlayerAvatar
+                    seed={player.avatarSeed}
+                    name={player.displayName}
+                    size={36}
+                />
             </div>
 
             {/* Name + YOU badge */}

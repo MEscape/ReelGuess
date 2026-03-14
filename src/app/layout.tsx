@@ -2,6 +2,7 @@ import type { Metadata }      from 'next'
 import { Inter, Bebas_Neue }  from 'next/font/google'
 import { QueryProvider }      from '@/lib/providers/query-provider'
 import './globals.css'
+import React from "react";
 
 const inter = Inter({
     variable: '--font-inter',

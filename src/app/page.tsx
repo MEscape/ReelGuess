@@ -1,4 +1,4 @@
-import { CreateLobbySection, JoinLobbySection, ManageReelsSection } from './home-client'
+import { CreateLobbySection, JoinLobbySection, ManageReelsSection } from '@/features/home'
 
 // ─────────────────────────────────────────────────────────────────────────────
 // HomePage

@@ -1,4 +1,4 @@
-import { getLobbyByCode }  from '@/features/lobby/queries'
+import { getLobbyByCode }  from '@/features/lobby'
 import { notFound }        from 'next/navigation'
 import { LobbyClient } from './lobby-client'
 

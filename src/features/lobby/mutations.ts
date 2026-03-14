@@ -1,26 +1,13 @@
-import { ResultAsync }            from 'neverthrow'
-import { createServiceClient }   from '@/lib/supabase/service'
-import { mapLobbyRow }            from './types'
-import { mapPlayerRow }           from '@/features/player/types'
-import type { Lobby, LobbyRow }   from './types'
-import type { LobbyError }        from './errors'
-import type { Player }            from '@/features/player/types'
-import type { PlayerRow }         from '@/features/player/types'
-import { generateLobbyCode }      from './utils/lobby-code'
-
-// ─────────────────────────────────────────────────────────────────────────────
-// Constants
-// ─────────────────────────────────────────────────────────────────────────────
-
-/** Default game settings applied to every new lobby. */
-const DEFAULT_SETTINGS = { rounds_count: 50, timer_seconds: 60 } as const
-
-/**
- * Placeholder UUID written to `lobbies.host_id` on initial insert.
- * Immediately overwritten with the real player UUID in a subsequent PATCH.
- * A nil UUID is used so FK constraints succeed until the real ID is known.
- */
-const PLACEHOLDER_HOST_ID = '00000000-0000-0000-0000-000000000000' as const
+import { ResultAsync }          from 'neverthrow'
+import { toAppError }          from '@/lib/errors/error-handler'
+import { createClient }        from '@/lib/supabase/server'
+import { mapLobbyRow }         from './mappers'
+import { mapPlayerRow }        from '@/features/player'
+import type { Lobby }          from './types'
+import type { LobbyError }     from './errors'
+import type { Player }         from '@/features/player'
+import { generateLobbyCode }   from './utils'
+import {DEFAULT_SETTINGS, PLACEHOLDER_HOST_ID} from "./constants";
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Mutations
@@ -34,9 +21,9 @@ const PLACEHOLDER_HOST_ID = '00000000-0000-0000-0000-000000000000' as const
  * 2. Insert the host player.
  * 3. Patch `lobbies.host_id` to the real player UUID.
  *
- * Supabase REST does not support multi-table transactions, so step 3 is a
- * separate UPDATE. A failure there leaves an orphaned player row — acceptable
- * given the low risk and the lobby's short TTL.
+ * Raw Supabase data is passed directly to `mapLobbyRow` / `mapPlayerRow` as
+ * `unknown`. Both functions run Zod validation internally — no `as unknown as`
+ * casts are used anywhere in this file.
  *
  * @param hostName - Display name for the host player.
  */
@@ -45,7 +32,7 @@ export function createLobby(
 ): ResultAsync<{ lobby: Lobby; player: Player }, LobbyError> {
     return ResultAsync.fromPromise(
         (async () => {
-            const supabase   = createServiceClient()
+            const supabase   = createClient()
             const code       = generateLobbyCode()
             const avatarSeed = Math.random().toString(36).substring(2, 10)
 
@@ -97,15 +84,17 @@ export function createLobby(
                 throw { type: 'LOBBY_DATABASE_ERROR', message: patchError.message } satisfies LobbyError
             }
 
-            const player: Player = mapPlayerRow(playerData as unknown as PlayerRow)
-            const lobbyRow: LobbyRow = {
-                ...(lobbyData as unknown as LobbyRow),
+            // Pass raw data as unknown — mapPlayerRow and mapLobbyRow validate via Zod.
+            const player = mapPlayerRow(playerData)
+            const lobby  = mapLobbyRow({
+                ...lobbyData,
                 host_id: playerData.id,
-                players: [playerData as unknown as PlayerRow],
-            }
-            return { lobby: mapLobbyRow(lobbyRow), player }
+                players: [playerData],
+            })
+
+            return { lobby, player }
         })(),
-        (e) => e as LobbyError,
+        (e) => toAppError<LobbyError>(e, 'LOBBY_DATABASE_ERROR'),
     )
 }
 
@@ -124,7 +113,7 @@ export function addPlayerToLobby(
 ): ResultAsync<Player, LobbyError> {
     return ResultAsync.fromPromise(
         (async () => {
-            const supabase   = createServiceClient()
+            const supabase           = createClient()
             const resolvedAvatarSeed = avatarSeed ?? Math.random().toString(36).substring(2, 10)
 
             const { data, error } = await supabase
@@ -144,9 +133,11 @@ export function addPlayerToLobby(
                     message: error?.message ?? 'Failed to add player',
                 } satisfies LobbyError
             }
-            return mapPlayerRow(data as unknown as PlayerRow)
+
+            // Pass raw data as unknown — mapPlayerRow validates via PlayerRowSchema.
+            return mapPlayerRow(data)
         })(),
-        (e) => e as LobbyError,
+        (e) => toAppError<LobbyError>(e, 'LOBBY_DATABASE_ERROR'),
     )
 }
 
@@ -162,7 +153,7 @@ export function updateLobbyStatus(
 ): ResultAsync<void, LobbyError> {
     return ResultAsync.fromPromise(
         (async () => {
-            const supabase = createServiceClient()
+            const supabase = createClient()
             const { error } = await supabase
                 .from('lobbies')
                 .update({ status })
@@ -170,7 +161,7 @@ export function updateLobbyStatus(
 
             if (error) throw { type: 'LOBBY_DATABASE_ERROR', message: error.message } satisfies LobbyError
         })(),
-        (e) => e as LobbyError,
+        (e) => toAppError<LobbyError>(e, 'LOBBY_DATABASE_ERROR'),
     )
 }
 
@@ -191,11 +182,8 @@ export function setRematchId(
 ): ResultAsync<boolean, LobbyError> {
     return ResultAsync.fromPromise(
         (async () => {
-            const supabase = createServiceClient()
+            const supabase = createClient()
 
-            // Fetch current settings first so we can merge the new field without
-            // losing rounds_count / timer_seconds (JSONB || operator not always
-            // available via the REST API without RPC).
             const { data: existing, error: fetchErr } = await supabase
                 .from('lobbies')
                 .select('settings')
@@ -203,11 +191,13 @@ export function setRematchId(
                 .single()
 
             if (fetchErr || !existing) {
-                throw { type: 'LOBBY_DATABASE_ERROR', message: fetchErr?.message ?? 'Lobby not found' } satisfies LobbyError
+                throw {
+                    type:    'LOBBY_DATABASE_ERROR',
+                    message: fetchErr?.message ?? 'Lobby not found',
+                } satisfies LobbyError
             }
 
             const currentSettings = existing.settings as Record<string, unknown>
-            // Someone else already won the race
             if (currentSettings.rematch_id) return false
 
             const newSettings = { ...currentSettings, rematch_id: rematchId }
@@ -216,45 +206,37 @@ export function setRematchId(
                 .from('lobbies')
                 .update({ settings: newSettings })
                 .eq('id', lobbyId)
-                // Predicated update — only succeeds if rematch_id is still absent
                 .is('settings->>rematch_id', null)
                 .select('id')
 
             if (error) throw { type: 'LOBBY_DATABASE_ERROR', message: error.message } satisfies LobbyError
 
-            // No rows returned means the predicate failed — another concurrent caller
-            // already set rematch_id. Return false so createRematch can resolve
-            // to the existing rematch lobby instead of the one we just created.
             return (data ?? []).length > 0
         })(),
-        (e) => e as LobbyError,
+        (e) => toAppError<LobbyError>(e, 'LOBBY_DATABASE_ERROR'),
     )
 }
 
 /**
- * Creates a rematch lobby that mirrors an existing lobby's players and settings.
+ * Creates a rematch lobby for the requesting player, who becomes the host.
+ * Other players join separately via `joinExistingRematch`.
  *
  * Steps:
- * 1. Insert a new lobby with the same settings (rounds_count, timer_seconds).
- * 2. Bulk-insert all players from the old lobby, preserving display_name +
- *    avatar_seed. The player whose `oldPlayerId` matches `requestingPlayerId`
- *    is marked `is_host = true`.
+ * 1. Insert a new lobby with the inherited settings (rounds_count, timer_seconds).
+ * 2. Insert the host player, preserving their display_name + avatar_seed.
  * 3. Patch `lobbies.host_id` to the new host player UUID.
  *
- * @param oldPlayers          - All players from the finished lobby.
- * @param requestingPlayerId  - Old player ID of whoever initiated the rematch
- *                             (becomes host of the new lobby).
- * @param settingsOverride    - Game settings to apply (inherits from old lobby).
- * @returns New lobby + a map of old player UUID → new player UUID.
+ * @param requestingPlayer - The player who initiated the rematch (becomes host).
+ * @param settingsOverride - Game settings inherited from the old lobby.
+ * @returns The new lobby and the host's new player ID.
  */
 export function createRematchLobby(
-    oldPlayers:          Player[],
-    requestingPlayerId:  string,
-    settingsOverride:    { roundsCount: number; timerSeconds: number },
-): ResultAsync<{ lobby: Lobby; playerIdMap: Map<string, string>; newPlayerId: string }, LobbyError> {
+    requestingPlayer: Player,
+    settingsOverride: { roundsCount: number; timerSeconds: number },
+): ResultAsync<{ lobby: Lobby; newPlayerId: string }, LobbyError> {
     return ResultAsync.fromPromise(
         (async () => {
-            const supabase = createServiceClient()
+            const supabase = createClient()
             const code     = generateLobbyCode()
 
             // 1. Insert lobby with placeholder host_id
@@ -279,45 +261,25 @@ export function createRematchLobby(
                 } satisfies LobbyError
             }
 
-            // 2. Bulk-insert all players preserving display_name + avatar_seed
-            const requestingOldPlayer = oldPlayers.find((p) => p.id === requestingPlayerId)
-            const playerRows = oldPlayers.map((p) => ({
-                lobby_id:     code,
-                display_name: p.displayName,
-                avatar_seed:  p.avatarSeed,
-                is_host:      p.id === requestingPlayerId,
-            }))
-
+            // 2. Insert the host player
             const { data: newPlayers, error: playersError } = await supabase
                 .from('players')
-                .insert(playerRows)
+                .insert({
+                    lobby_id:     code,
+                    display_name: requestingPlayer.displayName,
+                    avatar_seed:  requestingPlayer.avatarSeed,
+                    is_host:      true,
+                })
                 .select()
 
             if (playersError || !newPlayers || newPlayers.length === 0) {
                 throw {
                     type:    'LOBBY_DATABASE_ERROR',
-                    message: playersError?.message ?? 'Failed to insert rematch players',
+                    message: playersError?.message ?? 'Failed to insert host player',
                 } satisfies LobbyError
             }
 
-            // Build old → new player ID map by matching display_name
-            const playerIdMap = new Map<string, string>()
-            for (const oldPlayer of oldPlayers) {
-                const newPlayer = (newPlayers as unknown as PlayerRow[]).find(
-                    (p) => p.display_name === oldPlayer.displayName,
-                )
-                if (newPlayer) playerIdMap.set(oldPlayer.id, newPlayer.id)
-            }
-
-            const newHostPlayer = (newPlayers as unknown as PlayerRow[]).find(
-                (p) => p.display_name === requestingOldPlayer?.displayName && p.is_host,
-            )
-            if (!newHostPlayer) {
-                throw {
-                    type:    'LOBBY_DATABASE_ERROR',
-                    message: 'Failed to find new host player after insert',
-                } satisfies LobbyError
-            }
+            const newHostPlayer = newPlayers[0] as { id: string }
 
             // 3. Patch lobby.host_id to real player UUID
             const { error: patchError } = await supabase
@@ -329,17 +291,15 @@ export function createRematchLobby(
                 throw { type: 'LOBBY_DATABASE_ERROR', message: patchError.message } satisfies LobbyError
             }
 
-            const lobbyRow: LobbyRow = {
-                ...(lobbyData as unknown as LobbyRow),
+            const lobby = mapLobbyRow({
+                ...lobbyData,
                 host_id: newHostPlayer.id,
-                players: newPlayers as unknown as PlayerRow[],
-            }
-            return {
-                lobby:       mapLobbyRow(lobbyRow),
-                playerIdMap,
-                newPlayerId: newHostPlayer.id,
-            }
+                players: newPlayers,
+            })
+
+            return { lobby, newPlayerId: newHostPlayer.id }
         })(),
-        (e) => e as LobbyError,
+        (e) => toAppError<LobbyError>(e, 'LOBBY_DATABASE_ERROR'),
     )
 }
+

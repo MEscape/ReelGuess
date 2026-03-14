@@ -1,8 +1,8 @@
 'use client'
 
-import { useState, useEffect, useRef, startTransition } from 'react'
-import { motion } from 'framer-motion'
-import { TimerRing } from '@/components/ui/timer-ring'
+import { useState, useEffect, useRef, useCallback } from 'react'
+import { motion }    from 'framer-motion'
+import { TimerRing } from '@/components/ui'
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Types
@@ -10,16 +10,16 @@ import { TimerRing } from '@/components/ui/timer-ring'
 
 type RoundTimerProps = {
     /** Total seconds for the round. */
-    seconds:     number
+    seconds:    number
     /** Whether the timer is actively counting down. */
-    isActive:    boolean
+    isActive:   boolean
     /**
-     * When the round started (server timestamp).
-     * If provided, the timer resumes at the correct position on page refresh
-     * instead of restarting from the full duration.
+     * Server timestamp of when the round started.
+     * When provided the timer resumes at the correct elapsed position on
+     * page refresh instead of restarting from the full duration.
      */
-    startedAt?:  Date
-    /** Called once when the timer reaches zero. */
+    startedAt?: Date
+    /** Called exactly once when the countdown reaches zero. */
     onComplete?: () => void
 }
 
@@ -28,56 +28,73 @@ type RoundTimerProps = {
 // ─────────────────────────────────────────────────────────────────────────────
 
 /**
- * Circular SVG countdown timer.
+ * Circular SVG countdown timer with urgency animation.
  *
- * ### Why `onComplete` is in a separate useEffect
- * Calling `onComplete` directly inside a `setRemaining` updater function
- * triggers it **during React's render phase** (updater functions run as part
- * of reconciliation). This causes the "Cannot update a component while
- * rendering a different component" warning because `onComplete` ultimately
- * calls `setGamePhase` / router navigation in a parent.
+ * ### Why `onComplete` fires in a dedicated effect (not inside the interval)
+ * Calling `onComplete` inside a `setRemaining` state updater runs during
+ * React's render phase, causing "Cannot update a component while rendering
+ * a different component". The fix: the interval sets a `done` flag, and a
+ * separate effect fires `onComplete` after the commit phase — exactly once,
+ * guarded by `firedRef`.
  *
- * Fix: the interval only sets `remaining` to 0. A dedicated boolean `done`
- * flag is set via `startTransition`, and a separate `useEffect` fires
- * `onComplete` safely **after** the render cycle (commit phase).
+ * ### Why `startTransition` is not used here
+ * All state updates in this component are urgent UI corrections:
+ * - Resetting `remaining` to `seconds` when inactive must show immediately —
+ *   a deferred reset shows the wrong (stale) timer value to the user.
+ * - Seeding the initial `remaining` from `calcRemaining()` must apply before
+ *   the first frame — deferring it causes a flash of the wrong duration.
+ * - Setting `done = true` when the interval reaches zero must not be deferred —
+ *   the user sees the timer stuck at 0 if it is.
+ * `startTransition` is reserved for genuinely non-urgent background updates
+ * and is explicitly not appropriate for any of the above.
+ *
+ * ### Why `calcRemaining` is in a `useCallback`
+ * Defined as a `useCallback` with `[seconds, startedAt]` deps so effects that
+ * call it always see the current values. A plain function in the component body
+ * creates a new reference on every render, causing stale captures in effects.
  */
 export function RoundTimer({ seconds, isActive, startedAt, onComplete }: RoundTimerProps) {
-    /** Compute how many whole seconds remain right now. */
-    function calcRemaining(): number {
+    /** Returns how many whole seconds remain relative to now. */
+    const calcRemaining = useCallback((): number => {
         if (startedAt) {
             const elapsed = (Date.now() - new Date(startedAt).getTime()) / 1000
             return Math.max(0, Math.floor(seconds - elapsed))
         }
         return seconds
-    }
+    }, [seconds, startedAt])
 
     const [remaining, setRemaining] = useState(() => calcRemaining())
-    // Separate flag — onComplete fires in an Effect, never inside an updater.
-    const [done, setDone]       = useState(false)
-    const onCompleteRef         = useRef(onComplete)
+    /**
+     * Separate boolean flag — onComplete must never fire inside a setState
+     * updater (render phase). Set this true and let the effect below handle it.
+     */
+    const [done, setDone] = useState(false)
+
+    /** Keeps onComplete stable without re-subscribing the effect. */
+    const onCompleteRef = useRef(onComplete)
     useEffect(() => { onCompleteRef.current = onComplete }, [onComplete])
 
-    // Reset when deactivated.
+    /** Guards against firing onComplete more than once per countdown. */
+    const firedRef = useRef(false)
+
+    // Reset to full duration when the timer is deactivated (phase change).
     useEffect(() => {
         if (isActive) return
-        startTransition(() => {
-            setRemaining(seconds)
-            setDone(false)
-        })
+        setRemaining(seconds)
+        setDone(false)
     }, [isActive, seconds])
 
-    // Run the countdown when active.
+    // Run the countdown while active.
     useEffect(() => {
         if (!isActive) return
 
         const initial = calcRemaining()
-        startTransition(() => {
-            setRemaining(initial)
-            setDone(false)
-        })
+        setRemaining(initial)
+        setDone(false)
 
+        // Already at zero on mount (e.g. page refreshed after timer expired).
         if (initial === 0) {
-            startTransition(() => setDone(true))
+            setDone(true)
             return
         }
 
@@ -85,21 +102,19 @@ export function RoundTimer({ seconds, isActive, startedAt, onComplete }: RoundTi
             setRemaining((prev) => {
                 if (prev <= 1) {
                     clearInterval(interval)
-                    // Do NOT call onComplete here — this is a setState updater
-                    // (runs during render). Schedule the done flag instead.
-                    startTransition(() => setDone(true))
+                    // Schedule done flag — never call onComplete inside a setter.
+                    // The effect below handles the actual callback after commit.
+                    setDone(true)
                     return 0
                 }
                 return prev - 1
             })
-        }, 1000)
+        }, 1_000)
 
         return () => clearInterval(interval)
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [isActive, seconds, startedAt])
+    }, [isActive, calcRemaining])
 
-    // Fire onComplete exactly once, after the render cycle (commit phase).
-    const firedRef = useRef(false)
+    // Fire onComplete once, safely after the render cycle completes.
     useEffect(() => {
         if (!done) { firedRef.current = false; return }
         if (firedRef.current) return
@@ -107,12 +122,12 @@ export function RoundTimer({ seconds, isActive, startedAt, onComplete }: RoundTi
         onCompleteRef.current?.()
     }, [done])
 
-    const isUrgent = remaining <= 5
+    const isUrgent = remaining <= 5 && isActive
 
     return (
         <motion.div
-            animate={isUrgent && isActive ? { scale: [1, 1.06, 1] } : {}}
-            transition={{ duration: 0.4, repeat: isUrgent && isActive ? Infinity : 0, repeatDelay: 0.6 }}
+            animate={isUrgent ? { scale: [1, 1.06, 1] } : {}}
+            transition={{ duration: 0.4, repeat: isUrgent ? Infinity : 0, repeatDelay: 0.6 }}
         >
             <TimerRing
                 seconds={remaining}

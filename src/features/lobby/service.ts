@@ -1,4 +1,3 @@
-'use server'
 
 /**
  * Lobby Service Layer — all lobby business logic.
@@ -15,11 +14,10 @@ import {
     createRematchLobby,
     setRematchId,
 } from './mutations'
-import { getReelOwnersByLobby, getUnusedReelsByPlayer } from '@/features/reel-import/queries'
-import { copyReelsToNewLobby }   from '@/features/reel-import/mutations'
+import { getReelOwnersByLobby } from '@/features/reel-import'
 import type { LobbyError }       from './errors'
 import type { Lobby }            from './types'
-import type { Player }           from '@/features/player/types'
+import type { Player }           from '@/features/player'
 
 // ─────────────────────────────────────────────────────────────────────────────
 // createLobbyWithHost
@@ -139,32 +137,26 @@ export async function startGame(
  * Creates a rematch lobby, or joins an existing one if another player already
  * triggered the rematch (idempotent).
  *
- * ## Key design decisions
+ * ## Flow
  *
- * **Players join themselves.**
- * Only the first caller (typically the host) creates the new lobby — and only
- * for themselves. Every subsequent player calls this function too, which adds
- * them as a regular player to the *existing* rematch lobby. This means the
- * lobby waiting-room is used as intended: players arrive, the host sees them
- * join, and then starts the game.
+ * - **First caller** creates a new lobby for themselves as host, then atomically
+ *   stamps the old lobby with the new lobby code via `setRematchId`.
+ * - **Subsequent callers** (or a first caller who lost the creation race) find
+ *   `rematch_id` already set and join the existing lobby instead.
  *
- * **Reel seeding.**
- * Each caller's *unused* reels from the finished lobby are copied into the new
- * lobby as a server-side fallback. The client (`RematchButton`) also fires
- * `submitReelsOnJoinAction` with the player's fresh local reel pool, so in
- * practice the new lobby gets a mix of fresh + old-unused reels with no
- * duplicates within the session (the game picks by the `used` flag).
+ * Players join themselves — the lobby waiting-room fills naturally as each
+ * player presses "Rematch", and the host starts the game once everyone is in.
  *
- * @param oldLobbyId          - Code of the finished lobby.
- * @param requestingPlayerId  - The player who pressed "Rematch" / "Join Rematch".
- * @returns `{ newLobbyCode, newPlayerId }` — the client stores the ID and
- *          navigates to `/lobby/{newLobbyCode}`.
+ * @param oldLobbyId         - Code of the finished lobby.
+ * @param requestingPlayerId - The player who pressed "Rematch" / "Join Rematch".
+ * @returns `{ newLobbyCode, newPlayerId }` — the client stores the new player ID
+ *          and navigates to `/lobby/{newLobbyCode}`.
  */
 export async function createRematch(
     oldLobbyId:          string,
     requestingPlayerId:  string,
 ): Promise<Result<{ newLobbyCode: string; newPlayerId: string }, LobbyError>> {
-    // ── 1. Fetch old lobby ────────────────────────────────────────────────────
+    // 1. Fetch old lobby
     const oldLobbyResult = await getLobbyByCode(oldLobbyId)
     if (oldLobbyResult.isErr()) return err(oldLobbyResult.error)
 
@@ -179,23 +171,14 @@ export async function createRematch(
         })
     }
 
-    // ── 2. Idempotency — rematch lobby already exists ─────────────────────────
+    // 2. Rematch lobby already exists — join it
     if (oldLobby.settings.rematchId) {
-        return joinExistingRematch(
-            oldLobby.settings.rematchId,
-            requestingPlayer,
-            oldLobbyId,
-        )
+        return joinExistingRematch(oldLobby.settings.rematchId, requestingPlayer)
     }
 
-    // ── 3. Create new rematch lobby with ONLY the requesting player ───────────
-    //
-    // Other players call createRematch themselves (Bug 1 fix): they are added
-    // to the lobby via the `joinExistingRematch` path below once `rematch_id`
-    // is set on the old lobby.
+    // 3. Create new rematch lobby with only the requesting player as host
     const rematchResult = await createRematchLobby(
-        [requestingPlayer],   // only this player — others join themselves
-        requestingPlayerId,
+        requestingPlayer,
         {
             roundsCount:  oldLobby.settings.roundsCount,
             timerSeconds: oldLobby.settings.timerSeconds,
@@ -203,29 +186,16 @@ export async function createRematch(
     )
     if (rematchResult.isErr()) return err(rematchResult.error)
 
-    const { lobby: newLobby, playerIdMap, newPlayerId } = rematchResult.value
+    const { lobby: newLobby, newPlayerId } = rematchResult.value
 
-    // ── 4. Seed unused reels from old game as a fallback ──────────────────────
-    //
-    // The client will also submit fresh local reels via submitReelsOnJoinAction.
-    // Having both sources is fine — the game just picks from all unused rows.
-    const unusedReelsResult = await getUnusedReelsByPlayer(oldLobbyId, requestingPlayerId)
-    if (unusedReelsResult.isOk() && unusedReelsResult.value.length > 0) {
-        await copyReelsToNewLobby(unusedReelsResult.value, newLobby.id, playerIdMap)
-    }
-
-    // ── 5. Atomically mark old lobby with new lobby code ──────────────────────
+    // 4. Atomically stamp the old lobby with the new lobby code.
+    //    If we lose the race, another caller already created the rematch lobby —
+    //    re-fetch to get their code and join it instead.
     const setResult = await setRematchId(oldLobbyId, newLobby.id)
     if (setResult.isOk() && !setResult.value) {
-        // Lost the race — another caller already created the rematch lobby.
-        // Re-fetch old lobby to get the winner's new lobby code, then join it.
         const latestOldLobby = await getLobbyByCode(oldLobbyId)
         if (latestOldLobby.isOk() && latestOldLobby.value.settings.rematchId) {
-            return joinExistingRematch(
-                latestOldLobby.value.settings.rematchId,
-                requestingPlayer,
-                oldLobbyId,
-            )
+            return joinExistingRematch(latestOldLobby.value.settings.rematchId, requestingPlayer)
         }
     }
 
@@ -233,46 +203,35 @@ export async function createRematch(
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
-// joinExistingRematch (private helper)
-// ─────────────────────────────────────────────────────────────────────────────
 
 /**
  * Adds a player to an already-created rematch lobby, or returns their existing
  * entry if they already joined (idempotent).
  *
- * Also seeds the player's unused reels from the old lobby so they have
- * something to play with even if their local reel pool is empty.
+ * Idempotency is checked by display name — if a player with the same name is
+ * already in the new lobby, their existing ID is returned without a second insert.
+ *
+ * @param newLobbyId - Code of the rematch lobby to join.
+ * @param oldPlayer  - The player from the finished lobby (preserves display_name + avatar_seed).
+ * @returns `{ newLobbyCode, newPlayerId }`.
  */
 async function joinExistingRematch(
-    newLobbyId:    string,
-    oldPlayer:     Player,
-    oldLobbyId:    string,
+    newLobbyId: string,
+    oldPlayer:  Player,
 ): Promise<Result<{ newLobbyCode: string; newPlayerId: string }, LobbyError>> {
     const newLobbyResult = await getLobbyByCode(newLobbyId)
     if (newLobbyResult.isErr()) return err(newLobbyResult.error)
 
     const newLobby = newLobbyResult.value
 
-    // Already in the rematch lobby — return existing player ID (idempotent).
-    const existingPlayer = newLobby.players.find(
-        (p) => p.displayName === oldPlayer.displayName,
-    )
+    // Already joined — return existing ID without re-inserting
+    const existingPlayer = newLobby.players.find((p) => p.displayName === oldPlayer.displayName)
     if (existingPlayer) {
         return ok({ newLobbyCode: newLobbyId, newPlayerId: existingPlayer.id })
     }
 
-    // Join the lobby, preserving the player's avatar seed from the old lobby.
     const addResult = await addPlayerToLobby(newLobbyId, oldPlayer.displayName, oldPlayer.avatarSeed)
     if (addResult.isErr()) return err(addResult.error)
 
-    const newPlayerId = addResult.value.id
-
-    // Seed the player's unused reels as fallback (non-fatal).
-    const unusedReels = await getUnusedReelsByPlayer(oldLobbyId, oldPlayer.id)
-    if (unusedReels.isOk() && unusedReels.value.length > 0) {
-        const idMap = new Map([[oldPlayer.id, newPlayerId]])
-        await copyReelsToNewLobby(unusedReels.value, newLobbyId, idMap)
-    }
-
-    return ok({ newLobbyCode: newLobbyId, newPlayerId })
+    return ok({ newLobbyCode: newLobbyId, newPlayerId: addResult.value.id })
 }

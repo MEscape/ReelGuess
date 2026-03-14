@@ -1,10 +1,10 @@
 'use client'
 
-import { useState }              from 'react'
-import { useLocalReels }         from '../hooks/use-local-reels'
-import { useFileImport }         from '../hooks/use-file-import'
-import { LOCAL_MAX_REELS }       from '../validations'
-import type { AddReelsResult }   from '../types'
+import { useState, useEffect, useCallback, useMemo } from 'react'
+import { useLocalReels }       from '../hooks/use-local-reels'
+import { useFileImport }       from '../hooks/use-file-import'
+import { LOCAL_MAX_REELS }     from '../constants'
+import type { AddReelsResult } from '../types'
 
 import { ImportStepUpload }  from './import-step-upload'
 import { ImportStepConfirm } from './import-step-confirm'
@@ -28,9 +28,6 @@ type Step = 'upload' | 'confirm' | 'done'
 /**
  * Standalone reel import flow — orchestrator only.
  *
- * Lobby-mode import has been removed. Reels are always saved to localStorage
- * here; the game layer selects from the pool when a player joins a lobby.
- *
  * State machine:
  *
  *   upload  → (file parsed)  → confirm
@@ -38,6 +35,17 @@ type Step = 'upload' | 'confirm' | 'done'
  *   done    → onComplete() / idle
  *
  * Zero JSX markup lives here — each branch renders exactly one sub-component.
+ *
+ * ### Step transition
+ * The `upload → confirm` transition is driven by a `useEffect` that watches
+ * `fileImport.state.status`. Previously this was a conditional `setStep` call
+ * in the render body — a React anti-pattern that causes double renders and
+ * breaks in concurrent mode. The `useEffect` pattern is the correct approach.
+ *
+ * ### Stable references
+ * `parsedUrls` is `useMemo`-stable (same empty array reference when not parsed).
+ * `handleConfirmSubmit` and `handleBack` are `useCallback`-wrapped so child
+ * components do not receive new prop references on every parent render.
  */
 export function ImportFlow({ onComplete }: ImportFlowProps) {
     const { count: localCount, addReels } = useLocalReels()
@@ -46,17 +54,24 @@ export function ImportFlow({ onComplete }: ImportFlowProps) {
     const [step,       setStep]       = useState<Step>('upload')
     const [saveResult, setSaveResult] = useState<AddReelsResult | null>(null)
 
-    // Parsed URLs from the file — held here so confirm can show the count
-    const parsedUrls = fileImport.state.status === 'parsed' ? fileImport.state.urls : []
+    // Stable derived value — same [] reference when not in parsed state.
+    const parsedUrls = useMemo(
+        () => fileImport.state.status === 'parsed' ? fileImport.state.urls : [],
+        [fileImport.state],
+    )
 
     // ── File parsed → advance to confirm ─────────────────────────────────
-    // React to state changes via derived step logic
-    if (fileImport.state.status === 'parsed' && step === 'upload') {
-        setStep('confirm')
-    }
+    // Driven by useEffect, not a conditional setStep in the render body.
+    // The render-body pattern causes double renders and breaks React's
+    // concurrent mode state transition rules.
+    useEffect(() => {
+        if (fileImport.state.status === 'parsed' && step === 'upload') {
+            setStep('confirm')
+        }
+    }, [fileImport.state.status, step])
 
     // ── Confirm: save to localStorage ────────────────────────────────────
-    function handleConfirmSubmit() {
+    const handleConfirmSubmit = useCallback((): void => {
         if (parsedUrls.length === 0) return
         // Save up to LOCAL_MAX_REELS (500) to localStorage.
         // The game-session cap (MAX_REELS = 50) is applied server-side when
@@ -64,13 +79,13 @@ export function ImportFlow({ onComplete }: ImportFlowProps) {
         const result = addReels(parsedUrls.slice(0, LOCAL_MAX_REELS))
         setSaveResult(result)
         setStep('done')
-    }
+    }, [parsedUrls, addReels])
 
     // ── Back from confirm ─────────────────────────────────────────────────
-    function handleBack() {
+    const handleBack = useCallback((): void => {
         fileImport.reset()
         setStep('upload')
-    }
+    }, [fileImport])
 
     // ─────────────────────────────────────────────────────────────────────
     // Render

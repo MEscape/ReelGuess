@@ -12,13 +12,14 @@
  */
 
 import { importReelsForPlayer }  from './service'
-import { selectGameReels }       from './utils/parse-export'
-import {MAX_REELS, SubmitReelsSchema} from './validations'
+import { selectGameReels }       from './utils'
+import { SubmitReelsSchema } from './validations'
 import { rateLimitFromIP }       from '@/lib/rate-limit'
 import { serializeResult }       from '@/lib/errors/error-handler'
 import type { SerializedResult } from '@/lib/errors/error-handler'
 import type { ReelImportError }  from './errors'
 import type { Reel, LocalReel }  from './types'
+import {MAX_REELS} from "./constants";
 
 /**
  * Called when a player joins a lobby — persists their randomly selected reels
@@ -26,7 +27,8 @@ import type { Reel, LocalReel }  from './types'
  *
  * Flow:
  * 1. Rate-limit by IP (with playerId as tiebreaker).
- * 2. Validate payload.
+ * 2. Validate payload — `lobbyId` is validated as a full 6-char uppercase
+ *    alphanumeric code, matching the lobby feature's `LobbyCodeSchema`.
  * 3. Randomly select up to MAX_REELS from the submitted pool (server-side shuffle).
  * 4. Persist via service (idempotent — safe to call twice).
  *

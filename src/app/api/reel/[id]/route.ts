@@ -34,7 +34,7 @@ export async function GET(
         return NextResponse.json({ error: 'Invalid reel ID' }, { status: 400 })
     }
 
-    const supabase = await createClient()
+    const supabase = createClient()
 
     const { data: reel } = await supabase
         .from('reels')

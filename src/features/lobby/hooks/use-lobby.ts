@@ -1,39 +1,10 @@
 'use client'
 
-import { useTransition, useState } from 'react'
-import { useRouter }               from 'next/navigation'
+import { useTransition, useState }  from 'react'
+import { useRouter }                 from 'next/navigation'
 import { createLobbyAction, joinLobbyAction, startGameAction } from '../actions'
-import { usePlayerStore }          from '@/features/player/stores/player-store'
-import { submitReelsOnJoinAction } from '@/features/reel-import/actions'
-import { getLocalReels }           from '@/features/reel-import/stores/local-reel-store'
-import { MIN_REELS }               from '@/features/reel-import/validations'
-
-// ─────────────────────────────────────────────────────────────────────────────
-// Internal helper
-// ─────────────────────────────────────────────────────────────────────────────
-
-/**
- * Submits the player's full local reel pool to the DB after joining/creating.
- *
- * - Sends the entire local pool — `submitReelsOnJoinAction` handles the
- *   server-side shuffle and MAX_REELS cap, preventing the client from
- *   cherry-picking which reels enter the game.
- * - Fire-and-forget: navigation happens regardless. The host's `startGame`
- *   validation will catch any player who hasn't submitted reels yet.
- * - Silently no-ops if the local pool is below MIN_REELS — the lobby page
- *   will surface the missing-reels error when the host tries to start.
- */
-async function submitLocalReelsToDB(lobbyId: string, playerId: string): Promise<void> {
-    const localPool = getLocalReels()
-    if (localPool.length < MIN_REELS) return
-
-    const fd = new FormData()
-    fd.set('lobbyId',  lobbyId)
-    fd.set('playerId', playerId)
-    fd.set('reelUrls', JSON.stringify(localPool.map((r) => r.url)))
-
-    await submitReelsOnJoinAction(fd)
-}
+import { usePlayerStore }            from '@/features/player'
+import { submitLocalReelsToDB }      from '../utils'
 
 // ─────────────────────────────────────────────────────────────────────────────
 // useCreateLobby

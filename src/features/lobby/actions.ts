@@ -9,14 +9,15 @@
  * Dependency direction: actions.ts → service.ts → DAL
  */
 
-import { CreateLobbySchema, JoinLobbySchema } from './validations'
+import { CreateLobbySchema, JoinLobbySchema, LobbyCodeSchema } from './validations'
 import { createLobbyWithHost, joinLobby, startGame, createRematch } from './service'
 import type { LobbyError }       from './errors'
 import type { SerializedResult } from '@/lib/errors/error-handler'
 import { serializeResult }       from '@/lib/errors/error-handler'
 import type { Lobby }            from './types'
-import type { Player }           from '@/features/player/types'
+import type { Player }           from '@/features/player'
 import { rateLimitFromIP }       from '@/lib/rate-limit'
+import {PlayerIdSchema} from "./validations";
 
 // ─────────────────────────────────────────────────────────────────────────────
 // createLobbyAction
@@ -85,6 +86,11 @@ export async function joinLobbyAction(
 // startGameAction
 // ─────────────────────────────────────────────────────────────────────────────
 
+/**
+ * Validates `lobbyCode` and `hostPlayerId` formats before delegating to the
+ * service. Malformed inputs surface as `LOBBY_VALIDATION_ERROR` rather than
+ * reaching the DB and returning a confusing `LOBBY_NOT_FOUND`.
+ */
 export async function startGameAction(
     lobbyCode:    string,
     hostPlayerId: string,
@@ -97,8 +103,23 @@ export async function startGameAction(
         }
     }
 
+    if (!LobbyCodeSchema.safeParse(lobbyCode).success) {
+        return {
+            ok:    false,
+            error: { type: 'LOBBY_VALIDATION_ERROR', message: 'Invalid lobby code', issues: [] },
+        }
+    }
+
+    if (!PlayerIdSchema.safeParse(hostPlayerId).success) {
+        return {
+            ok:    false,
+            error: { type: 'LOBBY_VALIDATION_ERROR', message: 'Invalid player ID', issues: [] },
+        }
+    }
+
     return serializeResult(await startGame(lobbyCode, hostPlayerId))
 }
+
 // ─────────────────────────────────────────────────────────────────────────────
 // createRematchAction
 // ─────────────────────────────────────────────────────────────────────────────
@@ -115,14 +136,28 @@ export async function startGameAction(
  *          ID and navigates to the new lobby.
  */
 export async function createRematchAction(
-    oldLobbyId:          string,
-    requestingPlayerId:  string,
+    oldLobbyId:         string,
+    requestingPlayerId: string,
 ): Promise<SerializedResult<{ newLobbyCode: string; newPlayerId: string }, LobbyError>> {
     const rl = await rateLimitFromIP('rematch', requestingPlayerId)
     if (!rl.success) {
         return {
             ok:    false,
             error: { type: 'LOBBY_VALIDATION_ERROR', message: 'Too many rematch requests. Please wait.', issues: [] },
+        }
+    }
+
+    if (!LobbyCodeSchema.safeParse(oldLobbyId).success) {
+        return {
+            ok:    false,
+            error: { type: 'LOBBY_VALIDATION_ERROR', message: 'Invalid lobby code', issues: [] },
+        }
+    }
+
+    if (!PlayerIdSchema.safeParse(requestingPlayerId).success) {
+        return {
+            ok:    false,
+            error: { type: 'LOBBY_VALIDATION_ERROR', message: 'Invalid player ID', issues: [] },
         }
     }
 

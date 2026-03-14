@@ -1,9 +1,11 @@
 'use client'
 
-import { motion }          from 'framer-motion'
-import { Leaderboard }     from './leaderboard'
-import { RematchButton }   from './rematch-button'
-import type { ScoreEntry } from '../types'
+import { useMemo }               from 'react'
+import { motion }                from 'framer-motion'
+import { PlayerAvatar }          from '@/features/player'
+import { RematchButton }         from './rematch-button'
+import { FinalLeaderboard }      from './final-leaderboard'
+import type { ScoreEntry }       from '@/features/scoring'
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Types
@@ -13,10 +15,7 @@ type GameOverScreenProps = {
     scores:          ScoreEntry[]
     lobbyId:         string
     currentPlayerId: string
-    /**
-     * If another player already triggered a rematch (detected via Realtime),
-     * pass the new lobby code here so this player can join with one click.
-     */
+    /** New lobby code if another player already triggered a rematch. */
     rematchId?:      string | null
 }
 
@@ -25,12 +24,26 @@ type GameOverScreenProps = {
 // ─────────────────────────────────────────────────────────────────────────────
 
 /**
- * Full-bleed GAME OVER screen shown when `lobbyStatus` transitions to `finished`.
+ * Full-bleed GAME OVER screen shown when lobby status transitions to `finished`.
  *
- * Renders a trophy hero, the final {@link Leaderboard}, and a
- * {@link RematchButton} for starting a new game with the same players.
+ * Renders a trophy hero, the final {@link FinalLeaderboard}, and a
+ * {@link RematchButton}.
+ *
+ * ### Single sort
+ * Scores are sorted once here. `winner` is derived from `sorted[0]` and the
+ * sorted array is passed to `FinalLeaderboard` — which does not re-sort.
+ * This eliminates the duplicate O(n log n) sort from the previous
+ * implementation where `GameOverScreen` and `Leaderboard` each sorted
+ * independently.
  */
 export function GameOverScreen({ scores, lobbyId, currentPlayerId, rematchId }: GameOverScreenProps) {
+    const sorted = useMemo(
+        () => [...scores].sort((a, b) => b.points - a.points),
+        [scores],
+    )
+
+    const winner = sorted[0]
+
     return (
         <div className="flex flex-col items-center gap-6 p-4 w-full max-w-lg mx-auto">
 
@@ -47,7 +60,6 @@ export function GameOverScreen({ scores, lobbyId, currentPlayerId, rematchId }: 
                     boxShadow:  'var(--shadow-brutal-accent-lg), var(--shadow-glow-accent-lg)',
                 }}
             >
-                {/* Stripe texture */}
                 <div
                     aria-hidden
                     style={{
@@ -89,25 +101,25 @@ export function GameOverScreen({ scores, lobbyId, currentPlayerId, rematchId }: 
                     OVER
                 </p>
 
-                {/* Winner callout */}
-                {scores.length > 0 && (
-                    <motion.p
+                {winner && (
+                    <motion.div
                         initial={{ opacity: 0, y: 8 }}
                         animate={{ opacity: 1, y: 0 }}
                         transition={{ delay: 0.5 }}
-                        className="relative font-display uppercase"
-                        style={{
-                            fontSize:      'var(--text-body-sm)',
-                            letterSpacing: 'var(--tracking-label)',
-                            color:         'var(--color-muted)',
-                            marginTop:     'var(--space-4)',
-                        }}
+                        className="relative flex flex-col items-center gap-2 mt-4"
                     >
-                        Winner:{' '}
-                        <span style={{ color: 'var(--color-accent)' }}>
-                            {[...scores].sort((a, b) => b.points - a.points)[0].displayName}
-                        </span>
-                    </motion.p>
+                        <PlayerAvatar seed={winner.avatarSeed} size={48} />
+                        <p
+                            className="font-display uppercase"
+                            style={{
+                                fontSize:      'var(--text-body-sm)',
+                                letterSpacing: 'var(--tracking-label)',
+                                color:         'var(--color-muted)',
+                            }}
+                        >
+                            Winner: <span style={{ color: 'var(--color-accent)' }}>{winner.displayName}</span>
+                        </p>
+                    </motion.div>
                 )}
             </motion.div>
 
@@ -118,7 +130,7 @@ export function GameOverScreen({ scores, lobbyId, currentPlayerId, rematchId }: 
                 transition={{ delay: 0.35 }}
                 className="w-full"
             >
-                <Leaderboard scores={scores} />
+                <FinalLeaderboard scores={sorted} />
             </motion.div>
 
             {/* ── Rematch ──────────────────────────────────────────── */}

@@ -1,5 +1,5 @@
 import { Button } from '@/components/ui'
-import { MAX_REELS } from '../validations'
+import { MAX_REELS } from '../constants'
 import { cn }        from '@/lib/utils/cn'
 
 // ─────────────────────────────────────────────────────────────────────────────
