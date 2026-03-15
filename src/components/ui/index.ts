@@ -10,6 +10,7 @@ export { NavBar }                 from './navbar'
 export { StatusPanel }            from './status-panel'
 export { ProgressBar }            from './progress-bar'
 export { TimerRing }              from './timer-ring'
+export { Footer }                 from './footer'
 
 // ─── Feedback / States ───────────────────────────────────────────────────────
 export { PageLoader, EmptyState, SkeletonBlock } from './feedback'

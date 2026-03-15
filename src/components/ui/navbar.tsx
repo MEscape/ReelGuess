@@ -85,7 +85,7 @@ export function NavBar({
             <Link
                 href="/"
                 className="no-underline shrink-0 leading-none"
-                aria-label="QuizSmash home"
+                aria-label="ReelGuess home"
             >
                 <span
                     className="font-display uppercase leading-none"
@@ -94,8 +94,8 @@ export function NavBar({
                         letterSpacing: 'var(--tracking-display)',
                     }}
                 >
-                    <span className="text-[var(--color-accent)]">Quiz</span>
-                    <span className="text-[var(--color-foreground)]">Smash</span>
+                    <span className="text-[var(--color-foreground)]">Reel</span>
+                    <span className="text-[var(--color-accent)]">Guess</span>
                 </span>
             </Link>
 
@@ -111,24 +111,28 @@ export function NavBar({
 
             {/* ── Nav items ────────────────────────────────────────── */}
             <ul className="flex items-center gap-4 list-none m-0 p-0">
-                {items.map(({ label, href, count }) => (
-                    <li key={href} className="flex items-center gap-1.5">
-                        <Link
-                            href={href}
-                            className={cn(
-                                'nav-item',
-                                activePath?.startsWith(href) && 'active',
+                {items.map(({ label, href, count }) => {
+                    const isActive = activePath?.startsWith(href)
+                    return (
+                        <li key={href} className="flex items-center gap-1.5">
+                            <Link
+                                href={href}
+                                className={cn(
+                                    'nav-item',
+                                    isActive && 'active',
+                                )}
+                                aria-current={isActive ? 'page' : undefined}
+                            >
+                                {label}
+                            </Link>
+                            {count !== undefined && count > 0 && (
+                                <Badge variant="muted" size="sm">
+                                    {count}
+                                </Badge>
                             )}
-                        >
-                            {label}
-                        </Link>
-                        {count !== undefined && count > 0 && (
-                            <Badge variant="muted" size="sm">
-                                {count}
-                            </Badge>
-                        )}
-                    </li>
-                ))}
+                        </li>
+                    )
+                })}
             </ul>
 
             {/* ── Push right ───────────────────────────────────────── */}

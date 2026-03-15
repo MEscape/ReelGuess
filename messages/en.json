@@ -45,7 +45,11 @@
 
   "lobby": {
     "title": "Waiting Room",
+    "loading": "Loading Lobby…",
+    "notMemberTitle": "Not in this lobby",
+    "notMemberDescription": "You haven't joined this lobby yet. Go to the homepage and enter the code there.",
     "code": "Lobby Code",
+    "codeCharsNeeded": "{count, plural, one {# more character needed} other {# more characters needed}}",
     "shareCode": "Share the code — friends join instantly",
     "waiting": "Waiting for more players to join…",
     "waitingForHost": "Waiting for host to start…",
@@ -278,6 +282,107 @@
     "notFound": {
       "title": "Not Found — ReelGuess",
       "description": "This page could not be found."
+    },
+    "impressum": {
+      "title": "Legal Notice — ReelGuess",
+      "description": "Legal notice (Impressum) of ReelGuess as required by German law — operator information and legal disclaimers."
+    },
+    "datenschutz": {
+      "title": "Privacy Policy — ReelGuess",
+      "description": "ReelGuess Privacy Policy under GDPR — how we handle your personal data."
+    },
+    "agb": {
+      "title": "Terms & Conditions — ReelGuess",
+      "description": "ReelGuess Terms and Conditions — usage terms for the free party game platform."
+    }
+  },
+
+  "footer": {
+    "copyright": "© {year} ReelGuess. All rights reserved.",
+    "madeWith": "Made with ❤️",
+    "links": {
+      "impressum": "Legal Notice",
+      "datenschutz": "Privacy Policy",
+      "agb": "Terms",
+      "cookieSettings": "Cookie Settings"
+    },
+    "ariaLabel": "Site footer"
+  },
+
+  "cookieConsent": {
+    "bannerTitle": "We use cookies 🍪",
+    "bannerText": "We use necessary cookies to operate this website. With your consent, we also use analytics cookies to improve your experience.",
+    "acceptAll": "Accept all",
+    "rejectAll": "Necessary only",
+    "customize": "Settings",
+    "save": "Save selection",
+    "settingsTitle": "Cookie Settings",
+    "settingsSubtitle": "Choose which cookies you want to allow.",
+    "necessary": {
+      "label": "Necessary Cookies",
+      "description": "These cookies are required for the website to function and cannot be disabled. They do not store any personal data."
+    },
+    "analytics": {
+      "label": "Analytics Cookies",
+      "description": "These cookies help us understand how visitors use our website (e.g., Vercel Analytics). All data is anonymised."
+    },
+    "privacyLink": "Read Privacy Policy",
+    "ariaLabel": "Cookie consent",
+    "ariaClose": "Close cookie banner"
+  },
+
+  "legal": {
+    "impressum": {
+      "title": "Legal Notice",
+      "metaDescription": "Legal notice (Impressum) of ReelGuess as required by German law (§ 5 TMG).",
+      "operatorHeading": "Information according to § 5 TMG",
+      "name": "Max Mustermann",
+      "address": "Musterstraße 1, 12345 Musterstadt, Germany",
+      "email": "contact@reelguess.app",
+      "phone": "+49 (0) 123 456789",
+      "liabilityHeading": "Liability Disclaimer",
+      "liabilityContent": "The contents of this website have been prepared with the utmost care. However, we cannot guarantee the accuracy, completeness or topicality of the content. As a service provider, we are responsible for our own content on these pages in accordance with § 7 para. 1 TMG under German law.",
+      "copyrightHeading": "Copyright",
+      "copyrightContent": "The content and works on these pages created by the site operators are subject to German copyright law. Contributions by third parties are identified as such. The reproduction, editing, distribution and any kind of use outside the limits of copyright law require the written consent of the respective author or creator.",
+      "disputeHeading": "Dispute Resolution",
+      "disputeContent": "The European Commission provides a platform for online dispute resolution (ODR): https://ec.europa.eu/consumers/odr. Our email address can be found above in this legal notice. We are not willing or obliged to participate in dispute resolution proceedings before a consumer arbitration body."
+    },
+    "datenschutz": {
+      "title": "Privacy Policy",
+      "metaDescription": "ReelGuess Privacy Policy under GDPR — how we handle your data.",
+      "intro": "The protection of your personal data is important to us. This privacy policy informs you about the processing of personal data when using our website and app.",
+      "controllerHeading": "Controller",
+      "controllerContent": "The controller within the meaning of the GDPR is: Max Mustermann, Musterstraße 1, 12345 Musterstadt, Email: contact@reelguess.app",
+      "dataCollectionHeading": "What data we process",
+      "dataCollectionContent": "When using ReelGuess, the following data is processed: (1) Technical access data (IP address, browser type, OS, referrer URL) — collected by our hosting provider Vercel for up to 30 days; (2) Game data (player name, lobby code, voting behaviour) — temporarily stored in our Supabase database and automatically deleted after 7 days; (3) Locally stored data (imported reels, cookie preferences) — only on your device, no server access.",
+      "legalBasisHeading": "Legal Bases",
+      "legalBasisContent": "We process your data on the following legal bases under Art. 6 GDPR: (a) legitimate interests (Art. 6(1)(f) GDPR) for technical access data; (b) contract performance (Art. 6(1)(b) GDPR) for game data; (c) consent (Art. 6(1)(a) GDPR) for analytics cookies.",
+      "analyticsHeading": "Analytics Services",
+      "analyticsContent": "With your consent, we use Vercel Analytics for anonymised usage analysis. No personal data is shared with third parties. You can withdraw this processing at any time via the Cookie Settings.",
+      "rightsHeading": "Your Rights",
+      "rightsContent": "Under the GDPR you have the following rights: right of access (Art. 15), right to rectification (Art. 16), right to erasure (Art. 17), right to restriction (Art. 18), right to object (Art. 21), and the right to lodge a complaint with the relevant data protection supervisory authority.",
+      "contactHeading": "Data Protection Contact",
+      "contactContent": "For data protection enquiries please contact: contact@reelguess.app",
+      "cookiesHeading": "Cookies",
+      "cookiesContent": "Our website uses cookies. Necessary cookies (session data, cookie preferences) are required for operation. Analytics cookies are only set with your explicit consent. Details are available in the Cookie Settings."
+    },
+    "agb": {
+      "title": "Terms and Conditions",
+      "metaDescription": "Terms and Conditions of ReelGuess — usage terms for the free party game platform.",
+      "scopeHeading": "§ 1 Scope",
+      "scopeContent": "These Terms and Conditions apply to the use of the ReelGuess web application (reelguess.app). By using the platform you accept these terms.",
+      "serviceHeading": "§ 2 Service Description",
+      "serviceContent": "ReelGuess is a free, browser-based multiplayer entertainment platform. Use is at your own risk. There is no right to permanent operation or uninterrupted availability.",
+      "rulesHeading": "§ 3 Usage Rules",
+      "rulesContent": "It is prohibited to use the platform for unlawful purposes, circumvent security mechanisms, perform automated access (bots), or infringe third-party intellectual property rights.",
+      "contentHeading": "§ 4 User Content",
+      "contentContent": "Users import Instagram URLs from publicly accessible sources. The operator assumes no responsibility for the legality of imported content. Users are solely responsible for ensuring no copyright infringement occurs.",
+      "liabilityHeading": "§ 5 Liability Limitation",
+      "liabilityContent": "The operator's liability is limited to intent and gross negligence. Liability for indirect damages, loss of profit or data loss is excluded to the extent permitted by law.",
+      "changeHeading": "§ 6 Changes",
+      "changeContent": "The operator reserves the right to amend these Terms at any time. Changes will be published on this page. Continued use after changes constitutes acceptance.",
+      "lawHeading": "§ 7 Applicable Law",
+      "lawContent": "German law applies, excluding the UN Convention on Contracts for the International Sale of Goods. Jurisdiction is, to the extent permissible, the operator's registered office."
     }
   },
 

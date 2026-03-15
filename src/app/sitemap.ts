@@ -13,6 +13,37 @@ const LAST_MODIFIED = new Date('2026-03-14')
 // ─────────────────────────────────────────────────────────────────────────────
 
 export default function sitemap(): MetadataRoute.Sitemap {
+    const legalSlugs = ['impressum', 'datenschutz', 'agb'] as const
+
+    const legalEntries: MetadataRoute.Sitemap = legalSlugs.flatMap((slug) => [
+        {
+            url:             `${baseUrl}/${slug}`,
+            lastModified:    LAST_MODIFIED,
+            changeFrequency: 'yearly' as const,
+            priority:        0.4,
+            alternates: {
+                languages: {
+                    en:          `${baseUrl}/${slug}`,
+                    de:          `${baseUrl}/de/${slug}`,
+                    'x-default': `${baseUrl}/${slug}`,
+                },
+            },
+        },
+        {
+            url:             `${baseUrl}/de/${slug}`,
+            lastModified:    LAST_MODIFIED,
+            changeFrequency: 'yearly' as const,
+            priority:        0.4,
+            alternates: {
+                languages: {
+                    en:          `${baseUrl}/${slug}`,
+                    de:          `${baseUrl}/de/${slug}`,
+                    'x-default': `${baseUrl}/${slug}`,
+                },
+            },
+        },
+    ])
+
     return [
         {
             url:             `${baseUrl}/`,
@@ -40,5 +71,6 @@ export default function sitemap(): MetadataRoute.Sitemap {
                 },
             },
         },
+        ...legalEntries,
     ]
 }

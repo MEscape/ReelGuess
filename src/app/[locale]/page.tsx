@@ -70,7 +70,7 @@ export default async function HomePage({ params }: Props) {
                             height={96}
                             priority
                             style={{
-                                filter:    'drop-shadow(0 0 18px rgba(245,200,0,0.55)) drop-shadow(0 0 48px rgba(245,200,0,0.28))',
+                                filter: 'drop-shadow(0 0 12px rgba(245,200,0,0.45)) drop-shadow(0 0 32px rgba(245,200,0,0.18))',
                                 objectFit: 'contain',
                             }}
                         />

@@ -49,7 +49,7 @@ export function SettingsPanel({ lobbyCode, hostPlayerId, settings }: SettingsPan
 
                 {isPending && (
                     <span className="font-sans text-[var(--color-muted)]" style={{ fontSize: 'var(--text-body-sm)' }}>
-                        Saving…
+                        {t('settings.saving')}
                     </span>
                 )}
             </div>
@@ -57,12 +57,15 @@ export function SettingsPanel({ lobbyCode, hostPlayerId, settings }: SettingsPan
             <div className="flex flex-col divide-y divide-[var(--color-border)]">
                 {SETTINGS_CONFIG.map((cfg) => {
                     const activeValue = local[cfg.key]
+                    // Map config key to translation key
+                    const labelKey = cfg.key === 'roundsCount' ? 'settings.rounds' : 'settings.timePerRound'
+                    const label    = t(labelKey)
 
                     return (
                         <div key={cfg.key} className="px-4 py-3 flex flex-col gap-2">
                             <div className="flex items-center justify-between">
                                 <span className="input-label" style={{ marginBottom: 0 }}>
-                                    {cfg.label}
+                                    {label}
                                 </span>
                                 <span
                                     className="font-display text-[var(--color-accent)] leading-none"
@@ -72,7 +75,7 @@ export function SettingsPanel({ lobbyCode, hostPlayerId, settings }: SettingsPan
                                 </span>
                             </div>
 
-                            <div className="flex flex-wrap gap-2" role="group" aria-label={`${cfg.label} options`}>
+                            <div className="flex flex-wrap gap-2" role="group" aria-label={label}>
                                 {cfg.options.map((opt) => {
                                     const isActive = opt === activeValue
                                     return (

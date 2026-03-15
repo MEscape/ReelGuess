@@ -2,12 +2,12 @@ import type { Metadata }        from 'next'
 import { Inter, Bebas_Neue }    from 'next/font/google'
 import { NextIntlClientProvider } from 'next-intl'
 import { getMessages, getTranslations } from 'next-intl/server'
-import { Analytics }            from '@vercel/analytics/react'
-import { SpeedInsights }        from '@vercel/speed-insights/next'
 import { QueryProvider }        from '@/lib/providers/query-provider'
 import { locales, type Locale } from '@/i18n/config'
 import { notFound }             from 'next/navigation'
 import React                    from 'react'
+import { CookieBanner, CookieConsentProvider, ConsentGatedAnalytics } from '@/features/legal'
+import { Footer }               from '@/components/ui/footer'
 import '../globals.css'
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -144,12 +144,15 @@ export default async function LocaleLayout({ children, params }: Props) {
         <html lang={locale} className="dark">
             <body className={`${inter.variable} ${bebasNeue.variable} antialiased`}>
                 <NextIntlClientProvider locale={locale} messages={messages}>
-                    <QueryProvider>
-                        {children}
-                    </QueryProvider>
+                    <CookieConsentProvider>
+                        <QueryProvider>
+                            {children}
+                        </QueryProvider>
+                        <Footer locale={locale} />
+                        <CookieBanner />
+                        <ConsentGatedAnalytics />
+                    </CookieConsentProvider>
                 </NextIntlClientProvider>
-                <Analytics />
-                <SpeedInsights />
             </body>
         </html>
     )

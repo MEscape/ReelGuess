@@ -23,11 +23,13 @@ const nextConfig: NextConfig = {
                         key: "Content-Security-Policy",
                         value: [
                             "default-src 'self'",
-                            "script-src 'self' 'unsafe-inline' https://www.instagram.com",
+                            // Vercel Analytics + Speed Insights need va.vercel-scripts.com
+                            "script-src 'self' 'unsafe-inline' https://www.instagram.com https://va.vercel-scripts.com",
                             "style-src 'self' 'unsafe-inline'",
                             "img-src 'self' data: blob: https://*.cdninstagram.com https://www.instagram.com",
-                            "font-src 'self'",
-                            "connect-src 'self' https://*.supabase.co wss://*.supabase.co https://precious-sawfly-68348.upstash.io",
+                            "font-src 'self' https://fonts.gstatic.com",
+                            // Vercel Analytics beacon + Supabase + Upstash
+                            "connect-src 'self' https://*.supabase.co wss://*.supabase.co https://precious-sawfly-68348.upstash.io https://va.vercel-scripts.com https://vitals.vercel-insights.com",
                             "frame-src https://www.instagram.com https://instagram.com",
                             "child-src https://www.instagram.com https://instagram.com",
                             "media-src 'self' https://*.cdninstagram.com",

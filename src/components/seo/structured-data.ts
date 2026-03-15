@@ -48,10 +48,6 @@ export function buildWebAppSchema(baseUrl: string, locale: Locale = 'en'): Recor
             bestRating:    '5',
             worstRating:   '1',
         },
-        sameAs: [
-            'https://www.instagram.com/reelguess',
-            'https://twitter.com/reelguess',
-        ],
     }
 }
 
@@ -148,6 +144,7 @@ export function buildBreadcrumbSchema(baseUrl: string, locale: Locale = 'en'): R
 
 /**
  * Organization schema — helps Knowledge Graph and brand recognition.
+ * Includes address and email for Impressum/legal compliance.
  */
 export function buildOrganizationSchema(baseUrl: string): Record<string, unknown> {
     return {
@@ -156,10 +153,62 @@ export function buildOrganizationSchema(baseUrl: string): Record<string, unknown
         name:       'ReelGuess',
         url:        baseUrl,
         logo:       `${baseUrl}/icons/icon-512.png`,
+        email:      'contact@reelguess.app',
+        address: {
+            '@type':           'PostalAddress',
+            streetAddress:     'Musterstraße 1',
+            addressLocality:   'Musterstadt',
+            postalCode:        '12345',
+            addressCountry:    'DE',
+        },
         contactPoint: {
             '@type':             'ContactPoint',
             contactType:         'customer support',
+            email:               'contact@reelguess.app',
             availableLanguage:   ['English', 'German'],
         },
     }
 }
+
+/**
+ * Legal/WebPage schema for Impressum, Datenschutz, and AGB pages.
+ * Helps search engines understand the nature of these pages.
+ */
+export function buildLegalPageSchema(
+    type: 'impressum' | 'datenschutz' | 'agb',
+    url: string,
+    locale: Locale = 'en',
+): Record<string, unknown> {
+    const names: Record<typeof type, Record<Locale, string>> = {
+        impressum:   { en: 'Legal Notice',   de: 'Impressum' },
+        datenschutz: { en: 'Privacy Policy', de: 'Datenschutzerklärung' },
+        agb:         { en: 'Terms and Conditions', de: 'Allgemeine Geschäftsbedingungen' },
+    }
+
+    const baseUrl = url.replace(/\/(?:de\/)?(?:impressum|datenschutz|agb).*$/, '')
+
+    return {
+        '@context':  'https://schema.org',
+        '@type':     'WebPage',
+        name:        names[type][locale],
+        url,
+        inLanguage:  locale === 'de' ? 'de-DE' : 'en-US',
+        isPartOf: {
+            '@type': 'WebSite',
+            name:    'ReelGuess',
+            url:     baseUrl,
+        },
+        about: {
+            '@type': 'Organization',
+            name:    'ReelGuess',
+            url:     baseUrl,
+        },
+        publisher: {
+            '@type': 'Organization',
+            name:    'ReelGuess',
+            url:     baseUrl,
+            logo:    `${baseUrl}/icons/icon-512.png`,
+        },
+    }
+}
+

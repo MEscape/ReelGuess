@@ -45,7 +45,11 @@
 
   "lobby": {
     "title": "Warteraum",
+    "loading": "Lobby laden…",
+    "notMemberTitle": "Nicht in dieser Lobby",
+    "notMemberDescription": "Du bist dieser Lobby noch nicht beigetreten. Gehe zur Startseite und gib dort den Code ein.",
     "code": "Lobby-Code",
+    "codeCharsNeeded": "{count, plural, one {Noch # Zeichen erforderlich} other {Noch # Zeichen erforderlich}}",
     "shareCode": "Teile den Code — Freunde treten sofort bei",
     "waiting": "Warte auf weitere Spieler…",
     "waitingForHost": "Warte darauf, dass der Host startet…",
@@ -278,6 +282,107 @@
     "notFound": {
       "title": "Nicht gefunden — ReelGuess",
       "description": "Diese Seite konnte nicht gefunden werden."
+    },
+    "impressum": {
+      "title": "Impressum — ReelGuess",
+      "description": "Impressum von ReelGuess gemäß § 5 TMG — Angaben zum Betreiber, Kontakt und rechtliche Hinweise."
+    },
+    "datenschutz": {
+      "title": "Datenschutzerklärung — ReelGuess",
+      "description": "Datenschutzerklärung von ReelGuess gemäß DSGVO — wie wir mit Ihren Daten umgehen."
+    },
+    "agb": {
+      "title": "AGB — ReelGuess",
+      "description": "Allgemeine Geschäftsbedingungen von ReelGuess — Nutzungsbedingungen für die Plattform."
+    }
+  },
+
+  "footer": {
+    "copyright": "© {year} ReelGuess. Alle Rechte vorbehalten.",
+    "madeWith": "Gemacht mit ❤️",
+    "links": {
+      "impressum": "Impressum",
+      "datenschutz": "Datenschutz",
+      "agb": "AGB",
+      "cookieSettings": "Cookie-Einstellungen"
+    },
+    "ariaLabel": "Website-Footer"
+  },
+
+  "cookieConsent": {
+    "bannerTitle": "Wir verwenden Cookies 🍪",
+    "bannerText": "Wir nutzen notwendige Cookies für den Betrieb der Website. Mit deiner Zustimmung verwenden wir auch Analyse-Cookies, um die Nutzererfahrung zu verbessern.",
+    "acceptAll": "Alle akzeptieren",
+    "rejectAll": "Nur notwendige",
+    "customize": "Einstellungen",
+    "save": "Auswahl speichern",
+    "settingsTitle": "Cookie-Einstellungen",
+    "settingsSubtitle": "Wähle, welche Cookies du zulassen möchtest.",
+    "necessary": {
+      "label": "Notwendige Cookies",
+      "description": "Diese Cookies sind für den Betrieb der Website erforderlich und können nicht deaktiviert werden. Sie speichern keine personenbezogenen Daten."
+    },
+    "analytics": {
+      "label": "Analyse-Cookies",
+      "description": "Diese Cookies helfen uns zu verstehen, wie Besucher unsere Website nutzen (z. B. Vercel Analytics). Alle Daten sind anonymisiert."
+    },
+    "privacyLink": "Datenschutzerklärung lesen",
+    "ariaLabel": "Cookie-Zustimmung",
+    "ariaClose": "Cookie-Banner schließen"
+  },
+
+  "legal": {
+    "impressum": {
+      "title": "Impressum",
+      "metaDescription": "Gesetzlich vorgeschriebenes Impressum von ReelGuess gemäß § 5 TMG.",
+      "operatorHeading": "Angaben gemäß § 5 TMG",
+      "name": "Max Mustermann",
+      "address": "Musterstraße 1, 12345 Musterstadt, Deutschland",
+      "email": "kontakt@reelguess.app",
+      "phone": "+49 (0) 123 456789",
+      "liabilityHeading": "Haftungsausschluss",
+      "liabilityContent": "Die Inhalte dieser Website wurden mit größter Sorgfalt erstellt. Für die Richtigkeit, Vollständigkeit und Aktualität der Inhalte können wir jedoch keine Gewähr übernehmen. Als Diensteanbieter sind wir gemäß § 7 Abs.1 TMG für eigene Inhalte auf diesen Seiten nach den allgemeinen Gesetzen verantwortlich. Nach §§ 8 bis 10 TMG sind wir als Diensteanbieter jedoch nicht verpflichtet, übermittelte oder gespeicherte fremde Informationen zu überwachen.",
+      "copyrightHeading": "Urheberrecht",
+      "copyrightContent": "Die durch die Seitenbetreiber erstellten Inhalte und Werke auf diesen Seiten unterliegen dem deutschen Urheberrecht. Beiträge Dritter sind als solche gekennzeichnet. Die Vervielfältigung, Bearbeitung, Verbreitung und jede Art der Verwertung außerhalb der Grenzen des Urheberrechtes bedürfen der schriftlichen Zustimmung des jeweiligen Autors bzw. Erstellers.",
+      "disputeHeading": "Streitschlichtung",
+      "disputeContent": "Die Europäische Kommission stellt eine Plattform zur Online-Streitbeilegung (OS) bereit: https://ec.europa.eu/consumers/odr. Unsere E-Mail-Adresse finden Sie oben im Impressum. Wir sind nicht bereit oder verpflichtet, an Streitbeilegungsverfahren vor einer Verbraucherschlichtungsstelle teilzunehmen."
+    },
+    "datenschutz": {
+      "title": "Datenschutzerklärung",
+      "metaDescription": "Datenschutzerklärung von ReelGuess gemäß DSGVO. Informationen zur Verarbeitung personenbezogener Daten.",
+      "intro": "Der Schutz Ihrer persönlichen Daten ist uns ein wichtiges Anliegen. Mit dieser Datenschutzerklärung informieren wir Sie über die Verarbeitung personenbezogener Daten bei der Nutzung unserer Website und App.",
+      "controllerHeading": "Verantwortlicher",
+      "controllerContent": "Verantwortlicher im Sinne der DSGVO ist: Max Mustermann, Musterstraße 1, 12345 Musterstadt, E-Mail: kontakt@reelguess.app",
+      "dataCollectionHeading": "Welche Daten wir verarbeiten",
+      "dataCollectionContent": "Bei der Nutzung von ReelGuess werden folgende Daten verarbeitet: (1) Technische Zugriffsdaten (IP-Adresse, Browser-Typ, Betriebssystem, Referrer-URL) – erhoben durch unseren Hosting-Anbieter Vercel für bis zu 30 Tage; (2) Spieldaten (Spielername, Lobby-Code, Abstimmungsverhalten) – temporär in unserer Supabase-Datenbank gespeichert und nach 7 Tagen automatisch gelöscht; (3) Lokal gespeicherte Daten (importierte Reels, Cookie-Einstellungen) – nur auf Ihrem Gerät, kein Serverzugriff.",
+      "legalBasisHeading": "Rechtsgrundlagen",
+      "legalBasisContent": "Wir verarbeiten Ihre Daten auf Basis folgender Rechtsgrundlagen gemäß Art. 6 DSGVO: (a) berechtigtes Interesse (Art. 6 Abs. 1 lit. f DSGVO) für technische Zugriffsdaten; (b) Vertragserfüllung (Art. 6 Abs. 1 lit. b DSGVO) für Spieldaten; (c) Einwilligung (Art. 6 Abs. 1 lit. a DSGVO) für Analyse-Cookies.",
+      "analyticsHeading": "Analyse-Dienste",
+      "analyticsContent": "Mit Ihrer Einwilligung nutzen wir Vercel Analytics zur anonymisierten Nutzungsanalyse. Dabei werden keine personenbezogenen Daten an Dritte weitergegeben. Sie können diese Verarbeitung jederzeit über die Cookie-Einstellungen widerrufen.",
+      "rightsHeading": "Ihre Rechte",
+      "rightsContent": "Sie haben gemäß DSGVO folgende Rechte: Auskunftsrecht (Art. 15), Berichtigungsrecht (Art. 16), Löschungsrecht (Art. 17), Einschränkungsrecht (Art. 18), Widerspruchsrecht (Art. 21) und Beschwerderecht bei der zuständigen Datenschutzaufsichtsbehörde.",
+      "contactHeading": "Kontakt Datenschutz",
+      "contactContent": "Bei Fragen zum Datenschutz wenden Sie sich bitte an: kontakt@reelguess.app",
+      "cookiesHeading": "Cookies",
+      "cookiesContent": "Unsere Website verwendet Cookies. Notwendige Cookies (Session-Daten, Cookie-Präferenzen) sind für den Betrieb erforderlich. Analyse-Cookies werden nur mit Ihrer ausdrücklichen Einwilligung gesetzt. Details finden Sie in unseren Cookie-Einstellungen."
+    },
+    "agb": {
+      "title": "Allgemeine Geschäftsbedingungen",
+      "metaDescription": "AGB von ReelGuess — Nutzungsbedingungen für die kostenlose Party-Spiel-Plattform.",
+      "scopeHeading": "§ 1 Geltungsbereich",
+      "scopeContent": "Diese Allgemeinen Geschäftsbedingungen gelten für die Nutzung der Webanwendung ReelGuess (reelguess.app). Mit der Nutzung der Plattform akzeptieren Sie diese Bedingungen.",
+      "serviceHeading": "§ 2 Leistungsbeschreibung",
+      "serviceContent": "ReelGuess ist eine kostenlose, browserbasierte Multiplayer-Unterhaltungsplattform. Die Nutzung erfolgt auf eigene Verantwortung. Ein Recht auf dauerhaften Betrieb oder ununterbrochene Verfügbarkeit besteht nicht.",
+      "rulesHeading": "§ 3 Nutzungsregeln",
+      "rulesContent": "Es ist untersagt, die Plattform für rechtswidrige Zwecke zu nutzen, Sicherheitsmechanismen zu umgehen, automatisierte Zugriffe (Bots) durchzuführen oder geistige Eigentumsrechte Dritter zu verletzen.",
+      "contentHeading": "§ 4 Nutzerinhalte",
+      "contentContent": "Nutzer importieren Instagram-URLs aus öffentlich zugänglichen Quellen. Der Betreiber übernimmt keine Verantwortung für die Rechtmäßigkeit importierter Inhalte. Nutzer sind selbst verantwortlich, dass keine Urheberrechte verletzt werden.",
+      "liabilityHeading": "§ 5 Haftungsbeschränkung",
+      "liabilityContent": "Die Haftung des Betreibers ist auf Vorsatz und grobe Fahrlässigkeit beschränkt. Eine Haftung für mittelbare Schäden, entgangenen Gewinn oder Datenverlust ist ausgeschlossen, soweit gesetzlich zulässig.",
+      "changeHeading": "§ 6 Änderungen",
+      "changeContent": "Der Betreiber behält sich vor, diese AGB jederzeit zu ändern. Änderungen werden auf dieser Seite veröffentlicht. Die fortgesetzte Nutzung nach Änderungen gilt als Zustimmung.",
+      "lawHeading": "§ 7 Anwendbares Recht",
+      "lawContent": "Es gilt deutsches Recht unter Ausschluss des UN-Kaufrechts. Gerichtsstand ist, soweit zulässig, der Sitz des Betreibers."
     }
   },
 

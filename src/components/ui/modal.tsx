@@ -107,6 +107,7 @@ export function Modal({
                 role="dialog"
                 aria-modal
                 aria-labelledby="modal-title"
+                aria-describedby={subtitle ? 'modal-subtitle' : undefined}
             >
                 {/* ── Header ───────────────────────────────────────── */}
                 <div className="flex items-start justify-between gap-4 px-6 py-5 border-b-2 border-[var(--color-border)]">
@@ -120,6 +121,7 @@ export function Modal({
                         </h2>
                         {subtitle && (
                             <p
+                                id="modal-subtitle"
                                 className="font-sans text-[var(--color-muted)] leading-snug"
                                 style={{ fontSize: 'var(--text-body-sm)' }}
                             >

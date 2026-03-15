@@ -19,9 +19,9 @@ export function JoinForm() {
     const canSubmit = codeReady && nameReady && !isPending
 
     const hint = !codeReady
-        ? `${6 - code.length} more character${6 - code.length !== 1 ? 's' : ''} needed`
+        ? t('codeCharsNeeded', { count: 6 - code.length })
         : !nameReady
-            ? tPlayer('nameRequired')
+            ? tPlayer('nameRequired', { min: 2 })
             : null
 
     const handleSubmit = useCallback(() => {
