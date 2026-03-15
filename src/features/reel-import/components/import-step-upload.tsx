@@ -29,6 +29,8 @@ export function ImportStepUpload({
         t.rich('steps.step3', RICH_TAGS),
         t.rich('steps.step4', RICH_TAGS),
         t.rich('steps.step5', RICH_TAGS),
+        t.rich('steps.step6', RICH_TAGS),
+        t.rich('steps.step7', RICH_TAGS),
     ]
 
     return (
@@ -49,7 +51,7 @@ export function ImportStepUpload({
 
             {/* ── Instagram export link ── */}
             <a
-                href="https://accountscenter.instagram.com/info_and_permissions/dyi/?show_frameless=1"
+                href="https://accountscenter.instagram.com/info_and_permissions/dyi/"
                 target="_blank"
                 rel="noopener noreferrer"
                 className="btn btn-secondary btn-sm w-full"

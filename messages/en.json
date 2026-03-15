@@ -187,14 +187,16 @@
     "title": "Import Reels",
     "uploadDescription": "Upload once — Reels are stored locally on your device, ready for any future game.",
     "uploadDescriptionHtml": "Upload once — <strong>locally on your device</strong>, ready for any future game.",
-    "openInstagramExport": "Open Instagram Export →",
-    "followSteps": "Follow these steps",
+    "openInstagramExport": "Open Instagram Account Centre →",
+    "followSteps": "How to export your liked Reels",
     "steps": {
-      "step1": "Select <strong>\"Download or transfer information\"</strong>",
-      "step2": "Choose <strong>\"Some of your information\"</strong> → check only <strong>Likes</strong> → Next",
-      "step3": "Select <strong>\"Download to device\"</strong> → Next",
-      "step4": "Date range: <strong>Last year</strong> · Format: <strong>JSON</strong> → Create files",
-      "step5": "Unzip → open <code>likes/</code> → upload <code>liked_posts.json</code>"
+      "step1": "Open Instagram → go to your <strong>Profile</strong> → tap the <strong>hamburger menu ☰</strong> → <strong>Account overview</strong>",
+      "step2": "Tap <strong>Your information and permissions</strong> → <strong>Export your information</strong> → <strong>Export to device</strong>",
+      "step3": "If you have multiple accounts, <strong>select the correct profile</strong>. Set an <strong>e-mail address</strong> for the download notification if prompted, then save.",
+      "step4": "Tap <strong>Customise information</strong> → remove all categories → check only <strongAccent>\"Likes\"</strongAccent> → save. Set <strong>Date range</strong> → save. Set <strong>Format: JSON</strong> → save. Set <strong>Media quality: Low</strong> → save.",
+      "step5": "Tap <strong>Start export</strong>. Wait a few minutes (you may get an e-mail). Come back and tap <strong>Download</strong> when the export is ready.",
+      "step6": "Open the downloaded <strong>.zip file</strong> and unzip it.",
+      "step7": "Inside the zip look for <code>your_instagram_activity/likes/</code> and upload <code>liked_posts.json</code> below."
     },
     "urlLabel": "Instagram Reel URL",
     "urlPlaceholder": "https://www.instagram.com/reel/…",
