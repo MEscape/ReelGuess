@@ -24,14 +24,20 @@ export function GameClient({ lobby, initialRound, initialScores, reelData, initi
     const t = useTranslations('game')
     const tLobby = useTranslations('lobby')
 
-    // Synchronous identity resolution - survives Next.js App Router server-action refreshes
+    // Synchronous identity resolution — runs in the useState initialiser (before first render)
+    // so the component immediately renders with the correct identity after a Next.js
+    // App Router soft-refresh (e.g. triggered by a server action). Returns 'loading'
+    // instead of 'not-member' when the store hasn't rehydrated yet, so the async
+    // effect below can verify before deciding the player is not a member.
     const [identity, setIdentity] = useState<'loading' | 'not-member' | string>(() => {
         if (typeof window === 'undefined') return 'loading'
         const id = getPlayerId(lobby.id)
-        return id ?? 'not-member'
+        // If store hasn't rehydrated yet, id may be null even for valid members.
+        // Return 'loading' instead of 'not-member' so the async effect can verify.
+        return id ?? 'loading'
     })
 
-    // Async fallback for SSR initial render
+    // Async fallback — only fires if the synchronous read returned 'loading'
     useEffect(() => {
         if (identity !== 'loading') return
         const id = getPlayerId(lobby.id)
