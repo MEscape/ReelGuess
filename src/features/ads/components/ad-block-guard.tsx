@@ -26,7 +26,7 @@ export function AdBlockGuard({ children }: Props) {
     // 3. The site actually has an AdSense publisher ID configured
     const publisherConfigured = Boolean(process.env.NEXT_PUBLIC_ADSENSE_ID)
 
-    if (!isChecking && isBlocked && publisherConfigured) {
+    if (!isChecking && isBlocked && !publisherConfigured) {
         return <AdBlockWall />
     }
 
