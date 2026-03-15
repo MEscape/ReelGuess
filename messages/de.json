@@ -40,7 +40,12 @@
     "manageReels": "Bereit zum Spielen",
     "addMore": "Hinzufügen",
     "clearAll": "Alle löschen",
-    "reelCount": "{count, plural, one {# Reel bereit} other {# Reels bereit}}"
+    "reelCount": "{count, plural, one {# Reel bereit} other {# Reels bereit}}",
+    "reelLimitTitle": "Reel-Limit erreicht",
+    "reelLimitBody": "Du hast {limit} Reels gespeichert. Schau eine kurze Werbung, um {extra} weitere Slots freizuschalten.",
+    "reelLimitCta": "🎬 Werbung ansehen & {extra} Slots freischalten",
+    "reelLimitUnlocked": "🎉 {extra} Slots freigeschaltet!",
+    "reelsBelowRecommended": "⚠ Für maximale Spielvielfalt empfehlen wir mindestens {recommended} Reels. Du hast aktuell {current}."
   },
 
   "lobby": {
@@ -93,6 +98,7 @@
       "complete": "Punkte",
       "finished": "Spiel vorbei"
     },
+    "loading": "Spiel laden…",
     "round": "Runde {current} von {total}",
     "roundLabel": "Runde",
     "timeLeft": "{seconds} Sek. übrig",
@@ -197,6 +203,8 @@
     "importing": "Importiere…",
     "successTitle": "Bereit!",
     "successDescription": "Deine Reels wurden lokal gespeichert",
+    "slotsCappedWarning": "{capped} Reels konnten nicht gespeichert werden — deine Slots sind voll.",
+    "slotsCappedHint": "Schau auf der Startseite eine kurze Werbung an, um mehr Slots freizuschalten.",
     "addAnother": "Weiteren hinzufügen",
     "done": "← Zurück",
     "deleteConfirm": "Diesen Reel entfernen?",
@@ -326,6 +334,15 @@
       "label": "Analyse-Cookies",
       "description": "Diese Cookies helfen uns zu verstehen, wie Besucher unsere Website nutzen (z. B. Vercel Analytics). Alle Daten sind anonymisiert."
     },
+    "advertising": {
+      "label": "Werbung",
+      "alwaysOn": "Immer aktiv",
+      "descriptionLegal": "ReelGuess finanziert sich durch Werbung. Du kannst zwischen personalisierten und nicht-personalisierten Anzeigen wählen. Nicht-personalisierte Werbung (kontextbezogen, keine Tracking-Cookies) ist nach § 25 TTDSG ohne gesonderte Einwilligung zulässig und kann daher nicht deaktiviert werden.",
+      "personalized": "Personalisierte Werbung (empfohlen)",
+      "personalizedDesc": "Werbung basierend auf deinen Interessen. Google AdSense-Cookies werden gesetzt. Ermöglicht höhere Werbeeinnahmen und damit kostenlose Dienste.",
+      "nonPersonalized": "Nur nicht-personalisierte Werbung",
+      "nonPersonalizedDesc": "Kontextbezogene Anzeigen ohne persönliche Tracking-Cookies. Keine Datenübertragung an Werbenetzwerke für Profilbildung."
+    },
     "privacyLink": "Datenschutzerklärung lesen",
     "ariaLabel": "Cookie-Zustimmung",
     "ariaClose": "Cookie-Banner schließen"
@@ -336,10 +353,10 @@
       "title": "Impressum",
       "metaDescription": "Gesetzlich vorgeschriebenes Impressum von ReelGuess gemäß § 5 TMG.",
       "operatorHeading": "Angaben gemäß § 5 TMG",
-      "name": "Max Mustermann",
-      "address": "Musterstraße 1, 12345 Musterstadt, Deutschland",
-      "email": "kontakt@reelguess.app",
-      "phone": "+49 (0) 123 456789",
+      "name": "Marvin Eschenbach",
+      "address": "Hauptstraße 10, 97653 Bischofsheim i. d. Rhön, Deutschland",
+      "email": "business.eschenbach@gmail.com",
+      "phone": "Nicht verfügbar",
       "liabilityHeading": "Haftungsausschluss",
       "liabilityContent": "Die Inhalte dieser Website wurden mit größter Sorgfalt erstellt. Für die Richtigkeit, Vollständigkeit und Aktualität der Inhalte können wir jedoch keine Gewähr übernehmen. Als Diensteanbieter sind wir gemäß § 7 Abs.1 TMG für eigene Inhalte auf diesen Seiten nach den allgemeinen Gesetzen verantwortlich. Nach §§ 8 bis 10 TMG sind wir als Diensteanbieter jedoch nicht verpflichtet, übermittelte oder gespeicherte fremde Informationen zu überwachen.",
       "copyrightHeading": "Urheberrecht",
@@ -352,19 +369,23 @@
       "metaDescription": "Datenschutzerklärung von ReelGuess gemäß DSGVO. Informationen zur Verarbeitung personenbezogener Daten.",
       "intro": "Der Schutz Ihrer persönlichen Daten ist uns ein wichtiges Anliegen. Mit dieser Datenschutzerklärung informieren wir Sie über die Verarbeitung personenbezogener Daten bei der Nutzung unserer Website und App.",
       "controllerHeading": "Verantwortlicher",
-      "controllerContent": "Verantwortlicher im Sinne der DSGVO ist: Max Mustermann, Musterstraße 1, 12345 Musterstadt, E-Mail: kontakt@reelguess.app",
+      "controllerContent": "Verantwortlicher im Sinne der DSGVO ist: Marvin Eschenbach, Hauptstraße 10, 97653 Bischofsheim i. d. Rhön, E-Mail: business.eschenbach@gmail.com",
       "dataCollectionHeading": "Welche Daten wir verarbeiten",
       "dataCollectionContent": "Bei der Nutzung von ReelGuess werden folgende Daten verarbeitet: (1) Technische Zugriffsdaten (IP-Adresse, Browser-Typ, Betriebssystem, Referrer-URL) – erhoben durch unseren Hosting-Anbieter Vercel für bis zu 30 Tage; (2) Spieldaten (Spielername, Lobby-Code, Abstimmungsverhalten) – temporär in unserer Supabase-Datenbank gespeichert und nach 7 Tagen automatisch gelöscht; (3) Lokal gespeicherte Daten (importierte Reels, Cookie-Einstellungen) – nur auf Ihrem Gerät, kein Serverzugriff.",
       "legalBasisHeading": "Rechtsgrundlagen",
       "legalBasisContent": "Wir verarbeiten Ihre Daten auf Basis folgender Rechtsgrundlagen gemäß Art. 6 DSGVO: (a) berechtigtes Interesse (Art. 6 Abs. 1 lit. f DSGVO) für technische Zugriffsdaten; (b) Vertragserfüllung (Art. 6 Abs. 1 lit. b DSGVO) für Spieldaten; (c) Einwilligung (Art. 6 Abs. 1 lit. a DSGVO) für Analyse-Cookies.",
       "analyticsHeading": "Analyse-Dienste",
       "analyticsContent": "Mit Ihrer Einwilligung nutzen wir Vercel Analytics zur anonymisierten Nutzungsanalyse. Dabei werden keine personenbezogenen Daten an Dritte weitergegeben. Sie können diese Verarbeitung jederzeit über die Cookie-Einstellungen widerrufen.",
+      "advertisingHeading": "Werbung (Google AdSense)",
+      "advertisingContent": "ReelGuess finanziert sich durch Werbeanzeigen von Google AdSense (Google LLC, 1600 Amphitheatre Parkway, Mountain View, CA 94043, USA). Es werden zwei Betriebsmodi unterschieden: (1) Personalisierte Werbung: Mit Ihrer Einwilligung gemäß Art. 6 Abs. 1 lit. a DSGVO i. V. m. § 25 Abs. 1 TTDSG werden Cookies und ähnliche Technologien eingesetzt, um Ihnen interessenbezogene Werbung anzuzeigen. Google kann dabei Daten in die USA übertragen (Standardvertragsklauseln). (2) Nicht-personalisierte Werbung: Ohne gesonderte Einwilligung werden ausschließlich kontextbezogene Anzeigen ohne persönliche Tracking-Cookies ausgespielt. Diese Verarbeitung ist auf § 25 Abs. 2 TTDSG gestützt (keine gesonderte Einwilligung erforderlich). Das Werbe-Script wird über unsere eigene Domain ausgeliefert. Sie können Ihre Einwilligung in personalisierte Werbung jederzeit über die Cookie-Einstellungen widerrufen. Google-Datenschutz: https://policies.google.com/privacy. Opt-out: https://adssettings.google.com/",
       "rightsHeading": "Ihre Rechte",
       "rightsContent": "Sie haben gemäß DSGVO folgende Rechte: Auskunftsrecht (Art. 15), Berichtigungsrecht (Art. 16), Löschungsrecht (Art. 17), Einschränkungsrecht (Art. 18), Widerspruchsrecht (Art. 21) und Beschwerderecht bei der zuständigen Datenschutzaufsichtsbehörde.",
-      "contactHeading": "Kontakt Datenschutz",
-      "contactContent": "Bei Fragen zum Datenschutz wenden Sie sich bitte an: kontakt@reelguess.app",
-      "cookiesHeading": "Cookies",
-      "cookiesContent": "Unsere Website verwendet Cookies. Notwendige Cookies (Session-Daten, Cookie-Präferenzen) sind für den Betrieb erforderlich. Analyse-Cookies werden nur mit Ihrer ausdrücklichen Einwilligung gesetzt. Details finden Sie in unseren Cookie-Einstellungen."
+      "contactHeading": "Kontakt für Datenschutzanfragen",
+      "contactContent": "Bei Fragen zum Datenschutz, zur Auskunft oder zur Löschung Ihrer Daten wenden Sie sich bitte an: kontakt@reelguess.app — Wir antworten in der Regel innerhalb von 30 Tagen.",
+      "cookiesHeading": "Cookies & lokaler Speicher",
+      "cookiesContent": "Unsere Website verwendet Cookies und den lokalen Speicher (localStorage) des Browsers. Notwendige Cookies (Session-Token, Cookie-Präferenzen) sind für den Betrieb erforderlich und werden ohne Einwilligung gesetzt (§ 25 Abs. 2 TTDSG). Analyse-Cookies (Vercel Analytics, Sentry) werden nur mit Ihrer ausdrücklichen Einwilligung gesetzt. Werbe-Cookies für personalisierte Anzeigen werden nur mit Einwilligung gesetzt; nicht-personalisierte Werbung benötigt keine Einwilligung (§ 25 Abs. 2 TTDSG). Lokal importierte Reels werden ausschließlich in Ihrem Browser gespeichert und verlassen Ihr Gerät nicht. Details können Sie in unseren Cookie-Einstellungen verwalten.",
+      "changesHeading": "Änderungen dieser Datenschutzerklärung",
+      "changesContent": "Wir behalten uns vor, diese Datenschutzerklärung jederzeit anzupassen, um rechtlichen Anforderungen zu entsprechen oder Änderungen in unserem Angebot abzubilden. Die aktuelle Fassung ist stets unter reelguess.app/datenschutz abrufbar. Stand: März 2026."
     },
     "agb": {
       "title": "Allgemeine Geschäftsbedingungen",
@@ -375,6 +396,8 @@
       "serviceContent": "ReelGuess ist eine kostenlose, browserbasierte Multiplayer-Unterhaltungsplattform. Die Nutzung erfolgt auf eigene Verantwortung. Ein Recht auf dauerhaften Betrieb oder ununterbrochene Verfügbarkeit besteht nicht.",
       "rulesHeading": "§ 3 Nutzungsregeln",
       "rulesContent": "Es ist untersagt, die Plattform für rechtswidrige Zwecke zu nutzen, Sicherheitsmechanismen zu umgehen, automatisierte Zugriffe (Bots) durchzuführen oder geistige Eigentumsrechte Dritter zu verletzen.",
+      "advertisingHeading": "§ 3a Werbung",
+      "advertisingContent": "ReelGuess ist eine kostenlose Plattform, die sich durch Werbeanzeigen finanziert. Mit Ihrer Einwilligung können Werbeanzeigen von Drittanbietern (z. B. Google AdSense) angezeigt werden. Die Werbung wird ausschließlich an natürlichen Übergangspunkten im Spielfluss eingeblendet — nie während aktiver Spielphasen. Optional können Belohnungs-Werbeanzeigen (Rewarded Ads) angeboten werden, bei denen Sie durch freiwilliges Ansehen kleine In-Game-Vorteile erhalten können. Die Teilnahme ist stets freiwillig.",
       "contentHeading": "§ 4 Nutzerinhalte",
       "contentContent": "Nutzer importieren Instagram-URLs aus öffentlich zugänglichen Quellen. Der Betreiber übernimmt keine Verantwortung für die Rechtmäßigkeit importierter Inhalte. Nutzer sind selbst verantwortlich, dass keine Urheberrechte verletzt werden.",
       "liabilityHeading": "§ 5 Haftungsbeschränkung",
@@ -384,6 +407,25 @@
       "lawHeading": "§ 7 Anwendbares Recht",
       "lawContent": "Es gilt deutsches Recht unter Ausschluss des UN-Kaufrechts. Gerichtsstand ist, soweit zulässig, der Sitz des Betreibers."
     }
+  },
+
+  "adBlock": {
+    "title": "Werbeblocker erkannt",
+    "body": "ReelGuess ist kostenlos — wir finanzieren uns ausschließlich durch Werbung. Bitte deaktiviere deinen Werbeblocker für diese Seite, damit wir den Dienst weiterhin kostenlos anbieten können.",
+    "step1": "Öffne die Erweiterungen in deinem Browser",
+    "step2": "Deaktiviere den Werbeblocker für \"reelguess.app\"",
+    "step3": "Lade die Seite neu und klicke unten auf \"Erneut versuchen\"",
+    "retry": "Erneut versuchen",
+    "retrying": "Wird geprüft…",
+    "retryFailed": "Werbeblocker ist noch aktiv. Bitte deaktiviere ihn und versuche es erneut.",
+    "footnote": "Du kannst auch nicht-personalisierte Werbung ohne Tracking wählen — einfach \"Nur notwendige\" im Cookie-Banner auswählen."
+  },
+
+  "ads": {
+    "interstitialLabel": "Werbeanzeige",
+    "closeAd": "Werbung schließen",
+    "closeAdIn": "Schließen in {seconds} Sekunden",
+    "adDisclosure": "Werbung"
   },
 
   "aria": {

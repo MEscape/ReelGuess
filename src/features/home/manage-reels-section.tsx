@@ -1,11 +1,14 @@
 'use client'
 
-import { useState }        from 'react'
+import { useCallback, useEffect, useState } from 'react'
 import { useTranslations } from 'next-intl'
-import { Button }          from '@/components/ui'
-import { ImportFlow }      from '@/features/reel-import/components/import-flow'
-import { useLocalReels }   from '@/features/reel-import/hooks/use-local-reels'
-import { cn }              from '@/lib/utils/cn'
+import { Button } from '@/components/ui'
+import { ImportFlow } from '@/features/reel-import/components/import-flow'
+import { useLocalReels } from '@/features/reel-import/hooks/use-local-reels'
+import { cn } from '@/lib/utils/cn'
+import { SOFT_LOCAL_LIMIT, REWARD_EXTRA_SLOTS, RECOMMENDED_REELS } from '@/features/reel-import/constants'
+import { getRewardSlots, addRewardSlots } from '@/features/reel-import/stores/reward-slots-store'
+import { RewardedAd } from '@/features/ads'
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Constants
@@ -24,8 +27,41 @@ const MAX_PREVIEW = 10
  */
 export function ManageReelsSection() {
     const [showImport, setShowImport] = useState(false)
+    const [showRewardAd, setShowRewardAd] = useState(false)
+    const [justUnlocked, setJustUnlocked] = useState(false)
+    const [bonusSlots, setBonusSlots] = useState(0)
+
     const { reels, count, clear } = useLocalReels()
     const t = useTranslations('home')
+
+    // Hydrate bonus slots from localStorage after mount
+    useEffect(() => {
+        // eslint-disable-next-line react-hooks/set-state-in-effect
+        setBonusSlots(getRewardSlots())
+    }, [])
+
+    const effectiveLimit = SOFT_LOCAL_LIMIT + bonusSlots
+    const isAtLimit = count >= effectiveLimit
+
+    const handleReward = useCallback(() => {
+        const next = addRewardSlots(REWARD_EXTRA_SLOTS)
+        setBonusSlots(next - (next - REWARD_EXTRA_SLOTS))  // local increment
+        setBonusSlots(getRewardSlots())
+        setJustUnlocked(true)
+        setShowRewardAd(false)
+        // Hide the unlocked badge after 4 s
+        setTimeout(() => setJustUnlocked(false), 4_000)
+    }, [])
+
+    /* ── Rewarded Ad overlay ── */
+    if (showRewardAd) {
+        return (
+            <RewardedAd
+                onClose={() => setShowRewardAd(false)}
+                onReward={handleReward}
+            />
+        )
+    }
 
     /* ── Importing ── */
     if (showImport) {
@@ -91,9 +127,12 @@ export function ManageReelsSection() {
                     >
                         {t('clearAll')}
                     </button>
-                    <Button size="sm" variant="ghost" onClick={() => setShowImport(true)}>
-                        + {t('addMore')}
-                    </Button>
+                    {/* Only allow adding if under effective limit */}
+                    {!isAtLimit && (
+                        <Button size="sm" variant="ghost" onClick={() => setShowImport(true)}>
+                            + {t('addMore')}
+                        </Button>
+                    )}
                 </div>
             </div>
 
@@ -124,19 +163,75 @@ export function ManageReelsSection() {
                 </div>
             </div>
 
+            {/* Soft-limit reached → Rewarded-Ad unlock prompt */}
+            {isAtLimit && (
+                <div
+                    className="mx-3 mb-3 p-3 border-2 border-dashed border-[var(--color-accent)] flex flex-col gap-2"
+                    style={{ background: 'rgba(245,200,0,0.05)' }}
+                >
+                    {justUnlocked ? (
+                        <p
+                            className="font-display uppercase text-center text-[var(--color-success)]"
+                            style={{ fontSize: 'var(--text-body-sm)', letterSpacing: 'var(--tracking-label)' }}
+                        >
+                            {t('reelLimitUnlocked', { extra: REWARD_EXTRA_SLOTS })}
+                        </p>
+                    ) : (
+                        <>
+                            <p
+                                className="font-sans text-[var(--color-muted)]"
+                                style={{ fontSize: 'var(--text-body-sm)' }}
+                            >
+                                {t('reelLimitBody', { limit: effectiveLimit, extra: REWARD_EXTRA_SLOTS })}
+                            </p>
+                            <Button
+                                size="sm"
+                                variant="primary"
+                                onClick={() => setShowRewardAd(true)}
+                                style={{ width: '100%' }}
+                            >
+                                {t('reelLimitCta', { extra: REWARD_EXTRA_SLOTS })}
+                            </Button>
+                        </>
+                    )}
+                </div>
+            )}
+
             {/* Readiness bar */}
             <div className="px-3 pb-3">
                 <div className="flex items-center justify-between mb-1.5">
                     <span className="input-label" style={{ marginBottom: 0, color: 'var(--color-subtle)' }}>
                         {t('manageReels')}
                     </span>
-                    <span className="input-label" style={{ marginBottom: 0, color: 'var(--color-success)' }}>
-                        ✓ {count} loaded
+                    <span
+                        className="input-label"
+                        style={{
+                            marginBottom: 0,
+                            color: count >= RECOMMENDED_REELS
+                                ? 'var(--color-success)'
+                                : count >= 3
+                                    ? 'var(--color-warning)'
+                                    : 'var(--color-danger)',
+                        }}
+                    >
+                        {count >= RECOMMENDED_REELS ? '✓' : '⚠'} {count}/{effectiveLimit}
                     </span>
                 </div>
-                <div className="progress-track success">
-                    <div className="progress-fill" style={{ width: '100%' }} />
+                <div className={cn('progress-track', count >= RECOMMENDED_REELS ? 'success' : 'warning')}>
+                    <div
+                        className="progress-fill"
+                        style={{ width: `${Math.min(100, (count / effectiveLimit) * 100)}%` }}
+                    />
                 </div>
+                {/* Warning hint when below sweetspot */}
+                {count > 0 && count < RECOMMENDED_REELS && (
+                    <p
+                        className="font-sans mt-1.5"
+                        style={{ fontSize: 'var(--text-body-sm)', color: 'var(--color-warning)' }}
+                    >
+                        {t('reelsBelowRecommended', { recommended: RECOMMENDED_REELS, current: count })}
+                    </p>
+                )}
             </div>
 
         </div>

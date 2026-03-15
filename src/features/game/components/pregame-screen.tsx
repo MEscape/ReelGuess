@@ -1,26 +1,26 @@
 'use client'
 
-import { motion }                        from 'framer-motion'
-import { useTranslations }               from 'next-intl'
-import { Button, Card, ErrorMessage,
-    Badge }                          from '@/components/ui'
-import { PlayerAvatar }                  from '@/features/player'
-import { useGameSession, useGameRound }  from '../game-context'
-import type { Lobby }                    from '@/features/lobby'
+import { motion } from 'framer-motion'
+import { useTranslations } from 'next-intl'
+import { Button, Card, ErrorMessage, Badge } from '@/components/ui'
+import { PlayerAvatar } from '@/features/player'
+import { useGameSession, useGameRound } from '../game-context'
+import { BannerAd } from '@/features/ads'
+import type { Lobby } from '@/features/lobby'
 
 type PregamePanelProps = { lobby: Lobby }
 
 export function PregameScreen({ lobby }: PregamePanelProps) {
-    const { currentPlayerId, isHost, settings }            = useGameSession()
+    const { currentPlayerId, isHost, settings } = useGameSession()
     const { isStartPending, startError, onStartNextRound } = useGameRound()
-    const t  = useTranslations('game')
+    const t = useTranslations('game')
     const tLobby = useTranslations('lobby')
 
     const playerCount = lobby.players.length
 
     const settings2Col = [
         { label: t('settingRounds'), value: settings.roundsCount },
-        { label: t('settingTimer'),  value: `${settings.timerSeconds}s` },
+        { label: t('settingTimer'), value: `${settings.timerSeconds}s` },
     ]
 
     return (
@@ -31,9 +31,9 @@ export function PregameScreen({ lobby }: PregamePanelProps) {
                 className="flex items-center justify-between px-4 py-3"
                 style={{
                     background: 'var(--color-surface)',
-                    border:     '2px solid var(--color-border-subtle)',
+                    border: '2px solid var(--color-border-subtle)',
                     borderLeft: '4px solid var(--color-accent)',
-                    boxShadow:  'var(--shadow-brutal)',
+                    boxShadow: 'var(--shadow-brutal)',
                 }}
             >
                 <div className="flex items-center gap-3">
@@ -73,7 +73,7 @@ export function PregameScreen({ lobby }: PregamePanelProps) {
                 <div>
                     {lobby.players.map((p, i) => {
                         const isCurrentPlayer = p.id === currentPlayerId
-                        const isLobbyHost     = p.id === lobby.hostId
+                        const isLobbyHost = p.id === lobby.hostId
 
                         return (
                             <motion.div
@@ -105,7 +105,7 @@ export function PregameScreen({ lobby }: PregamePanelProps) {
                                 </span>
 
                                 <div className="flex items-center gap-1.5 shrink-0">
-                                    {isLobbyHost     && <Badge variant="accent" size="sm">{tLobby('hostLabel').toUpperCase()}</Badge>}
+                                    {isLobbyHost && <Badge variant="accent" size="sm">{tLobby('hostLabel').toUpperCase()}</Badge>}
                                     {isCurrentPlayer && !isLobbyHost && <Badge variant="muted" size="sm">{tLobby('youLabel').toUpperCase()}</Badge>}
                                 </div>
                             </motion.div>
@@ -176,7 +176,9 @@ export function PregameScreen({ lobby }: PregamePanelProps) {
                     </span>
                 </div>
             )}
+
+            {/* ── Lobby waiting banner ad (non-intrusive, space always reserved) ── */}
+            <BannerAd placement="banner-lobby" />
         </div>
     )
 }
-

@@ -1,6 +1,7 @@
 'use client'
 
-import { useState, useEffect, startTransition } from 'react'
+import { useState, useEffect } from 'react'
+import { useTranslations }  from 'next-intl'
 import { GameBoard }        from '@/features/game'
 import { PageLoader }       from '@/components/ui'
 import { NotMemberScreen }  from '@/features/home'
@@ -10,10 +11,6 @@ import type { Round }       from '@/features/round'
 import type { ScoreEntry }  from '@/features/scoring'
 import type { ReelData }    from '@/features/reel-player'
 
-// ─────────────────────────────────────────────────────────────────────────────
-// Types
-// ─────────────────────────────────────────────────────────────────────────────
-
 type Props = {
     lobby:            Lobby
     initialRound:     Round | null
@@ -22,49 +19,49 @@ type Props = {
     initialVoteCount: number
 }
 
-// ─────────────────────────────────────────────────────────────────────────────
-// Component
-// ─────────────────────────────────────────────────────────────────────────────
-
-/**
- * Thin client wrapper for the game page — brutalist redesign.
- *
- * Hydration fix: `playerId` is null on SSR + first client render,
- * populated via useEffect to avoid sessionStorage mismatch.
- */
 export function GameClient({ lobby, initialRound, initialScores, reelData, initialVoteCount }: Props) {
     const getPlayerId = usePlayerStore((s) => s.getPlayerId)
-    const [identity, setIdentity] = useState<'loading' | 'not-member' | string>('loading')
+    const t = useTranslations('game')
+    const tLobby = useTranslations('lobby')
 
-    useEffect(() => {
+    // Synchronous identity resolution - survives Next.js App Router server-action refreshes
+    const [identity, setIdentity] = useState<'loading' | 'not-member' | string>(() => {
+        if (typeof window === 'undefined') return 'loading'
         const id = getPlayerId(lobby.id)
-        startTransition(() => setIdentity(id ?? 'not-member'))
-    }, [getPlayerId, lobby.id])
+        return id ?? 'not-member'
+    })
 
-    // Loading — sessionStorage not yet read.
+    // Async fallback for SSR initial render
+    useEffect(() => {
+        if (identity !== 'loading') return
+        const id = getPlayerId(lobby.id)
+        // eslint-disable-next-line react-hooks/set-state-in-effect
+        setIdentity(id ?? 'not-member')
+    }, [getPlayerId, lobby.id, identity])
+
     if (identity === 'loading') {
-        return <PageLoader emoji="🎬" label="Loading Game…" />
+        return <PageLoader emoji="🎬" label={t('loading')} />
     }
 
-    // Not in this game.
     if (identity === 'not-member') {
         return (
             <NotMemberScreen
-                title="Not in this game"
-                description="You need to join the lobby first before you can play."
+                title={tLobby('notMemberTitle')}
+                description={tLobby('notMemberDescription')}
             />
         )
     }
 
-    // In game — identity is the UUID string.
     return (
-        <GameBoard
-            lobby={lobby}
-            currentPlayerId={identity}
-            initialRound={initialRound}
-            initialScores={initialScores}
-            reelData={reelData}
-            initialVoteCount={initialVoteCount}
-        />
+        <main className="game-page-main">
+            <GameBoard
+                lobby={lobby}
+                currentPlayerId={identity}
+                initialRound={initialRound}
+                initialScores={initialScores}
+                reelData={reelData}
+                initialVoteCount={initialVoteCount}
+            />
+        </main>
     )
 }

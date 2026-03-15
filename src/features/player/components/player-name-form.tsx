@@ -48,7 +48,7 @@ export function PlayerNameForm({
                     className="font-sans"
                     style={{ fontSize: 'var(--text-label-sm)', color: 'var(--color-danger)' }}
                 >
-                    {t('nameRequired')}
+                    {t('nameRequired', { min: NAME_MIN_LENGTH })}
                 </p>
             )}
 

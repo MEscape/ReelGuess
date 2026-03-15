@@ -28,7 +28,7 @@ export function PageLoader({
     label?: string
 }) {
     return (
-        <div className="min-h-dvh flex items-center justify-center bg-[var(--color-background)]">
+        <div className="flex flex-1 items-center justify-center bg-[var(--color-background)]">
             <div className="flex flex-col items-center gap-4">
                 <span
                     className="block text-6xl leading-none page-loader-emoji"

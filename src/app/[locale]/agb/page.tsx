@@ -63,13 +63,14 @@ export default async function AgbPage({ params }: Props) {
 
                     <article className="legal-page__content">
                         {[
-                            { id: 'scope',    heading: t('scopeHeading'),    body: t('scopeContent') },
-                            { id: 'service',  heading: t('serviceHeading'),  body: t('serviceContent') },
-                            { id: 'rules',    heading: t('rulesHeading'),    body: t('rulesContent') },
-                            { id: 'content',  heading: t('contentHeading'),  body: t('contentContent') },
-                            { id: 'liability',heading: t('liabilityHeading'),body: t('liabilityContent') },
-                            { id: 'change',   heading: t('changeHeading'),   body: t('changeContent') },
-                            { id: 'law',      heading: t('lawHeading'),      body: t('lawContent') },
+                            { id: 'scope',       heading: t('scopeHeading'),       body: t('scopeContent') },
+                            { id: 'service',     heading: t('serviceHeading'),     body: t('serviceContent') },
+                            { id: 'rules',       heading: t('rulesHeading'),       body: t('rulesContent') },
+                            { id: 'advertising', heading: t('advertisingHeading'), body: t('advertisingContent') },
+                            { id: 'content',     heading: t('contentHeading'),     body: t('contentContent') },
+                            { id: 'liability',   heading: t('liabilityHeading'),   body: t('liabilityContent') },
+                            { id: 'change',      heading: t('changeHeading'),      body: t('changeContent') },
+                            { id: 'law',         heading: t('lawHeading'),         body: t('lawContent') },
                         ].map(({ id, heading, body }) => (
                             <section key={id} aria-labelledby={`agb-${id}`}>
                                 <h2 id={`agb-${id}`} className="legal-page__section-title">

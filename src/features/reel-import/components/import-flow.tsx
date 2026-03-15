@@ -3,19 +3,16 @@
 import { useState, useEffect, useCallback, useMemo } from 'react'
 import { useLocalReels }       from '../hooks/use-local-reels'
 import { useFileImport }       from '../hooks/use-file-import'
-import { LOCAL_MAX_REELS }     from '../constants'
+import { getLocalReels }       from '../stores/local-reel-store'
+import { LOCAL_MAX_REELS, SOFT_LOCAL_LIMIT } from '../constants'
+import { getRewardSlots }      from '../stores/reward-slots-store'
 import type { AddReelsResult } from '../types'
 
 import { ImportStepUpload }  from './import-step-upload'
 import { ImportStepConfirm } from './import-step-confirm'
 import { ImportDone }        from './import-step-done'
 
-// ─────────────────────────────────────────────────────────────────────────────
-// Types
-// ─────────────────────────────────────────────────────────────────────────────
-
 type ImportFlowProps = {
-    /** Called after the user closes the done screen (e.g. to dismiss a modal). */
     onComplete?: () => void
 }
 
@@ -48,40 +45,58 @@ type Step = 'upload' | 'confirm' | 'done'
  * components do not receive new prop references on every parent render.
  */
 export function ImportFlow({ onComplete }: ImportFlowProps) {
-    const { count: localCount, addReels } = useLocalReels()
+    const { addReels } = useLocalReels()
     const fileImport = useFileImport()
 
-    const [step,       setStep]       = useState<Step>('upload')
-    const [saveResult, setSaveResult] = useState<AddReelsResult | null>(null)
+    const [step,        setStep]        = useState<Step>('upload')
+    const [saveResult,  setSaveResult]  = useState<AddReelsResult | null>(null)
+    const [slotsCapped, setSlotsCapped] = useState(0)
 
-    // Stable derived value — same [] reference when not in parsed state.
     const parsedUrls = useMemo(
         () => fileImport.state.status === 'parsed' ? fileImport.state.urls : [],
         [fileImport.state],
     )
 
-    // ── File parsed → advance to confirm ─────────────────────────────────
-    // Driven by useEffect, not a conditional setStep in the render body.
-    // The render-body pattern causes double renders and breaks React's
-    // concurrent mode state transition rules.
     useEffect(() => {
         if (fileImport.state.status === 'parsed' && step === 'upload') {
             setStep('confirm')
         }
     }, [fileImport.state.status, step])
 
-    // ── Confirm: save to localStorage ────────────────────────────────────
     const handleConfirmSubmit = useCallback((): void => {
         if (parsedUrls.length === 0) return
-        // Save up to LOCAL_MAX_REELS (500) to localStorage.
-        // The game-session cap (MAX_REELS = 50) is applied server-side when
-        // the player joins or creates a lobby — NOT here.
-        const result = addReels(parsedUrls.slice(0, LOCAL_MAX_REELS))
-        setSaveResult(result)
+
+        // 1. Read pool at submit-time to get accurate current state
+        const poolNow      = getLocalReels()
+        const poolSet      = new Set(poolNow.map((r) => r.url))
+        const currentCount = poolNow.length
+
+        // 2. Remove URLs already in pool FIRST — prevents duplicate slots wasting free space
+        const freshUrls = parsedUrls.filter((u) => !poolSet.has(u))
+        const dupCount  = parsedUrls.length - freshUrls.length
+
+        // 3. How many free slots are available?
+        const effectiveLimit = SOFT_LOCAL_LIMIT + getRewardSlots()
+        const freeSlots      = Math.max(0, effectiveLimit - currentCount)
+
+        // 4. Take up to freeSlots from the fresh (non-duplicate) URLs
+        const saveCount = Math.min(freshUrls.length, freeSlots, LOCAL_MAX_REELS)
+        const capped    = freshUrls.length - saveCount   // fresh URLs cut by slot limit
+
+        if (saveCount === 0) {
+            setSaveResult({ reels: poolNow, added: 0, duplicates: dupCount, total: currentCount })
+            setSlotsCapped(capped)
+            setStep('done')
+            return
+        }
+
+        const result = addReels(freshUrls.slice(0, saveCount))
+        // Combine internal duplicates (from addReels) with pre-filtered duplicates
+        setSaveResult({ ...result, duplicates: result.duplicates + dupCount })
+        setSlotsCapped(capped)
         setStep('done')
     }, [parsedUrls, addReels])
 
-    // ── Back from confirm ─────────────────────────────────────────────────
     const handleBack = useCallback((): void => {
         fileImport.reset()
         setStep('upload')
@@ -97,6 +112,7 @@ export function ImportFlow({ onComplete }: ImportFlowProps) {
                 added={saveResult.added}
                 duplicates={saveResult.duplicates}
                 total={saveResult.total}
+                slotsCapped={slotsCapped}
                 onBack={onComplete}
             />
         )
@@ -106,7 +122,7 @@ export function ImportFlow({ onComplete }: ImportFlowProps) {
         return (
             <ImportStepConfirm
                 urlCount={parsedUrls.length}
-                localCount={localCount}
+                localCount={getLocalReels().length}
                 onSubmit={handleConfirmSubmit}
                 onBack={handleBack}
             />

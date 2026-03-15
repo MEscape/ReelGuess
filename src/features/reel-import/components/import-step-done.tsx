@@ -3,10 +3,12 @@ import { Button } from '@/components/ui'
 import type { AddReelsResult } from '../types'
 
 type ImportDoneProps = Pick<AddReelsResult, 'added' | 'duplicates' | 'total'> & {
+    /** How many URLs were skipped because the soft slot-limit was reached */
+    slotsCapped?: number
     onBack?: () => void
 }
 
-export function ImportDone({ added, duplicates, total, onBack }: ImportDoneProps) {
+export function ImportDone({ added, duplicates, total, slotsCapped = 0, onBack }: ImportDoneProps) {
     const t = useTranslations('reelImport')
 
     return (
@@ -59,6 +61,25 @@ export function ImportDone({ added, duplicates, total, onBack }: ImportDoneProps
                     </div>
                 </div>
             </div>
+
+            {/* ── Slot-cap warning ─────────────────────────────────────────────── */}
+            {slotsCapped > 0 && (
+                <div
+                    className="w-full mt-3 p-4 border-2 border-[var(--color-warning)] flex flex-col gap-1.5"
+                    style={{ background: 'var(--color-warning-bg)' }}
+                    role="alert"
+                >
+                    <p
+                        className="font-display uppercase text-[var(--color-warning)]"
+                        style={{ fontSize: 'var(--text-label-sm)', letterSpacing: 'var(--tracking-label)' }}
+                    >
+                        ⚠ {t('slotsCappedWarning', { capped: slotsCapped })}
+                    </p>
+                    <p className="font-sans text-[var(--color-muted)]" style={{ fontSize: 'var(--text-body-sm)' }}>
+                        {t('slotsCappedHint')}
+                    </p>
+                </div>
+            )}
 
             {onBack && (
                 <div className="w-full mt-5">

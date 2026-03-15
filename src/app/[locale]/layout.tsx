@@ -6,7 +6,8 @@ import { QueryProvider }        from '@/lib/providers/query-provider'
 import { locales, type Locale } from '@/i18n/config'
 import { notFound }             from 'next/navigation'
 import React                    from 'react'
-import { CookieBanner, CookieConsentProvider, ConsentGatedAnalytics } from '@/features/legal'
+import {CookieBanner, CookieConsentProvider, ConsentGatedAnalytics, ConsentGatedSentry} from '@/features/legal'
+import { ConsentGatedAds, AdBlockGuard } from '@/features/ads'
 import { Footer }               from '@/components/ui/footer'
 import '../globals.css'
 
@@ -119,6 +120,12 @@ export async function generateMetadata({
                 { rel: 'icon', type: 'image/png', sizes: '16x16', url: '/favicon-16x16.png' },
             ],
         },
+        // AdSense site-verification — required before Google approves the site
+        ...(process.env.NEXT_PUBLIC_ADSENSE_ID ? {
+            other: {
+                'google-adsense-account': process.env.NEXT_PUBLIC_ADSENSE_ID,
+            },
+        } : {}),
     }
 }
 
@@ -145,12 +152,22 @@ export default async function LocaleLayout({ children, params }: Props) {
             <body className={`${inter.variable} ${bebasNeue.variable} antialiased`}>
                 <NextIntlClientProvider locale={locale} messages={messages}>
                     <CookieConsentProvider>
-                        <QueryProvider>
-                            {children}
-                        </QueryProvider>
-                        <Footer locale={locale} />
+                        {/* site-shell: flex column, min-h-dvh so footer sticks to bottom */}
+                        <div className="site-shell">
+                            {/* site-content: flex:1 so it fills all space above the footer */}
+                            <div className="site-content">
+                                <QueryProvider>
+                                    <AdBlockGuard>
+                                        {children}
+                                    </AdBlockGuard>
+                                </QueryProvider>
+                            </div>
+                            <Footer locale={locale} />
+                        </div>
                         <CookieBanner />
                         <ConsentGatedAnalytics />
+                        <ConsentGatedSentry />
+                        <ConsentGatedAds />
                     </CookieConsentProvider>
                 </NextIntlClientProvider>
             </body>

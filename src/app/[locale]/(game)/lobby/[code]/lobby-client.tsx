@@ -10,60 +10,68 @@ import { createClient }     from '@/lib/supabase/client'
 import { usePlayerStore }   from '@/features/player'
 import type { Lobby, GameSettings } from '@/features/lobby'
 
-// ─────────────────────────────────────────────────────────────────────────────
-// Types
-// ─────────────────────────────────────────────────────────────────────────────
-
 type Props = { lobby: Lobby }
-
-// ─────────────────────────────────────────────────────────────────────────────
-// Component
-// ─────────────────────────────────────────────────────────────────────────────
 
 /**
  * Hydration wrapper for the lobby page.
  *
- * Three explicit states for `identity`:
- *  - `'loading'`    — SSR / first render, sessionStorage not yet read.
- *  - `'not-member'` — sessionStorage was read, no entry for this lobby.
- *  - string (UUID)  — player is in this lobby.
+ * Identity is resolved SYNCHRONOUSLY in the useState initialiser so that
+ * after a Next.js App Router soft-refresh (triggered by a server action like
+ * updateLobbySettings), the component immediately renders with the correct
+ * identity instead of flashing through 'loading' → 'not-member'.
  *
- * Previously `null` was used for both loading AND not-member, causing the
- * loading spinner to show forever when a user navigated to a lobby they
- * hadn't joined (sessionStorage had no entry → getPlayerId returns null →
- * never transitions out of the loading state).
+ * The async useEffect guard (`identitySet`) is kept only as a fallback for
+ * environments where sessionStorage isn't available on the first synchronous
+ * read (e.g. very early hydration on some browsers).
  */
 export function LobbyClient({ lobby }: Props) {
     const getPlayerId = usePlayerStore((s) => s.getPlayerId)
-    const [identity, setIdentity] = useState<'loading' | 'not-member' | string>('loading')
-    // Live settings state — updated by Realtime so all clients reflect host changes instantly.
+
+    // ── Synchronous identity resolution ──────────────────────────────────────
+    // Runs once per mount inside useState initialiser — BEFORE the first render.
+    // This prevents the flash through 'loading' → 'not-member' that happens
+    // when Next.js re-mounts the client component after a server action refresh.
+    const [identity, setIdentity] = useState<'loading' | 'not-member' | string>(() => {
+        if (typeof window === 'undefined') return 'loading'
+        const id = getPlayerId(lobby.id)
+        // If store hasn't rehydrated yet, id may be null even for valid members.
+        // Return 'loading' instead of 'not-member' so the async effect can verify.
+        return id ?? 'loading'
+    })
+
     const [settings, setSettings] = useState<GameSettings>(lobby.settings)
     const settingsRef = useRef(lobby.settings)
-    // Keep ref in sync with state so the Realtime closure always has the latest value.
     useLayoutEffect(() => { settingsRef.current = settings }, [settings])
 
     const router       = useRouter()
-    // Keep router in a ref so the Realtime useEffect never needs to re-subscribe
-    // when Next.js replaces the router object after a server action refresh.
     const routerRef    = useRef(router)
     useLayoutEffect(() => { routerRef.current = router }, [router])
 
     const didRedirect  = useRef(false)
-    const identitySet  = useRef(false)
 
-    // Populate identity once on mount. NEVER reset to 'loading' on re-render —
-    // that would cause a flash to NotMemberScreen after every server-action refresh.
+    // Fallback async read — only fires if the synchronous read returned 'loading'
     useEffect(() => {
-        if (identitySet.current) return
-        identitySet.current = true
+        if (identity !== 'loading') return
         const id = getPlayerId(lobby.id)
+        // eslint-disable-next-line react-hooks/set-state-in-effect
         setIdentity(id ?? 'not-member')
-    }, [getPlayerId, lobby.id])
+    }, [getPlayerId, lobby.id, identity])
+
+    // If the game has already started AND this user is a member, redirect them
+    // straight to the game page — visiting the lobby URL would be a stale state.
+    useEffect(() => {
+        if (
+            lobby.status === 'playing' &&
+            identity !== 'loading' &&
+            identity !== 'not-member' &&
+            !didRedirect.current
+        ) {
+            didRedirect.current = true
+            router.replace(`/game/${lobby.id}`)
+        }
+    }, [lobby.status, identity, router, lobby.id])
 
     // Subscribe to Supabase lobby updates.
-    // Dependencies: only lobby.id — stable for the lifetime of this page.
-    // routerRef is used instead of router to avoid re-subscribing on every
-    // Next.js router object replacement after server-action refreshes.
     useEffect(() => {
         const supabase = createClient()
         const channel  = supabase
@@ -79,14 +87,12 @@ export function LobbyClient({ lobby }: Props) {
                 (payload) => {
                     const row = payload.new as { status?: string; settings?: Record<string, unknown> }
 
-                    // Redirect on game start
                     if (row.status === 'playing' && !didRedirect.current) {
                         didRedirect.current = true
                         routerRef.current.push(`/game/${lobby.id}`)
                         return
                     }
 
-                    // Live-update settings for all clients (host + guests)
                     if (row.settings) {
                         const s    = row.settings
                         const prev = settingsRef.current
@@ -101,16 +107,14 @@ export function LobbyClient({ lobby }: Props) {
             .subscribe()
 
         return () => { supabase.removeChannel(channel) }
-    }, [lobby.id]) // ← router intentionally omitted — routerRef handles updates
+    }, [lobby.id])
 
     const t = useTranslations('lobby')
 
-    // Loading — sessionStorage not yet read.
     if (identity === 'loading') {
         return <PageLoader emoji="🎮" label={t('loading')} />
     }
 
-    // Not a member of this lobby.
     if (identity === 'not-member') {
         return (
             <NotMemberScreen
@@ -120,9 +124,8 @@ export function LobbyClient({ lobby }: Props) {
         )
     }
 
-    // In lobby — identity is the UUID string.
     return (
-        <main className="min-h-dvh py-8 pb-safe">
+        <main className="game-page-main">
             <LobbyRoom lobby={{ ...lobby, settings }} currentPlayerId={identity} />
         </main>
     )

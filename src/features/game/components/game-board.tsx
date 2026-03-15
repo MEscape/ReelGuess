@@ -1,5 +1,6 @@
 'use client'
 
+import { useEffect, useRef }     from 'react'
 import { motion, AnimatePresence }  from 'framer-motion'
 
 import { GameProvider }             from '../game-context'
@@ -13,6 +14,7 @@ import { PregameScreen }             from './pregame-screen'
 import { GameOverScreen }           from './game-over-screen'
 import { ReelDisplay }              from '@/features/reel-player'
 import { ReactionBar }              from '@/features/reactions'
+import { BannerAd, InterstitialAd, useAds } from '@/features/ads'
 
 import type { Lobby }               from '@/features/lobby'
 import type { Round }               from '@/features/round'
@@ -84,6 +86,19 @@ export function GameBoard({
         initialVoteCount,
     })
 
+    // ── Ad logic ─────────────────────────────────────────────────────────────
+    const { showInterstitial, activeInterstitial, dismissInterstitial } = useAds()
+    const prevPhase = useRef(phase)
+
+    useEffect(() => {
+        // Trigger interstitial when transitioning from 'reveal' → 'complete'
+        // (between rounds, not during active gameplay)
+        if (prevPhase.current === 'reveal' && phase === 'complete') {
+            showInterstitial('interstitial-game-start')
+        }
+        prevPhase.current = phase
+    }, [phase, showInterstitial])
+
     // Finished phase bypasses the provider — nothing to render except the end screen.
     if (phase === 'finished') {
         return (
@@ -115,7 +130,15 @@ export function GameBoard({
 
     return (
         <GameProvider session={sessionValue} round={roundValue}>
-            <div className="flex flex-col items-center gap-4 w-full max-w-lg mx-auto px-4 pb-safe">
+            {/* ── Interstitial overlay (between rounds) ── */}
+            {activeInterstitial && (
+                <InterstitialAd
+                    placement={activeInterstitial as Extract<typeof activeInterstitial, `interstitial-${string}`>}
+                    onClose={dismissInterstitial}
+                />
+            )}
+
+            <div className="flex flex-col items-center gap-4 w-full max-w-lg mx-auto px-4 pb-8">
 
                 {phase !== 'pregame' && <RoundHeader />}
 
@@ -165,6 +188,10 @@ export function GameBoard({
                     {phase === 'complete' && (
                         <motion.div key="complete" {...PHASE_TRANSITION} className="w-full">
                             <RoundCompleteScreen />
+                            {/* Non-intrusive banner between rounds */}
+                            <div className="mt-4">
+                                <BannerAd placement="banner-round-complete" />
+                            </div>
                         </motion.div>
                     )}
 

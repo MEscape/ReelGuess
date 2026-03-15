@@ -139,22 +139,27 @@ export function useStartGame(lobbyCode: string, hostPlayerId: string) {
 /**
  * Encapsulates the host's update-settings action.
  *
- * Optimistic: the UI reflects the new values immediately while the server
- * call is in-flight. On error the caller should revert to the previous value.
+ * Intentionally does NOT use useTransition — Next.js App Router triggers an
+ * automatic router.refresh() after server actions called inside startTransition,
+ * which can cause the lobby page to remount and briefly show NotMemberScreen.
+ * Instead we track pending state manually with useState.
  */
 export function useUpdateSettings(lobbyCode: string, hostPlayerId: string) {
-    const [isPending, startTransition] = useTransition()
-    const [error,     setError]        = useState<string | null>(null)
+    const [isPending, setIsPending] = useState(false)
+    const [error,     setError]     = useState<string | null>(null)
     const t = useTranslations('lobby.errors')
 
-    function updateSettings(settings: { roundsCount: number; timerSeconds: number }) {
+    async function updateSettings(settings: { roundsCount: number; timerSeconds: number }) {
         setError(null)
-        startTransition(async () => {
+        setIsPending(true)
+        try {
             const result = await updateLobbySettingsAction(lobbyCode, hostPlayerId, settings)
             if (!result.ok) {
                 setError('message' in result.error ? result.error.message : t('failedToUpdate'))
             }
-        })
+        } finally {
+            setIsPending(false)
+        }
     }
 
     return { updateSettings, isPending, error }

@@ -8,6 +8,7 @@ import { PlayerCard }           from './player-card'
 import { ShareCode }            from './share-code'
 import { SettingsPanel }        from './settings-panel'
 import { SettingsSummary }      from './settings-summary'
+import { BannerAd }             from '@/features/ads'
 import { cn }                   from '@/lib/utils/cn'
 import type { Lobby }           from '../types'
 
@@ -25,7 +26,7 @@ export function LobbyRoom({ lobby, currentPlayerId }: LobbyRoomProps) {
     const { startGame, isPending, error } = useStartGame(lobby.id, currentPlayerId)
 
     return (
-        <div className="flex flex-col items-center gap-5 w-full max-w-md mx-auto px-4 pb-safe">
+        <div className="flex flex-col items-center gap-5 w-full max-w-md mx-auto px-4 pb-8">
 
             {/* ── ZONE 1: Header ── */}
             <div className="text-center pt-4 w-full">
@@ -63,6 +64,11 @@ export function LobbyRoom({ lobby, currentPlayerId }: LobbyRoomProps) {
                 ) : (
                     <SettingsSummary settings={lobby.settings} />
                 )}
+            </div>
+
+            {/* ── ZONE 3b: Lobby waiting banner ad ── */}
+            <div className="w-full">
+                <BannerAd placement="banner-lobby" />
             </div>
 
             {/* ── ZONE 4: Players ── */}

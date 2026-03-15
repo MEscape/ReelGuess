@@ -153,18 +153,18 @@ export function buildOrganizationSchema(baseUrl: string): Record<string, unknown
         name:       'ReelGuess',
         url:        baseUrl,
         logo:       `${baseUrl}/icons/icon-512.png`,
-        email:      'contact@reelguess.app',
+        email:      'business.eschenbach@gmail.com',
         address: {
             '@type':           'PostalAddress',
-            streetAddress:     'Musterstraße 1',
-            addressLocality:   'Musterstadt',
-            postalCode:        '12345',
+            streetAddress:     'Hauptstraße 10',
+            addressLocality:   'Bischofsheim i. d. Rhön',
+            postalCode:        '97653',
             addressCountry:    'DE',
         },
         contactPoint: {
             '@type':             'ContactPoint',
             contactType:         'customer support',
-            email:               'contact@reelguess.app',
+            email:               'business.eschenbach@gmail.com',
             availableLanguage:   ['English', 'German'],
         },
     }

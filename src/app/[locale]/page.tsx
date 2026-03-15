@@ -53,7 +53,7 @@ export default async function HomePage({ params }: Props) {
             <JsonLd schema={buildBreadcrumbSchema(baseUrl, typedLocale)} />
             <JsonLd schema={buildOrganizationSchema(baseUrl)} />
 
-            <main className="min-h-dvh flex flex-col items-center justify-center px-4 py-12 pb-safe">
+            <main className="flex flex-col flex-1 items-center justify-center px-4 py-12 pb-safe">
 
                 {/* ── HERO ──────────────────────────────────────────────── */}
                 <header className="w-full max-w-sm text-center mb-10">
@@ -146,7 +146,7 @@ export default async function HomePage({ params }: Props) {
                     <ManageReelsSection />
                 </div>
 
-                {/* ── SEO CONTENT (crawler + screen-reader visible, visually subtle) ── */}
+                {/* ── SEO CONTENT ────────────────────────────────────── */}
                 <section
                     className="w-full max-w-sm mt-8 text-center"
                     aria-label={typedLocale === 'de' ? 'Über ReelGuess' : 'About ReelGuess'}
@@ -161,15 +161,6 @@ export default async function HomePage({ params }: Props) {
                     </p>
                 </section>
 
-                {/* ── FOOTER ────────────────────────────────────────────── */}
-                <footer className="my-10 text-center" aria-label="Site footer">
-                    <p
-                        className="font-display uppercase text-[var(--color-faint)]"
-                        style={{ fontSize: 'var(--text-label-xs)', letterSpacing: '0.25em' }}
-                    >
-                        {tCommon('madeWith')}
-                    </p>
-                </footer>
 
             </main>
 

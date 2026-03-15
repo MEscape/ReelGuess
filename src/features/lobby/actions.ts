@@ -120,6 +120,7 @@ export const updateLobbySettingsAction = withSentry(
         if (!parsed.success) {
             return { ok: false, error: { type: 'LOBBY_VALIDATION_ERROR', message: 'Invalid settings values', issues: parsed.error.issues.map((i) => ({ path: i.path.join('.'), message: i.message })) } }
         }
+
         return serializeResult(await updateSettings(lobbyCode, hostPlayerId, parsed.data))
     },
 )

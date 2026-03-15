@@ -15,7 +15,7 @@ export function NotMemberScreen({ emoji = '🔒', title, description }: NotMembe
     const t = useTranslations('common')
 
     return (
-        <main className="min-h-dvh flex items-center justify-center px-4 pb-safe">
+        <main className="flex flex-1 flex-col items-center justify-center px-4 pb-safe">
             <div className="w-full max-w-sm flex flex-col gap-0">
 
                 <div

@@ -22,6 +22,28 @@ export const MIN_REELS = 3
 /** Maximum reels submitted per player per game session (DB cap). */
 export const MAX_REELS = 50
 
+/**
+ * Recommended local pool size. Below this, a warning is shown in the UI
+ * because the game always picks up to MAX_REELS for a session — having fewer
+ * reduces variety. 50 is the sweet-spot (= MAX_REELS).
+ */
+export const RECOMMENDED_REELS = 50
+
+/**
+ * Soft local storage cap shown in the UI.
+ * Once reached, user is prompted to watch a Rewarded Ad to unlock more slots.
+ */
+export const SOFT_LOCAL_LIMIT = 10
+
+/**
+ * How many extra slots are granted per watched Rewarded Ad.
+ * Stored in localStorage so it persists across sessions.
+ */
+export const REWARD_EXTRA_SLOTS = 10
+
+/** localStorage key tracking how many bonus slots were earned via rewarded ads. */
+export const REWARD_SLOTS_KEY = 'rg_reward_slots'
+
 /** Versioned localStorage key for storing imported reels. */
 export const STORAGE_KEY     = 'rg_reels_v1'
 export const CURRENT_STORAGE_VERSION = 1

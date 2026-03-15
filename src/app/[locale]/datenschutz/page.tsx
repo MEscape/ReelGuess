@@ -68,9 +68,11 @@ export default async function DatenschutzPage({ params }: Props) {
                             { id: 'data-collection', heading: t('dataCollectionHeading'),   body: t('dataCollectionContent') },
                             { id: 'legal-basis',     heading: t('legalBasisHeading'),       body: t('legalBasisContent') },
                             { id: 'analytics',       heading: t('analyticsHeading'),        body: t('analyticsContent') },
+                            { id: 'advertising',     heading: t('advertisingHeading'),      body: t('advertisingContent') },
                             { id: 'cookies',         heading: t('cookiesHeading'),          body: t('cookiesContent') },
                             { id: 'rights',          heading: t('rightsHeading'),           body: t('rightsContent') },
                             { id: 'contact',         heading: t('contactHeading'),          body: t('contactContent') },
+                            { id: 'changes',         heading: t('changesHeading'),          body: t('changesContent') },
                         ].map(({ id, heading, body }) => (
                             <section key={id} aria-labelledby={`datenschutz-${id}`}>
                                 <h2 id={`datenschutz-${id}`} className="legal-page__section-title">
