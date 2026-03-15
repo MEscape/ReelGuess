@@ -188,14 +188,16 @@
     "title": "Reels importieren",
     "uploadDescription": "Einmal hochladen — Reels werden lokal auf deinem Gerät gespeichert, bereit für jedes zukünftige Spiel.",
     "uploadDescriptionHtml": "Einmal hochladen — <strong>lokal auf deinem Gerät</strong>, bereit für jedes zukünftige Spiel.",
-    "openInstagramExport": "Instagram-Export öffnen ↗",
-    "followSteps": "Folge diesen Schritten",
+    "openInstagramExport": "Instagram Kontocenter öffnen →",
+    "followSteps": "So exportierst du deine gelikten Reels",
     "steps": {
-      "step1": "Wähle <strong>\"Informationen herunterladen oder übertragen\"</strong>",
-      "step2": "Wähle <strong>\"Einige deiner Informationen\"</strong> → nur <strong>Likes</strong> anhaken → Weiter",
-      "step3": "Wähle <strong>\"Auf Gerät herunterladen\"</strong> → Weiter",
-      "step4": "Zeitraum: <strong>Letztes Jahr</strong> · Format: <strong>JSON</strong> → Dateien erstellen",
-      "step5": "Entzippen → <code>likes/</code> öffnen → <code>liked_posts.json</code> hochladen"
+      "step1": "Instagram öffnen → zum <strong>Profil</strong> → <strong>Hamburger-Menü ☰</strong> antippen → <strong>Kontoübersicht</strong>",
+      "step2": "<strong>Deine Informationen und Berechtigungen</strong> → <strong>Deine Informationen exportieren</strong> → <strong>Zu Gerät exportieren</strong>",
+      "step3": "Falls mehrere Profile vorhanden: <strong>gewünschtes Profil auswählen</strong>. Falls noch keine E-Mail hinterlegt: <strong>E-Mail-Adresse festlegen</strong> und speichern.",
+      "step4": "<strong>Informationen anpassen</strong> antippen → alle Kategorien entfernen → nur <strongAccent>\"Gefällt mir\",-Angaben</strongAccent> anhaken → speichern. <strong>Zeitraum</strong> festlegen → speichern. <strong>Format: JSON</strong> → speichern. <strong>Medienqualität: Geringere Qualität</strong> → speichern.",
+      "step5": "<strong>Export starten</strong> antippen. Einige Minuten warten (du bekommst ggf. eine E-Mail). Zurückkehren und auf <strong>Herunterladen</strong> tippen, sobald der Export bereit ist.",
+      "step6": "Die heruntergeladene <strong>.zip-Datei</strong> öffnen und entpacken.",
+      "step7": "Im entpackten Ordner den Pfad <code>your_instagram_activity/likes/</code> aufrufen und <code>liked_posts.json</code> unten hochladen."
     },
     "urlLabel": "Instagram Reel URL",
     "urlPlaceholder": "https://www.instagram.com/reel/…",
