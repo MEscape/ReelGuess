@@ -117,7 +117,7 @@
   },
 
   "voting": {
-    "title": "Wer hat diesen Reel geliked?",
+    "title": "Wer hat dieses Reel geliked?",
     "locked": "Stimme abgegeben",
     "waitingVotes": "Warte auf andere Stimmen…",
     "voted": "{count}/{total} abgestimmt",

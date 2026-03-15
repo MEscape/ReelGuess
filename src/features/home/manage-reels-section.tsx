@@ -6,7 +6,7 @@ import { Button } from '@/components/ui'
 import { ImportFlow } from '@/features/reel-import/components/import-flow'
 import { useLocalReels } from '@/features/reel-import/hooks/use-local-reels'
 import { cn } from '@/lib/utils/cn'
-import { SOFT_LOCAL_LIMIT, REWARD_EXTRA_SLOTS, RECOMMENDED_REELS } from '@/features/reel-import/constants'
+import { SOFT_LOCAL_LIMIT, REWARD_EXTRA_SLOTS, RECOMMENDED_REELS, LOCAL_MAX_REELS } from '@/features/reel-import/constants'
 import { getRewardSlots, addRewardSlots } from '@/features/reel-import/stores/reward-slots-store'
 import { RewardedAd } from '@/features/ads'
 
@@ -163,15 +163,15 @@ export function ManageReelsSection() {
                 </div>
             </div>
 
-            {/* Soft-limit reached → Rewarded-Ad unlock prompt */}
-            {isAtLimit && (
+            {/* Rewarded-Ad unlock prompt — shown whenever more slots can be unlocked */}
+            {effectiveLimit < LOCAL_MAX_REELS && (
                 <div
                     className="mx-3 mb-3 p-3 border-2 border-dashed border-[var(--color-accent)] flex flex-col gap-2"
                     style={{ background: 'rgba(245,200,0,0.05)' }}
                 >
                     {justUnlocked ? (
                         <p
-                            className="font-display uppercase text-center text-[var(--color-success)]"
+                            className="font-display uppercase text-center text-[var(--color-accent)]"
                             style={{ fontSize: 'var(--text-body-sm)', letterSpacing: 'var(--tracking-label)' }}
                         >
                             {t('reelLimitUnlocked', { extra: REWARD_EXTRA_SLOTS })}
@@ -186,7 +186,7 @@ export function ManageReelsSection() {
                             </p>
                             <Button
                                 size="sm"
-                                variant="primary"
+                                variant={isAtLimit ? 'primary' : 'ghost'}
                                 onClick={() => setShowRewardAd(true)}
                                 style={{ width: '100%' }}
                             >

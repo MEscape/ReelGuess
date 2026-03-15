@@ -139,12 +139,21 @@ export function useGameOrchestration({
     const { voteCount, lobbyStatus, rematchId, resetVoteCount } = useGameRealtime(
         lobby.id,
         (round) => {
-            setActiveRound(round)
             if (round.status === 'voting') {
+                // Reset startedAt to now so the timer starts from the full duration.
+                // Without this, the timer would show reduced time because `startedAt`
+                // in the DB reflects when the round row was inserted — by the time the
+                // Realtime event arrives on the client, a few seconds may have already
+                // elapsed, causing the timer to start mid-countdown.
+                // Page-refresh resumption uses `initialRound.startedAt` directly
+                // (set once at mount, not overwritten here).
+                setActiveRound({ ...round, startedAt: new Date() })
                 setPhase('voting')
                 resetVote()
                 resetVoteCount()
                 clearReveal()
+            } else {
+                setActiveRound(round)
             }
             if (round.status === 'reveal')   setPhase('reveal')
             if (round.status === 'complete') setPhase('complete')

@@ -1,8 +1,8 @@
 import type { NextConfig } from "next";
-import createNextIntlPlugin from 'next-intl/plugin';
+import createNextIntlPlugin from "next-intl/plugin";
 import { withSentryConfig } from "@sentry/nextjs";
 
-const withNextIntl = createNextIntlPlugin('./src/i18n/request.ts');
+const withNextIntl = createNextIntlPlugin("./src/i18n/request.ts");
 
 const nextConfig: NextConfig = {
     reactStrictMode: true,
@@ -22,16 +22,31 @@ const nextConfig: NextConfig = {
                     {
                         key: "Content-Security-Policy",
                         value: [
+                            // default
                             "default-src 'self'",
-                            // Vercel Analytics + Speed Insights need va.vercel-scripts.com
-                            "script-src 'self' 'unsafe-inline' https://www.instagram.com https://va.vercel-scripts.com",
+
+                            // Scripts
+                            "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://www.instagram.com https://va.vercel-scripts.com https://pagead2.googlesyndication.com https://googleads.g.doubleclick.net https://*.googlesyndication.com https://*.doubleclick.net https://*.adtrafficquality.google https://*.google.com",
+
+                            // Styles
                             "style-src 'self' 'unsafe-inline'",
-                            "img-src 'self' data: blob: https://*.cdninstagram.com https://www.instagram.com",
+
+                            // Images
+                            "img-src 'self' data: blob: https://*.cdninstagram.com https://www.instagram.com https://*.googlesyndication.com https://*.doubleclick.net https://*.googleusercontent.com https://*.adtrafficquality.google https://*.google.com",
+
+                            // Fonts
                             "font-src 'self' https://fonts.gstatic.com",
-                            // Vercel Analytics beacon + Supabase + Upstash
-                            "connect-src 'self' https://*.supabase.co wss://*.supabase.co https://precious-sawfly-68348.upstash.io https://va.vercel-scripts.com https://vitals.vercel-insights.com",
-                            "frame-src https://www.instagram.com https://instagram.com",
-                            "child-src https://www.instagram.com https://instagram.com",
+
+                            // API / WebSocket connections
+                            "connect-src 'self' https://*.supabase.co wss://*.supabase.co https://precious-sawfly-68348.upstash.io https://va.vercel-scripts.com https://vitals.vercel-insights.com https://pagead2.googlesyndication.com https://*.googlesyndication.com https://*.doubleclick.net https://*.adtrafficquality.google https://*.google.com https://*.ingest.sentry.io https://*.ingest.de.sentry.io",
+
+                            // Frames (ads + Instagram)
+                            "frame-src https://www.instagram.com https://instagram.com https://googleads.g.doubleclick.net https://tpc.googlesyndication.com https://*.googlesyndication.com https://*.adtrafficquality.google https://*.doubleclick.net https://*.google.com",
+
+                            // Child frames
+                            "child-src https://www.instagram.com https://instagram.com https://*.googlesyndication.com https://*.adtrafficquality.google https://*.doubleclick.net https://*.google.com",
+
+                            // Media
                             "media-src 'self' https://*.cdninstagram.com",
                         ].join("; "),
                     },
@@ -44,24 +59,27 @@ const nextConfig: NextConfig = {
         remotePatterns: [
             { protocol: "https", hostname: "*.cdninstagram.com" },
             { protocol: "https", hostname: "www.instagram.com" },
+            { protocol: "https", hostname: "*.googleusercontent.com" },
+            { protocol: "https", hostname: "*.googlesyndication.com" },
+            { protocol: "https", hostname: "*.doubleclick.net" },
+            { protocol: "https", hostname: "*.adtrafficquality.google" },
         ],
     },
 
     experimental: {
-        optimizePackageImports: ["framer-motion", "@dicebear/core", "@dicebear/bottts"],
+        optimizePackageImports: [
+            "framer-motion",
+            "@dicebear/core",
+            "@dicebear/bottts",
+        ],
     },
 };
 
-export default withSentryConfig(
-    withNextIntl(nextConfig),
-    {
-        org: process.env.SENTRY_ORG,
-        project: process.env.SENTRY_PROJECT,
-        silent: !process.env.CI,
+export default withSentryConfig(withNextIntl(nextConfig), {
+    org: process.env.SENTRY_ORG,
+    project: process.env.SENTRY_PROJECT,
+    silent: !process.env.CI,
 
-        // Pass the auth token
-        authToken: process.env.SENTRY_AUTH_TOKEN,
-        // Upload a larger set of source maps for prettier stack traces
-        widenClientFileUpload: true,
-    }
-);
+    authToken: process.env.SENTRY_AUTH_TOKEN,
+    widenClientFileUpload: true,
+});

@@ -94,33 +94,3 @@ export const createRematchAction = withSentry(
         return serializeResult(await createRematch(oldLobbyId, requestingPlayerId))
     },
 )
-
-// ─────────────────────────────────────────────────────────────────────────────
-// updateLobbySettingsAction
-// ─────────────────────────────────────────────────────────────────────────────
-
-export const updateLobbySettingsAction = withSentry(
-    'updateLobbySettingsAction',
-    async (
-        lobbyCode:    string,
-        hostPlayerId: string,
-        settings:     { roundsCount: number; timerSeconds: number },
-    ): Promise<SerializedResult<void, LobbyError>> => {
-        const rl = await rateLimitFromIP('updateSettings', hostPlayerId)
-        if (!rl.success) {
-            return { ok: false, error: { type: 'LOBBY_VALIDATION_ERROR', message: 'Too many requests. Please wait.', issues: [] } }
-        }
-        if (!LobbyCodeSchema.safeParse(lobbyCode).success) {
-            return { ok: false, error: { type: 'LOBBY_VALIDATION_ERROR', message: 'Invalid lobby code', issues: [] } }
-        }
-        if (!PlayerIdSchema.safeParse(hostPlayerId).success) {
-            return { ok: false, error: { type: 'LOBBY_VALIDATION_ERROR', message: 'Invalid player ID', issues: [] } }
-        }
-        const parsed = LobbySettingsSchema.safeParse(settings)
-        if (!parsed.success) {
-            return { ok: false, error: { type: 'LOBBY_VALIDATION_ERROR', message: 'Invalid settings values', issues: parsed.error.issues.map((i) => ({ path: i.path.join('.'), message: i.message })) } }
-        }
-
-        return serializeResult(await updateSettings(lobbyCode, hostPlayerId, parsed.data))
-    },
-)

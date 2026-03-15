@@ -60,7 +60,7 @@ export function StatusPanel({ status, label, children, className }: StatusPanelP
 
             {/* Label — muted, smaller */}
             <span
-                className="text-[var(--color-muted)] font-sans"
+                className="text-[var(--color-muted)] font-sans truncate max-w-[6rem] sm:max-w-none"
                 style={{ fontSize: 'var(--text-label-sm)' }}
             >
                 {label}

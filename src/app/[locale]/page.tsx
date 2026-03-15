@@ -148,7 +148,7 @@ export default async function HomePage({ params }: Props) {
 
                 {/* ── SEO CONTENT ────────────────────────────────────── */}
                 <section
-                    className="w-full max-w-sm mt-8 text-center"
+                    className="w-full max-w-sm my-8 text-center"
                     aria-label={typedLocale === 'de' ? 'Über ReelGuess' : 'About ReelGuess'}
                 >
                     <p

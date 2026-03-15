@@ -3,9 +3,9 @@
     "appName": "ReelGuess",
     "appTagline": "Guess which friend liked the Reel",
     "or": "or",
-    "back": "Ã¢â€ Â Go Back",
-    "home": "Ã¢â€ Â Go Home",
-    "loading": "LoadingÃ¢â‚¬Â¦",
+    "back": "← Go Back",
+    "home": "← Go Home",
+    "loading": "Loading…",
     "cancel": "Cancel",
     "confirm": "Confirm",
     "save": "Save",
@@ -13,15 +13,15 @@
     "share": "Share",
     "copy": "Copy",
     "copied": "Copied!",
-    "madeWith": "Made with Ã¢ÂÂ¤Ã¯Â¸Â"
+    "madeWith": "Made with ❤️"
   },
 
   "home": {
     "howToPlay": {
       "title": "How to Play",
-      "step1": { "step": "01", "emoji": "Ã°Å¸â€œÂ¥", "label": "Import Reels" },
-      "step2": { "step": "02", "emoji": "Ã°Å¸Å½Â®", "label": "Create Lobby" },
-      "step3": { "step": "03", "emoji": "Ã°Å¸Ââ€ ", "label": "Guess & Win" }
+      "step1": { "step": "01", "emoji": "📥", "label": "Import Reels" },
+      "step2": { "step": "02", "emoji": "🎮", "label": "Create Lobby" },
+      "step3": { "step": "03", "emoji": "🏆", "label": "Guess & Win" }
     },
     "createLobby": "Create Lobby",
     "joinLobby": "Join Lobby",
@@ -35,7 +35,7 @@
     "joinCodePlaceholder": "Lobby Code",
     "reelsRequired": "Import your Reels below first",
     "noReelsTitle": "No Reels yet",
-    "noReelsDescription": "Import your liked Reels from Instagram Ã¢â‚¬â€ you need them to play",
+    "noReelsDescription": "Import your liked Reels from Instagram — you need them to play",
     "importReel": "Import Reels",
     "manageReels": "Ready to play",
     "addMore": "Add",
@@ -43,21 +43,21 @@
     "reelCount": "{count, plural, one {# Reel ready} other {# Reels ready}}",
     "reelLimitTitle": "Reel limit reached",
     "reelLimitBody": "You have {limit} Reels saved. Watch a short ad to unlock {extra} more slots.",
-    "reelLimitCta": "Ã°Å¸Å½Â¬ Watch ad & unlock {extra} slots",
-    "reelLimitUnlocked": "Ã°Å¸Å½â€° {extra} slots unlocked!",
-    "reelsBelowRecommended": "Ã¢Å¡Â  For maximum variety we recommend at least {recommended} Reels. You currently have {current}."
+    "reelLimitCta": "🎬 Watch ad & unlock {extra} slots",
+    "reelLimitUnlocked": "🎉 {extra} slots unlocked!",
+    "reelsBelowRecommended": "⚠️ For maximum variety we recommend at least {recommended} Reels. You currently have {current}."
   },
 
   "lobby": {
     "title": "Waiting Room",
-    "loading": "Loading LobbyÃ¢â‚¬Â¦",
+    "loading": "Loading Lobby…",
     "notMemberTitle": "Not in this lobby",
     "notMemberDescription": "You haven't joined this lobby yet. Go to the homepage and enter the code there.",
     "code": "Lobby Code",
     "codeCharsNeeded": "{count, plural, one {# more character needed} other {# more characters needed}}",
-    "shareCode": "Share the code Ã¢â‚¬â€ friends join instantly",
-    "waiting": "Waiting for more players to joinÃ¢â‚¬Â¦",
-    "waitingForHost": "Waiting for host to startÃ¢â‚¬Â¦",
+    "shareCode": "Share the code — friends join instantly",
+    "waiting": "Waiting for more players to join…",
+    "waitingForHost": "Waiting for host to start…",
     "startGame": "Start Game",
     "leaveLobby": "Leave Lobby",
     "players": "Players",
@@ -71,10 +71,10 @@
       "title": "Game Settings",
       "rounds": "Rounds",
       "timePerRound": "Timer",
-      "saving": "SavingÃ¢â‚¬Â¦"
+      "saving": "Saving…"
     },
     "copied": "Code copied!",
-    "copyFailed": "Copy failed Ã¢â‚¬â€ select manually",
+    "copyFailed": "Copy failed — select manually",
     "tapToCopy": "Tap to copy",
     "linkCopied": "Link copied!",
     "errors": {
@@ -102,12 +102,12 @@
     "round": "Round {current} of {total}",
     "roundLabel": "Round",
     "timeLeft": "{seconds}s left",
-    "waitingForHost": "Waiting for hostÃ¢â‚¬Â¦",
+    "waitingForHost": "Waiting for host…",
     "nextRound": "Next Round",
-    "nextRoundNumber": "Ã¢â€“Â¶ Round {next} / {total}",
+    "nextRoundNumber": "▶ Round {next} / {total}",
     "viewResults": "Scores",
-    "starting": "StartingÃ¢â‚¬Â¦",
-    "loadingResults": "Game Over Ã¢â‚¬â€ Loading resultsÃ¢â‚¬Â¦",
+    "starting": "Starting…",
+    "loadingResults": "Game Over — Loading results…",
     "noReels": "No more reels available",
     "alreadyFinished": "Game is already finished",
     "onlyHostCanStart": "Only the host can start rounds",
@@ -118,25 +118,25 @@
   "voting": {
     "title": "Who liked this Reel?",
     "locked": "Vote Locked",
-    "waitingVotes": "Waiting for others to voteÃ¢â‚¬Â¦",
+    "waitingVotes": "Waiting for others to vote…",
     "voted": "{count}/{total} voted",
     "doubleOrNothing": "Double or Nothing",
-    "doubleSubtitleActive": "Correct Ã¢â€ â€™ Ãƒâ€”2 pts Ã‚Â· Wrong Ã¢â€ â€™ Ã¢Ë†â€™50% of your points",
+    "doubleSubtitleActive": "Correct → ×2 pts · Wrong → −50% of your points",
     "doubleSubtitleLocked": "Requires {minPoints} pts to activate",
     "doubleActivated": "Double Activated!",
-    "doubleActivating": "ActivatingÃ¢â‚¬Â¦",
+    "doubleActivating": "Activating…",
     "doubleActivatedTitle": "Double-or-Nothing activated",
     "votingEnded": "Voting has ended",
     "failedToVote": "Failed to submit vote"
   },
 
   "reveal": {
-    "itWas": "IT WASÃ¢â‚¬Â¦",
+    "itWas": "IT WAS…",
     "voteBreakdown": "Vote Breakdown",
     "voted": "{total}/{players} voted",
-    "noVotes": "No votes cast Ã¢â‚¬â€ timer expired",
+    "noVotes": "No votes cast — timer expired",
     "didNotVote": "Did not vote",
-    "waitingForReveal": "Waiting for reveal dataÃ¢â‚¬Â¦ It will appear automatically.",
+    "waitingForReveal": "Waiting for reveal data… It will appear automatically.",
     "nextRoundIn": "Next round in",
     "waitingForNextRound": "Waiting for host",
     "correct": "{count}/{total} correct"
@@ -144,39 +144,39 @@
 
   "scoring": {
     "title": "Scoreboard",
-    "finalTitle": "Final Results Ã°Å¸Ââ€ ",
+    "finalTitle": "Final Results 🏆",
     "finalStandings": "Final Standings",
     "rank": "#{rank}",
     "points": "{points} pts",
     "winner": "Winner",
     "playAgain": "Play Again",
     "newGame": "New Game",
-    "streak": "{streak}Ãƒâ€” Streak",
-    "streakNext": "(Ãƒâ€”{multiplier} next)",
+    "streak": "{streak}× Streak",
+    "streakNext": "(×{multiplier} next)",
     "noScores": "No scores yet.",
     "playerCount": "{count, plural, one {# Player} other {# Players}}",
-    "rematch": "Ã¢Å¡â€Ã¯Â¸Â Rematch",
-    "joinRematch": "Ã¢Å¡â€Ã¯Â¸Â Join Rematch",
-    "creatingRematch": "CreatingÃ¢â‚¬Â¦",
+    "rematch": "⚡️ Rematch",
+    "joinRematch": "⚡️ Join Rematch",
+    "creatingRematch": "Creating…",
     "achievements": {
       "streak5Title": "{name} is on fire!",
       "streak5Subtitle": "{streak} correct guesses in a row",
       "streak10Title": "{name} is unstoppable!",
-      "streak10Subtitle": "{streak} streak Ã¢â‚¬â€ Ãƒâ€”2.0 multiplier!",
+      "streak10Subtitle": "{streak} streak — ×2.0 multiplier!",
       "doubleSuccessTitle": "{name} doubled up!",
-      "doubleSuccessSubtitle": "+{points} pts Ã¢â‚¬â€ Double-or-Nothing paid off",
+      "doubleSuccessSubtitle": "+{points} pts — Double-or-Nothing paid off",
       "bigPointsTitle": "{name} is dominating!",
       "bigPointsSubtitle": "+{points} pts this round"
     }
   },
 
   "player": {
-    "namePlaceholder": "Your nameÃ¢â‚¬Â¦",
+    "namePlaceholder": "Your name…",
     "nameLabel": "Your Name",
     "nameRequired": "Name must be at least {min} characters",
     "nameTooLong": "Name must be {max} characters or less",
-    "letsGo": "Ã°Å¸Å¡â‚¬ LET'S GO",
-    "joinAs": "Join asÃ¢â‚¬Â¦",
+    "letsGo": "🙌 LET'S GO",
+    "joinAs": "Join as…",
     "avatar": "Avatar",
     "avatarAlt": "Avatar for {name}",
     "avatarAltGeneric": "Player avatar",
@@ -185,40 +185,40 @@
 
   "reelImport": {
     "title": "Import Reels",
-    "uploadDescription": "Upload once Ã¢â‚¬â€ Reels are stored locally on your device, ready for any future game.",
-    "uploadDescriptionHtml": "Upload once Ã¢â‚¬â€ <strong>locally on your device</strong>, ready for any future game.",
-    "openInstagramExport": "Open Instagram Export Ã¢â€ â€”",
+    "uploadDescription": "Upload once — Reels are stored locally on your device, ready for any future game.",
+    "uploadDescriptionHtml": "Upload once — <strong>locally on your device</strong>, ready for any future game.",
+    "openInstagramExport": "Open Instagram Export →",
     "followSteps": "Follow these steps",
     "steps": {
       "step1": "Select <strong>\"Download or transfer information\"</strong>",
-      "step2": "Choose <strong>\"Some of your information\"</strong> Ã¢â€ â€™ check only <strong>Likes</strong> Ã¢â€ â€™ Next",
-      "step3": "Select <strong>\"Download to device\"</strong> Ã¢â€ â€™ Next",
-      "step4": "Date range: <strong>Last year</strong> Ã‚Â· Format: <strong>JSON</strong> Ã¢â€ â€™ Create files",
-      "step5": "Unzip Ã¢â€ â€™ open <code>likes/</code> Ã¢â€ â€™ upload <code>liked_posts.json</code>"
+      "step2": "Choose <strong>\"Some of your information\"</strong> → check only <strong>Likes</strong> → Next",
+      "step3": "Select <strong>\"Download to device\"</strong> → Next",
+      "step4": "Date range: <strong>Last year</strong> · Format: <strong>JSON</strong> → Create files",
+      "step5": "Unzip → open <code>likes/</code> → upload <code>liked_posts.json</code>"
     },
     "urlLabel": "Instagram Reel URL",
-    "urlPlaceholder": "https://www.instagram.com/reel/Ã¢â‚¬Â¦",
+    "urlPlaceholder": "https://www.instagram.com/reel/…",
     "importButton": "Save to my pool",
-    "importing": "ImportingÃ¢â‚¬Â¦",
+    "importing": "Importing…",
     "successTitle": "Ready!",
     "successDescription": "Your reels have been saved locally",
-    "slotsCappedWarning": "{capped} reels could not be saved Ã¢â‚¬â€ your slots are full.",
+    "slotsCappedWarning": "{capped} reels could not be saved — your slots are full.",
     "slotsCappedHint": "Watch a short ad on the home screen to unlock more slots.",
     "addAnother": "Add Another",
-    "done": "Ã¢â€ Â Back",
+    "done": "← Back",
     "deleteConfirm": "Remove this reel?",
     "unavailableTitle": "Reel Unavailable",
-    "unavailableDesc": "Instagram blocked the embed. The game continues Ã¢â‚¬â€ you can still vote based on the context clues!",
-    "openOnInstagram": "Open on Instagram Ã¢â€ â€”",
-    "loading": "Loading ReelÃ¢â‚¬Â¦",
+    "unavailableDesc": "Instagram blocked the embed. The game continues — you can still vote based on the context clues!",
+    "openOnInstagram": "Open on Instagram →",
+    "loading": "Loading Reel…",
     "failedToLoad": "Failed to load",
-    "retry": "Ã¢â€ Âº Retry",
+    "retry": "↺ Retry",
     "dropOrTap": "Drop or tap to browse",
     "dropIt": "Drop it!",
     "uploadHint": "Upload {filename} from your Instagram export",
     "errors": {
       "notJson": "Please upload a .json file from your Instagram data export.",
-      "wrongFile": "Wrong file. Please upload liked_posts.json Ã¢â‚¬â€ not liked_comments.json.",
+      "wrongFile": "Wrong file. Please upload liked_posts.json — not liked_comments.json.",
       "noReels": "No liked Reels found in this file.",
       "invalidJson": "Could not read the file. Is it valid JSON?",
       "tooManyAttempts": "Too many attempts. Please wait and try again."
@@ -259,8 +259,8 @@
   "share": {
     "heading": "Enjoying ReelGuess?",
     "subheading": "Share it with your friends!",
-    "shareTitle": "ReelGuess Ã¢â‚¬â€ Guess Who Liked the Reel!",
-    "shareText": "Ã°Å¸Å½Â¬ Play ReelGuess with me Ã¢â‚¬â€ guess which friend liked which Instagram Reel!",
+    "shareTitle": "ReelGuess — Guess Who Liked the Reel!",
+    "shareText": "🎬 Play ReelGuess with me — guess which friend liked which Instagram Reel!",
     "cta": "Share the game",
     "copied": "Link copied!",
     "ariaLabel": "Share ReelGuess with friends"
@@ -269,43 +269,43 @@
     "title": "ReelGuess",
     "subtitle": "Page Not Found",
     "description": "This lobby or game doesn't exist anymore. It may have expired or the code was wrong.",
-    "goHome": "Ã¢â€ Â Go Home"
+    "goHome": "← Go Home"
   },
 
   "seo": {
     "home": {
-      "title": "ReelGuess Ã¢â‚¬â€ Guess Who Liked the Reel! Ã°Å¸Å½Â¬",
+      "title": "ReelGuess — Guess Who Liked the Reel! 🎬",
       "description": "The viral party game where you guess which friend liked an Instagram Reel. Play with up to 8 friends, earn points, and crown the ultimate Reel reader!"
     },
     "lobby": {
-      "title": "Lobby {code} Ã¢â‚¬â€ ReelGuess",
+      "title": "Lobby {code} — ReelGuess",
       "description": "Join the ReelGuess lobby and start guessing who liked which Instagram Reel."
     },
     "game": {
-      "title": "Game in Progress Ã¢â‚¬â€ ReelGuess",
+      "title": "Game in Progress — ReelGuess",
       "description": "A ReelGuess game is in progress. Guess who liked the Reel and earn points!"
     },
     "notFound": {
-      "title": "Not Found Ã¢â‚¬â€ ReelGuess",
+      "title": "Not Found — ReelGuess",
       "description": "This page could not be found."
     },
     "impressum": {
-      "title": "Legal Notice Ã¢â‚¬â€ ReelGuess",
-      "description": "Legal notice (Impressum) of ReelGuess as required by German law Ã¢â‚¬â€ operator information and legal disclaimers."
+      "title": "Legal Notice — ReelGuess",
+      "description": "Legal notice (Impressum) of ReelGuess as required by German law — operator information and legal disclaimers."
     },
     "datenschutz": {
-      "title": "Privacy Policy Ã¢â‚¬â€ ReelGuess",
-      "description": "ReelGuess Privacy Policy under GDPR Ã¢â‚¬â€ how we handle your personal data."
+      "title": "Privacy Policy — ReelGuess",
+      "description": "ReelGuess Privacy Policy under GDPR — how we handle your personal data."
     },
     "agb": {
-      "title": "Terms & Conditions Ã¢â‚¬â€ ReelGuess",
-      "description": "ReelGuess Terms and Conditions Ã¢â‚¬â€ usage terms for the free party game platform."
+      "title": "Terms & Conditions — ReelGuess",
+      "description": "ReelGuess Terms and Conditions — usage terms for the free party game platform."
     }
   },
 
   "footer": {
-    "copyright": "Ã‚Â© {year} ReelGuess. All rights reserved.",
-    "madeWith": "Made with Ã¢ÂÂ¤Ã¯Â¸Â",
+    "copyright": "© {year} ReelGuess. All rights reserved.",
+    "madeWith": "Made with ❤️",
     "links": {
       "impressum": "Legal Notice",
       "datenschutz": "Privacy Policy",
@@ -316,7 +316,7 @@
   },
 
   "cookieConsent": {
-    "bannerTitle": "We use cookies Ã°Å¸ÂÂª",
+    "bannerTitle": "We use cookies 🍪",
     "bannerText": "We use necessary cookies to operate this website. With your consent, we also use analytics cookies to improve your experience.",
     "acceptAll": "Accept all",
     "rejectAll": "Necessary only",
@@ -335,7 +335,7 @@
     "advertising": {
       "label": "Advertising",
       "alwaysOn": "Always active",
-      "descriptionLegal": "ReelGuess is funded by advertising. You can choose between personalised and non-personalised ads. Non-personalised ads (contextual, no tracking cookies) are permitted without separate consent under TTDSG Ã‚Â§25 and therefore cannot be disabled.",
+      "descriptionLegal": "ReelGuess is funded by advertising. You can choose between personalised and non-personalised ads. Non-personalised ads (contextual, no tracking cookies) are permitted without separate consent under TTDSG §25 and therefore cannot be disabled.",
       "personalized": "Personalised ads (recommended)",
       "personalizedDesc": "Ads based on your interests. Google AdSense cookies will be set. Enables higher ad revenue and keeps services free.",
       "nonPersonalized": "Non-personalised ads only",
@@ -349,14 +349,14 @@
   "legal": {
     "impressum": {
       "title": "Legal Notice",
-      "metaDescription": "Legal notice (Impressum) of ReelGuess as required by German law (Ã‚Â§ 5 TMG).",
-      "operatorHeading": "Information according to Ã‚Â§ 5 TMG",
+      "metaDescription": "Legal notice (Impressum) of ReelGuess as required by German law (§ 5 TMG).",
+      "operatorHeading": "Information according to § 5 TMG",
       "name": "Marvin Eschenbach",
       "address": "Hauptstraße 10, 97653 Bischofsheim i. d. Rhön, Deutschland",
       "email": "business.eschenbach@gmail.com",
       "phone": "Not provided",
       "liabilityHeading": "Liability Disclaimer",
-      "liabilityContent": "The contents of this website have been prepared with the utmost care. However, we cannot guarantee the accuracy, completeness or topicality of the content. As a service provider, we are responsible for our own content on these pages in accordance with Ã‚Â§ 7 para. 1 TMG under German law.",
+      "liabilityContent": "The contents of this website have been prepared with the utmost care. However, we cannot guarantee the accuracy, completeness or topicality of the content. As a service provider, we are responsible for our own content on these pages in accordance with § 7 para. 1 TMG under German law.",
       "copyrightHeading": "Copyright",
       "copyrightContent": "The content and works on these pages created by the site operators are subject to German copyright law. Contributions by third parties are identified as such. The reproduction, editing, distribution and any kind of use outside the limits of copyright law require the written consent of the respective author or creator.",
       "disputeHeading": "Dispute Resolution",
@@ -364,18 +364,18 @@
     },
     "datenschutz": {
       "title": "Privacy Policy",
-      "metaDescription": "ReelGuess Privacy Policy under GDPR Ã¢â‚¬â€ how we handle your data.",
+      "metaDescription": "ReelGuess Privacy Policy under GDPR — how we handle your data.",
       "intro": "The protection of your personal data is important to us. This privacy policy informs you about the processing of personal data when using our website and app.",
       "controllerHeading": "Controller",
       "controllerContent": "The controller within the meaning of the GDPR is: Marvin Eschenbach, Hauptstraße 10, 97653 Bischofsheim i. d. Rhön, E-Mail: business.eschenbach@gmail.com",
       "dataCollectionHeading": "What data we process",
-      "dataCollectionContent": "When using ReelGuess, the following data is processed: (1) Technical access data (IP address, browser type, OS, referrer URL) Ã¢â‚¬â€ collected by our hosting provider Vercel for up to 30 days; (2) Game data (player name, lobby code, voting behaviour) Ã¢â‚¬â€ temporarily stored in our Supabase database and automatically deleted after 7 days; (3) Locally stored data (imported reels, cookie preferences) Ã¢â‚¬â€ only on your device, no server access.",
+      "dataCollectionContent": "When using ReelGuess, the following data is processed: (1) Technical access data (IP address, browser type, OS, referrer URL) — collected by our hosting provider Vercel for up to 30 days; (2) Game data (player name, lobby code, voting behaviour) — temporarily stored in our Supabase database and automatically deleted after 7 days; (3) Locally stored data (imported reels, cookie preferences) — only on your device, no server access.",
       "legalBasisHeading": "Legal Bases",
       "legalBasisContent": "We process your data on the following legal bases under Art. 6 GDPR: (a) legitimate interests (Art. 6(1)(f) GDPR) for technical access data and server-side error logs without personal reference; (b) contract performance (Art. 6(1)(b) GDPR) for game data; (c) consent (Art. 6(1)(a) GDPR) for client-side analytics cookies (Vercel Analytics, Sentry Client SDK) and personalised advertising.",
       "analyticsHeading": "Analytics Services (Vercel Analytics & Sentry)",
       "analyticsContent": "With your consent (Art. 6(1)(a) GDPR) we use: (1) Vercel Analytics for anonymised usage analysis. (2) Sentry (Sentry Inc., 45 Fremont Street, San Francisco, CA 94105, USA) for client-side error tracking — no usernames or IP addresses transmitted. Data may transfer to the USA (SCCs). Protected by a consent gate. Server-side Sentry runs without consent under Art. 6(1)(f) GDPR. Withdraw via Cookie Settings. Sentry Privacy: https://sentry.io/privacy/",
       "advertisingHeading": "Advertising (Google AdSense)",
-      "advertisingContent": "ReelGuess is funded by Google AdSense advertisements (Google LLC, 1600 Amphitheatre Parkway, Mountain View, CA 94043, USA). Two operating modes apply: (1) Personalised advertising: With your consent under Art. 6(1)(a) GDPR in conjunction with TTDSG Ã‚Â§25(1), cookies and similar technologies are used to show you interest-based ads. Google may transfer data to the USA (Standard Contractual Clauses). (2) Non-personalised advertising: Without separate consent, only contextual ads are shown without personal tracking cookies. This processing is based on TTDSG Ã‚Â§25(2) (no separate consent required). The ad script is served via our own domain. You can withdraw your consent to personalised ads at any time via Cookie Settings. Google Privacy Policy: https://policies.google.com/privacy. Opt-out: https://adssettings.google.com/",
+      "advertisingContent": "ReelGuess is funded by Google AdSense advertisements (Google LLC, 1600 Amphitheatre Parkway, Mountain View, CA 94043, USA). Two operating modes apply: (1) Personalised advertising: With your consent under Art. 6(1)(a) GDPR in conjunction with TTDSG §25(1), cookies and similar technologies are used to show you interest-based ads. Google may transfer data to the USA (Standard Contractual Clauses). (2) Non-personalised advertising: Without separate consent, only contextual ads are shown without personal tracking cookies. This processing is based on TTDSG §25(2) (no separate consent required). The ad script is served via our own domain. You can withdraw your consent to personalised ads at any time via Cookie Settings. Google Privacy Policy: https://policies.google.com/privacy. Opt-out: https://adssettings.google.com/",
       "rightsHeading": "Your Rights as a Data Subject",
       "rightsContent": "Under the GDPR you have: right of access (Art. 15), rectification (Art. 16), erasure (Art. 17), restriction (Art. 18), objection (Art. 21), data portability (Art. 20), and the right to withdraw consent at any time (Art. 7(3) GDPR). You may also lodge a complaint with the competent supervisory authority.",
       "contactHeading": "Data Protection Contact",
@@ -387,36 +387,36 @@
     },
     "agb": {
       "title": "Terms and Conditions",
-      "metaDescription": "Terms and Conditions of ReelGuess Ã¢â‚¬â€ usage terms for the free party game platform.",
-      "scopeHeading": "Ã‚Â§ 1 Scope",
+      "metaDescription": "Terms and Conditions of ReelGuess — usage terms for the free party game platform.",
+      "scopeHeading": "§ 1 Scope",
       "scopeContent": "These Terms and Conditions apply to the use of the ReelGuess web application (reelguess.app). By using the platform you accept these terms.",
-      "serviceHeading": "Ã‚Â§ 2 Service Description",
+      "serviceHeading": "§ 2 Service Description",
       "serviceContent": "ReelGuess is a free, browser-based multiplayer entertainment platform. Use is at your own risk. There is no right to permanent operation or uninterrupted availability.",
-      "rulesHeading": "Ã‚Â§ 3 Usage Rules",
+      "rulesHeading": "§ 3 Usage Rules",
       "rulesContent": "It is prohibited to use the platform for unlawful purposes, circumvent security mechanisms, perform automated access (bots), or infringe third-party intellectual property rights.",
-      "advertisingHeading": "Ã‚Â§ 3a Advertising",
-      "advertisingContent": "ReelGuess is a free platform funded by advertising. With your consent, ads from third-party providers (e.g. Google AdSense) may be displayed. Ads are only shown at natural breakpoints in the game flow Ã¢â‚¬â€ never during active gameplay. Optional rewarded ads may be offered, where you can voluntarily watch an ad to receive small in-game benefits. Participation is always voluntary.",
-      "contentHeading": "Ã‚Â§ 4 User Content",
+      "advertisingHeading": "§ 3a Advertising",
+      "advertisingContent": "ReelGuess is a free platform funded by advertising. With your consent, ads from third-party providers (e.g. Google AdSense) may be displayed. Ads are only shown at natural breakpoints in the game flow — never during active gameplay. Optional rewarded ads may be offered, where you can voluntarily watch an ad to receive small in-game benefits. Participation is always voluntary.",
+      "contentHeading": "§ 4 User Content",
       "contentContent": "Users import Instagram URLs from publicly accessible sources. The operator assumes no responsibility for the legality of imported content. Users are solely responsible for ensuring no copyright infringement occurs.",
-      "liabilityHeading": "Ã‚Â§ 5 Liability Limitation",
+      "liabilityHeading": "§ 5 Liability Limitation",
       "liabilityContent": "The operator's liability is limited to intent and gross negligence. Liability for indirect damages, loss of profit or data loss is excluded to the extent permitted by law.",
-      "changeHeading": "Ã‚Â§ 6 Changes",
+      "changeHeading": "§ 6 Changes",
       "changeContent": "The operator reserves the right to amend these Terms at any time. Changes will be published on this page. Continued use after changes constitutes acceptance.",
-      "lawHeading": "Ã‚Â§ 7 Applicable Law",
+      "lawHeading": "§ 7 Applicable Law",
       "lawContent": "German law applies, excluding the UN Convention on Contracts for the International Sale of Goods. Jurisdiction is, to the extent permissible, the operator's registered office."
     }
   },
 
   "adBlock": {
     "title": "Ad blocker detected",
-    "body": "ReelGuess is free Ã¢â‚¬â€ we're funded entirely by advertising. Please disable your ad blocker for this site so we can keep the service free.",
+    "body": "ReelGuess is free — we're funded entirely by advertising. Please disable your ad blocker for this site so we can keep the service free.",
     "step1": "Open your browser's extensions",
     "step2": "Disable the ad blocker for \"reelguess.app\"",
     "step3": "Reload the page and click \"Try again\" below",
     "retry": "Try again",
-    "retrying": "CheckingÃ¢â‚¬Â¦",
+    "retrying": "Checking…",
     "retryFailed": "Ad blocker still active. Please disable it and try again.",
-    "footnote": "You can also choose non-personalised ads without tracking Ã¢â‚¬â€ just select \"Necessary only\" in the cookie banner."
+    "footnote": "You can also choose non-personalised ads without tracking — just select \"Necessary only\" in the cookie banner."
   },
 
   "ads": {

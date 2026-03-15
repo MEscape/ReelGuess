@@ -1,9 +1,9 @@
 'use client'
 
-import { useTransition, useState } from 'react'
+import { useState } from 'react'
 import { useRouter }               from 'next/navigation'
 import { useTranslations }         from 'next-intl'
-import { createLobbyAction, joinLobbyAction, startGameAction, updateLobbySettingsAction } from '../actions'
+import { createLobbyAction, joinLobbyAction, startGameAction } from '../actions'
 import { usePlayerStore }          from '@/features/player'
 import { submitLocalReelsToDB }    from '../utils'
 
@@ -17,17 +17,23 @@ import { submitLocalReelsToDB }    from '../utils'
  * 2. Persist player ID to the store.
  * 3. Submit local reels to the DB (fire-and-forget).
  * 4. Navigate to the lobby page.
+ *
+ * Intentionally does NOT use useTransition — Next.js App Router triggers an
+ * automatic router.refresh() after server actions called inside startTransition,
+ * which causes LobbyClient to briefly show NotMemberScreen on subsequent visits.
+ * Manual isPending state avoids this.
  */
 export function useCreateLobby() {
-    const [isPending, startTransition] = useTransition()
-    const [error,     setError]        = useState<string | null>(null)
+    const [isPending, setIsPending] = useState(false)
+    const [error,     setError]     = useState<string | null>(null)
     const router      = useRouter()
     const setPlayerId = usePlayerStore((s) => s.setPlayerId)
     const t           = useTranslations('lobby.errors')
 
-    function createLobby(playerName: string) {
+    async function createLobby(playerName: string) {
         setError(null)
-        startTransition(async () => {
+        setIsPending(true)
+        try {
             const fd = new FormData()
             fd.set('playerName', playerName)
 
@@ -41,7 +47,9 @@ export function useCreateLobby() {
             setPlayerId(lobby.id, player.id)
             void submitLocalReelsToDB(lobby.id, player.id)
             router.push(`/lobby/${lobby.id}`)
-        })
+        } finally {
+            setIsPending(false)
+        }
     }
 
     return { createLobby, isPending, error }
@@ -57,17 +65,20 @@ export function useCreateLobby() {
  * 2. Persist player ID to the store.
  * 3. Submit local reels to the DB (fire-and-forget).
  * 4. Navigate to the lobby page.
+ *
+ * Intentionally does NOT use useTransition — same reason as useCreateLobby.
  */
 export function useJoinLobby() {
-    const [isPending, startTransition] = useTransition()
-    const [error,     setError]        = useState<string | null>(null)
+    const [isPending, setIsPending] = useState(false)
+    const [error,     setError]     = useState<string | null>(null)
     const router      = useRouter()
     const setPlayerId = usePlayerStore((s) => s.setPlayerId)
     const t           = useTranslations('lobby.errors')
 
-    function joinLobby(code: string, playerName: string) {
+    async function joinLobby(code: string, playerName: string) {
         setError(null)
-        startTransition(async () => {
+        setIsPending(true)
+        try {
             const fd = new FormData()
             fd.set('code',       code.toUpperCase())
             fd.set('playerName', playerName)
@@ -96,7 +107,9 @@ export function useJoinLobby() {
             setPlayerId(upperCode, player.id)
             void submitLocalReelsToDB(upperCode, player.id)
             router.push(`/lobby/${upperCode}`)
-        })
+        } finally {
+            setIsPending(false)
+        }
     }
 
     return { joinLobby, isPending, error }
@@ -109,16 +122,19 @@ export function useJoinLobby() {
 /**
  * Encapsulates the host's start-game action.
  * Extracted from `LobbyRoom` to keep the component pure UI.
+ *
+ * Intentionally does NOT use useTransition — same reason as useCreateLobby.
  */
 export function useStartGame(lobbyCode: string, hostPlayerId: string) {
-    const [isPending, startTransition] = useTransition()
-    const [error,     setError]        = useState<string | null>(null)
+    const [isPending, setIsPending] = useState(false)
+    const [error,     setError]     = useState<string | null>(null)
     const router = useRouter()
     const t      = useTranslations('lobby.errors')
 
-    function startGame() {
+    async function startGame() {
         setError(null)
-        startTransition(async () => {
+        setIsPending(true)
+        try {
             const result = await startGameAction(lobbyCode, hostPlayerId)
             if (!result.ok) {
                 setError('message' in result.error ? result.error.message : t('failedToStart'))
@@ -126,7 +142,9 @@ export function useStartGame(lobbyCode: string, hostPlayerId: string) {
             }
             // Host navigates immediately — Realtime handles all other players.
             router.push(`/game/${lobbyCode}`)
-        })
+        } finally {
+            setIsPending(false)
+        }
     }
 
     return { startGame, isPending, error }
@@ -139,10 +157,11 @@ export function useStartGame(lobbyCode: string, hostPlayerId: string) {
 /**
  * Encapsulates the host's update-settings action.
  *
- * Intentionally does NOT use useTransition — Next.js App Router triggers an
- * automatic router.refresh() after server actions called inside startTransition,
- * which can cause the lobby page to remount and briefly show NotMemberScreen.
- * Instead we track pending state manually with useState.
+ * Uses a plain fetch to PATCH /api/lobby/[code]/settings instead of a Server
+ * Action. In Next.js 15/16 every Server Action call automatically triggers a
+ * router.refresh() which remounts LobbyClient and briefly shows NotMemberScreen
+ * because the component re-initialises with typeof window === 'undefined' during
+ * the RSC re-render. A fetch call has no such side effect.
  */
 export function useUpdateSettings(lobbyCode: string, hostPlayerId: string) {
     const [isPending, setIsPending] = useState(false)
@@ -153,10 +172,17 @@ export function useUpdateSettings(lobbyCode: string, hostPlayerId: string) {
         setError(null)
         setIsPending(true)
         try {
-            const result = await updateLobbySettingsAction(lobbyCode, hostPlayerId, settings)
-            if (!result.ok) {
-                setError('message' in result.error ? result.error.message : t('failedToUpdate'))
+            const res = await fetch(`/api/lobby/${lobbyCode}/settings`, {
+                method:  'PATCH',
+                headers: { 'Content-Type': 'application/json' },
+                body:    JSON.stringify({ hostPlayerId, ...settings }),
+            })
+            if (!res.ok) {
+                const data = await res.json().catch(() => ({})) as { error?: string }
+                setError(data.error ?? t('failedToUpdate'))
             }
+        } catch {
+            setError(t('failedToUpdate'))
         } finally {
             setIsPending(false)
         }
