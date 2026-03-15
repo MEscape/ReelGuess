@@ -1,9 +1,9 @@
 // -----------------------------------------------------------------------------
 // features/ads — Public API
 // -----------------------------------------------------------------------------
-export { BannerAd }            from './components/BannerAd'
-export { InterstitialAd }      from './components/InterstitialAd'
-export { RewardedAd }          from './components/RewardedAd'
-export { ConsentGatedAds }     from './components/ConsentGatedAds'
-export { AdBlockGuard }        from './components/AdBlockGuard'
+export { BannerAd }            from './components/banner-ad'
+export { InterstitialAd }      from './components/interstitial-ad'
+export { RewardedAd }          from './components/rewarded-ad'
+export { ConsentGatedAds }     from './components/consent-gated-ads'
+export { AdBlockGuard }        from './components/ad-block-guard'
 export { useAds }              from './hooks/use-ads'

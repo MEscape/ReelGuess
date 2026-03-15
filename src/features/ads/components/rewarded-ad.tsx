@@ -1,6 +1,6 @@
 'use client'
 
-import { InterstitialAd } from './InterstitialAd'
+import { InterstitialAd } from './interstitial-ad'
 import type { AdPlacement } from '@/lib/ads/types'
 
 type Props = {
