@@ -8,6 +8,10 @@ export type AdPlacement =
     | 'interstitial-game-start'
     | 'interstitial-game-over'
     | 'rewarded-bonus'
+    | 'banner-content-about'
+    | 'banner-content-how-to-play'
+    | 'banner-content-how-to-import'
+    | 'banner-content-faq'
 
 /** Ad format category */
 export type AdFormat = 'banner' | 'interstitial' | 'rewarded'

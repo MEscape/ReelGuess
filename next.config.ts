@@ -47,7 +47,7 @@ const nextConfig: NextConfig = {
                             "child-src https://www.instagram.com https://instagram.com https://*.googlesyndication.com https://*.adtrafficquality.google https://*.doubleclick.net https://*.google.com",
 
                             // Media
-                            "media-src 'self' https://*.cdninstagram.com",
+                            "media-src 'self' https://*.cdninstagram.com https://60aygng0wfcfbahe.public.blob.vercel-storage.com",
                         ].join("; "),
                     },
                 ],

@@ -188,16 +188,6 @@
     "uploadDescription": "Upload once — Reels are stored locally on your device, ready for any future game.",
     "uploadDescriptionHtml": "Upload once — <strong>locally on your device</strong>, ready for any future game.",
     "openInstagramExport": "Open Instagram Account Centre →",
-    "followSteps": "How to export your liked Reels",
-    "steps": {
-      "step1": "Open Instagram → go to your <strong>Profile</strong> → tap the <strong>hamburger menu ☰</strong> → <strong>Account overview</strong>",
-      "step2": "Tap <strong>Your information and permissions</strong> → <strong>Export your information</strong> → <strong>Export to device</strong>",
-      "step3": "If you have multiple accounts, <strong>select the correct profile</strong>. Set an <strong>e-mail address</strong> for the download notification if prompted, then save.",
-      "step4": "Tap <strong>Customise information</strong> → remove all categories → check only <strongAccent>\"Likes\"</strongAccent> → save. Set <strong>Date range</strong> → save. Set <strong>Format: JSON</strong> → save. Set <strong>Media quality: Low</strong> → save.",
-      "step5": "Tap <strong>Start export</strong>. Wait a few minutes (you may get an e-mail). Come back and tap <strong>Download</strong> when the export is ready.",
-      "step6": "Open the downloaded <strong>.zip file</strong> and unzip it.",
-      "step7": "Inside the zip look for <code>your_instagram_activity/likes/</code> and upload <code>liked_posts.json</code> below."
-    },
     "urlLabel": "Instagram Reel URL",
     "urlPlaceholder": "https://www.instagram.com/reel/…",
     "importButton": "Save to my pool",
@@ -302,6 +292,22 @@
     "agb": {
       "title": "Terms & Conditions — ReelGuess",
       "description": "ReelGuess Terms and Conditions — usage terms for the free party game platform."
+    },
+    "about": {
+      "title": "About ReelGuess — The Social Reel Guessing Game",
+      "description": "Learn about ReelGuess — the viral party game where friends guess who liked which Instagram Reel. Discover the story, mission, and features behind the game."
+    },
+    "howToPlay": {
+      "title": "How to Play ReelGuess — Step-by-Step Guide",
+      "description": "Learn how to play ReelGuess in minutes. Step-by-step instructions for hosting or joining a game, guessing Reels, scoring points, and winning."
+    },
+    "howToImport": {
+      "title": "How to Import Your Instagram Liked Reels — ReelGuess Guide",
+      "description": "Step-by-step guide to exporting and importing your Instagram liked Reels into ReelGuess. Includes a video walkthrough."
+    },
+    "faq": {
+      "title": "FAQ — ReelGuess Frequently Asked Questions",
+      "description": "Answers to the most frequently asked questions about ReelGuess — setup, privacy, Instagram data, gameplay, and more."
     }
   },
 
@@ -312,6 +318,10 @@
       "impressum": "Legal Notice",
       "datenschutz": "Privacy Policy",
       "agb": "Terms",
+      "about": "About",
+      "howToPlay": "How to Play",
+      "howToImport": "Import Guide",
+      "faq": "FAQ",
       "cookieSettings": "Cookie Settings"
     },
     "ariaLabel": "Site footer"
@@ -443,5 +453,189 @@
     "currentRound": "Round {current} of {total}",
     "scoreboardEntry": "{name}: {points} points, rank {rank}",
     "timerSeconds": "{seconds} seconds remaining"
+  },
+
+  "about": {
+    "title": "About ReelGuess",
+    "subtitle": "The social party game for Instagram Reel fans",
+    "intro": "ReelGuess is a free, browser-based multiplayer party game that turns your Instagram Reels activity into a hilarious guessing competition. No app download required — just open a link on your phone or laptop and start playing within seconds.",
+    "missionHeading": "Our Mission",
+    "missionBody": "We built ReelGuess because the best party games are the ones that reveal something real about the people you play with. Instagram Reels are a window into your personality — the things you laugh at, the content you seek out, the creators you follow. ReelGuess turns that private digital footprint into a shared, laugh-out-loud social experience. Our mission is simple: bring people closer together through the content they already love.",
+    "whatIsHeading": "What Is ReelGuess?",
+    "whatIsBody": "ReelGuess is a multiplayer guessing game for 2–8 players. Every player — not just the host — imports their own collection of liked Instagram Reels. When creating or joining a lobby, up to 50 Reels are randomly drawn from each player's local pool and temporarily stored in the game session. During the game, every Reel is shown to all players on their own screens and everyone must guess: who liked this Reel? Points are awarded for correct guesses — and extra points for fast answers and streaks. Build streaks for multipliers, or activate Double-or-Nothing to double your points (or lose them).",
+    "howItStartedHeading": "How It Started",
+    "howItStartedBody": "ReelGuess was born out of a simple observation: people spend hours scrolling Instagram Reels, but the content you like stays private. What if you could use that data as the basis for a party game? The idea was tested at a small house party, and within minutes everyone was laughing and shouting across the room. It has since grown into a fully featured, polished web application.",
+    "featuresHeading": "Key Features",
+    "feature1Title": "No Install Required",
+    "feature1Body": "ReelGuess runs entirely in your browser. Share a 6-character lobby code and your friends can join instantly from any device — iPhone, Android, laptop, or tablet.",
+    "feature2Title": "100% Private by Default",
+    "feature2Body": "Your liked Reels are stored locally. For each round, up to 50 random Reels are temporarily uploaded to our server to populate the lobby. This server pool is deleted after 7 days at the latest. Never used for advertising. You are in full control.",
+    "feature3Body": "Each round has a countdown timer. Decide quickly — the pressure makes it even more fun. Adjust the timer length and number of rounds in the lobby settings to fit your group's pace.",
+    "feature4Title": "Smart Scoring",
+    "feature4Body": "Earn 100 points for each correct guess. Answer quickly to earn extra points. Build a streak of correct answers to activate score multipliers. Feeling lucky? Use Double-or-Nothing to bet your current points on a single round.",    "feature5Title": "Works Anywhere",
+    "feature5Body": "ReelGuess is a Progressive Web App (PWA). You can add it to your home screen for an app-like experience, and it works beautifully on all screen sizes.",
+    "feature6Title": "Free Forever",
+    "feature6Body": "ReelGuess is and will remain free to play. It is funded by optional, non-intrusive advertising. You can choose personalised or non-personalised ads in the cookie settings. We will never charge players to enjoy the core game.",
+    "audienceHeading": "Who Is ReelGuess For?",
+    "audienceBody": "ReelGuess is perfect for friend groups, couples, flatmates, office teams, and anyone who watches Instagram Reels. It is especially popular at house parties, pre-drinks, game nights, and family gatherings where everyone already knows each other — because the game works best when the people guessing actually know the person whose liked Reels are on display. Ideal for groups aged 16 and up.",
+    "privacyNoteHeading": "A Note on Privacy",
+    "privacyNoteBody": "We take your privacy seriously. Your liked Reels stay local on your device. For each round, up to 50 Reels are temporarily uploaded to our server to populate the lobby – this server pool is deleted after 7 days. Player and game info is also stored only briefly. We do not collect, sell, or share personal data. Read our Privacy Policy for full details.",    "ctaHeading": "Ready to Play?",
+    "ctaBody": "Import your liked Reels, create a lobby, share the code — and let the guessing begin.",
+    "ctaButton": "Play Now",
+    "howToPlayLink": "How to Play →",
+    "howToImportLink": "Import Guide →"
+  },
+
+  "howToPlay": {
+    "title": "How to Play ReelGuess",
+    "subtitle": "Everything you need to know to host or join a game",
+    "intro": "ReelGuess is designed to be intuitive — you can go from zero to playing in under three minutes. This guide walks you through every step, whether you are hosting your first game or joining a friend's lobby.",
+    "overviewHeading": "Game Overview",
+    "overviewBody": "ReelGuess is played in rounds. Each player imports their liked Reels. In each round, a random Reel from the pool of all players is shown. No one knows who liked it – not even the player themselves. Everyone must guess which player liked the Reel. Players earn points for correct guesses, time-based bonus points for fast answers, streak multipliers for consecutive correct answers, and can use special power-ups to boost or gamble their score. After all rounds, the player with the highest score wins.",    "requirementsHeading": "What You Need",
+    "requirementsList": [
+      "A smartphone, tablet, or computer with a modern web browser",
+      "An internet connection",
+      "At least 2 players (up to 8)",
+      "All players need to import their liked Instagram Reels (see Import Guide)"
+    ],
+    "hostingHeading": "Hosting a Game",
+    "hostingIntro": "The host creates the lobby. All players must import their Reels first. Here’s how to set up a game:",
+    "hostStep1Title": "Step 1 — Import Reels",
+    "hostStep1Body": "Import your liked Instagram Reels from the home screen. All players do the same. Up to 50 Reels per player are selected for the round. See the Import Guide for details.",
+    "hostStep2Title": "Step 2 — Create Lobby",
+    "hostStep2Body": "Tap \"Create Lobby\" and enter your name. Your lobby is created instantly and you receive a 6-character code.",
+    "hostStep3Title": "Step 3 — Share Code",
+    "hostStep3Body": "Share the code by tapping the \"Copy\" icon. Friends join using this code.",
+    "hostStep4Title": "Step 4 — Adjust Settings",
+    "hostStep4Body": "In the waiting room, adjust the number of rounds (5–100) and time per round (10–120 seconds). All players can see the settings.",
+    "hostStep5Title": "Step 5 — Start Game",
+    "hostStep5Body": "Once at least 2 players have joined, tap \"Start Game.\" Only the host can start the game.",
+    "joiningHeading": "Join a Game",
+    "joiningIntro": "Joining a game is easy. No account or setup required:",
+    "joinStep1Title": "Step 1 — Import Reels",
+    "joinStep1Body": "Import your liked Instagram Reels using the Import Guide so they can be used in the game.",
+    "joinStep2Title": "Step 2 — Join the Lobby",
+    "joinStep2Body": "Enter the 6-character lobby code from the host to join the lobby. Set your display name and avatar here, just like when creating a lobby.",
+    "joinStep3Title": "Step 3 — Wait for the Host",
+    "joinStep3Body": "Wait in the lobby until the host starts the game. You’ll see other players joining in real time.",
+    "gameplayHeading": "During the Game",
+    "gameplayVotingTitle": "Voting Phase",
+    "gameplayVotingBody": "When a round starts, a Reel is displayed on every player's screen. You have the countdown timer to decide who you think liked that Reel. Tap the player's name to cast your vote. You can only vote once — choose carefully! After the timer runs out or all players have voted, the reveal phase begins.",
+    "gameplayRevealTitle": "Reveal Phase",
+    "gameplayRevealBody": "The correct answer is revealed to everyone. You can see how all players voted. Correct guesses earn 100 base points. Multipliers can increase points: for fast answers, streaks of correct answers, or using the Double-or-Nothing button.",
+    "gameplayScoringTitle": "Scoring",
+    "gameplayScoringBody": "Points: 100 base points per correct guess. Speed bonus: under 2 s ×1.5, under 4 s ×1.3, under 8 s ×1.1. Streak multiplier: 3+ consecutive correct answers ×1.25, 5+ ×1.5, 10+ ×2.0. Double-or-Nothing: doubles round points if correct, halves if wrong (max half your current score). All bonuses and multipliers stack. Scoreboard updates after every round.",
+    "gameplayDoubleTitle": "Double-or-Nothing",
+    "gameplayDoubleBody": "Once you have at least 100 points, the Double-or-Nothing button activates. Click it before voting to double your round points or lose half if wrong. Your total score can never go below zero.",
+    "afterGameHeading": "After the Game",
+    "afterGameBody": "After all rounds are complete, the Final Results screen shows the full ranking and each player's score. The host can click \"Rematch\" to start a new game using the same lobby settings. All players must join the new game, and fresh Reels are loaded from each player.",
+    "tipsHeading": "Tips for the Best Experience",
+    "tip1": "Import at least 50 Reels — the game draws up to 50 per player per session, so having exactly 50 gives the maximum variety.",
+    "tip2": "Play with people who actually know each other — the guessing works best when you know someone's taste.",
+    "tip3": "Every player uses their own device to vote — make sure everyone has the app open before starting.",
+    "tip4": "Adjust the timer in the lobby settings: options range from 15 to 120 seconds. Start with 60s for a relaxed pace, 15–30s for a frantic round.",
+    "tip5": "Double-or-Nothing activates at 100 points minimum. If you are wrong you lose at least 100 points — save it for rounds where you are confident.",
+    "importGuideLink": "Need help importing Reels? See the Import Guide →",
+    "ctaButton": "Play Now"
+  },
+
+  "howToImport": {
+    "title": "How to Import Your Liked Reels",
+    "subtitle": "A complete guide to exporting your Instagram data and setting up your Reel pool",
+    "intro": "ReelGuess uses your Instagram liked Reels as the basis for the game. This guide explains exactly how to export that data from Instagram, find the right file, and import it into ReelGuess. The whole process takes about 5–10 minutes the first time.",
+    "videoHeading": "Video Walkthrough",
+    "videoSubtitle": "Watch a step-by-step video guide to the import process",
+    "videoUnavailable": "Your browser does not support the video tag. Please follow the written instructions below.",
+    "privacyHeading": "Privacy First",
+    "privacyBody": "Your Reels are stored in your browser's local storage. For each game session, up to 50 random Reels per player are temporarily sent to our server so they can be used in the lobby. These are automatically deleted after 7 days. No personal data is collected, shared, or sold. You can delete all your imported Reels at any time from the home screen.",
+    "whyNeededHeading": "Why Do I Need to Import?",
+    "whyNeededBody": "Instagram does not provide a public API that allows apps to read your liked content. To protect your privacy, ReelGuess never connects to Instagram on your behalf. Instead, Instagram provides a built-in data export tool that lets you download your own activity as a JSON file. You upload that file directly in your browser — no Instagram login required in ReelGuess, no server processing, and no data ever leaves your device.",
+    "exportHeading": "Step 1 — Export Your Data from Instagram",
+    "exportIntro": "Follow these steps to request your Instagram data export:",
+    "exportStep1": "Open Instagram on your phone and navigate to your Profile.",
+    "exportStep2": "Tap the hamburger menu (☰) in the top-right corner, then tap Account overview.",
+    "exportStep3": "Tap Your information and permissions → Export your information → Export to device.",
+    "exportStep4": "If you have multiple accounts, select the correct profile. Set an email address for the download notification if prompted.",
+    "exportStep5": "Tap Customise information → remove all categories → check only \"Likes\" → save. Set Date range → save. Set Format: JSON → save. Set Media quality: Low → save.",
+    "exportStep6": "Tap Start export. Instagram will prepare your data (this usually takes a few minutes up to a few hours). You will receive an email when it is ready.",
+    "exportStep7": "Return to the export screen and tap Download to save the .zip file to your device.",
+    "findFileHeading": "Step 2 — Find the Right File",
+    "findFileBody": "Once downloaded, open (unzip) the .zip file. Inside, navigate to the folder: your_instagram_activity/likes/. You will find a file named liked_posts.json. This is the file you need. Do not upload liked_comments.json or any other file.",
+    "uploadHeading": "Step 3 — Upload to ReelGuess",
+    "uploadBody": "On the ReelGuess home screen, tap Import Reels. You will see an upload zone. Drag and drop liked_posts.json onto the upload area, or tap it to browse your files. ReelGuess will immediately parse the file, extract all Instagram Reel URLs, and save them to your browser's local storage. You will see a confirmation with the number of Reels imported.",
+    "limitsHeading": "Slot Limits & Expanding Your Pool",
+    "limitsBody": "Each player starts with 10 Reel slots. You can unlock 10 more slots per rewarded ad watched on the home screen — slots are cumulative and persist across sessions. The local pool has a hard cap of 500 Reels. If you upload a JSON file with more Reels than you have free slots, only as many are saved as slots are available. After unlocking more slots via an ad, simply upload the same liked_posts.json file again — ReelGuess will fill the newly freed slots from it automatically.",
+    "troubleshootHeading": "Troubleshooting",
+    "trouble1Title": "Wrong file uploaded",
+    "trouble1Body": "Make sure you are uploading liked_posts.json and not liked_comments.json or any other file. The file must be in JSON format.",
+    "trouble2Title": "No Reels found in the file",
+    "trouble2Body": "This usually means the export only contained liked comments or posts, not Reels. When setting up the export in Instagram, ensure you select only the \"Likes\" category and choose JSON format.",
+    "trouble3Title": "The export is taking too long",
+    "trouble3Body": "Instagram exports can take anywhere from a few minutes to a few hours depending on how much data your account has. You will receive an email notification when it is ready. If it takes more than 24 hours, try requesting the export again.",
+    "trouble4Title": "My Reels only go up to a certain date",
+    "trouble4Body": "Instagram exports only include activity up to the date you requested the export. If you made your last export a month ago, only Reels liked up to that point will appear. To get your newest liked Reels, simply request a fresh export from Instagram — it only takes a few minutes.",
+    "trouble5Title": "I accidentally deleted my Reels in ReelGuess",
+    "trouble5Body": "Simply re-upload your liked_posts.json file. Since the original .zip file is on your device, you can always re-import without needing a new Instagram export.",
+    "howToPlayLink": "Now that your Reels are imported — learn how to play →",
+    "ctaButton": "Start Importing Now"
+  },
+
+  "faq": {
+    "title": "Frequently Asked Questions",
+    "subtitle": "Everything you need to know about ReelGuess",
+    "intro": "Can't find what you're looking for? Check our answers below — or reach out to us at contact@reelguess.app.",
+    "questions": [
+      {
+        "q": "Is ReelGuess free to play?",
+        "a": "Yes, ReelGuess is completely free to play. We are funded by optional, non-intrusive advertising. You will never be charged to play the core game. Optional rewarded ads are available if you want to unlock extra Reel slots, but watching them is entirely voluntary."
+      },
+      {
+        "q": "Do I need an Instagram account to play?",
+        "a": "Every player — not just the host — needs liked Instagram Reels to create or join a lobby. Each player imports their own collection on their device. This ensures the Reels are evenly distributed and no one can predict who liked which Reel."      },
+      {
+        "q": "Is my Instagram data safe?",
+        "a": "Absolutely. ReelGuess never connects to Instagram on your behalf and never asks for your Instagram login. Your liked Reels are stored exclusively in your own browser's local storage on your device. When you join or create a lobby, up to 50 Reels are drawn from your local pool and temporarily stored in the game session — these are automatically deleted after 7 days. No personal account data is ever shared."
+      },
+      {
+        "q": "How many players can join a game?",
+        "a": "A ReelGuess lobby supports between 2 and 8 players. For the best experience we recommend 3–6 players. With fewer than 3 players the guessing pool is too small, and with more than 8 the game can become slow due to waiting for all players to vote."
+      },
+      {
+        "q": "How many Reels do I need to import?",
+        "a": "You need at least 3 liked Reels to play. We strongly recommend importing 50 Reels — the game draws up to 50 per player per session, so having exactly 50 gives the maximum variety. Each player starts with 10 Reel slots. You can unlock 10 more per rewarded ad watched, up to a local maximum of 500."
+      },
+      {
+        "q": "Can I play on a computer?",
+        "a": "Yes! ReelGuess works on any device with a modern web browser — desktop, laptop, tablet, or phone. Open reelguess.app in Chrome, Firefox, Edge, or Safari. The game is fully responsive and works across all screen sizes."
+      },
+      {
+        "q": "Why can't I see the Instagram Reel during the game?",
+        "a": "Sometimes a Reel is unavailable, for example if it has been removed by Instagram. Instagram also occasionally blocks their Reel player from third-party websites or forces playback directly on Instagram (e.g., due to copyright music). ReelGuess then shows a placeholder with a link to open the Reel on Instagram. You can still play the round — use context clues and your knowledge of the players."
+      },
+      {
+        "q": "What is Double-or-Nothing?",
+        "a": "Double-or-Nothing is a risk/reward power-up that unlocks once you have at least 100 points. When activated before a round, a correct guess doubles your earned points for that round. A wrong guess costs you at least 100 points (or half your total if that is more). Your score can never go below zero. Use it when you are confident — or when you are far behind and need to take a risk."
+      },
+      {
+        "q": "How does speed scoring work?",
+        "a": "Faster votes earn bonus multipliers on top of base points. Voting within 2 seconds earns a ×1.5 speed bonus, within 4 seconds ×1.3, and within 8 seconds ×1.1. Speed bonuses stack with streak multipliers, so fast correct answers in a row can earn significantly more points."
+      },
+      {
+        "q": "Does ReelGuess work offline?",
+        "a": "ReelGuess requires an internet connection for the multiplayer lobby and real-time voting. Your imported Reels are stored locally and available offline, but the game itself requires all players to be connected simultaneously."
+      },
+      {
+        "q": "How do I delete my imported Reels?",
+        "a": "On the home screen, expand the Reels section and tap \"Clear all\" to remove all imported Reels from local storage. You can also remove individual Reels from the import screen. All data is deleted instantly and permanently from your device."
+      },
+      {
+        "q": "Is there a mobile app?",
+        "a": "ReelGuess is a Progressive Web App (PWA), which means you can add it to your home screen for an app-like experience. In your browser, tap \"Share\" → \"Add to Home Screen\" (iOS) or the menu → \"Add to Home Screen\" (Android/Chrome). There is no native App Store or Play Store app."
+      },
+      {
+        "q": "Who can I contact for support?",
+        "a": "For support, feedback, or bug reports, please email us at business.eschenbach@gmail.com. We aim to respond within 48 hours. For data protection requests, please see our Privacy Policy for the appropriate contact details."
+      }
+    ]
   }
 }

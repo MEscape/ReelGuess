@@ -13,8 +13,25 @@ export default function robots(): MetadataRoute.Robots {
         rules: [
             {
                 userAgent: '*',
-                allow:     ['/', '/de'],
-                disallow:  [
+                allow: [
+                    '/',
+                    '/de',
+                    '/about',
+                    '/how-to-play',
+                    '/how-to-import',
+                    '/faq',
+                    '/impressum',
+                    '/datenschutz',
+                    '/agb',
+                    '/de/about',
+                    '/de/how-to-play',
+                    '/de/how-to-import',
+                    '/de/faq',
+                    '/de/impressum',
+                    '/de/datenschutz',
+                    '/de/agb',
+                ],
+                disallow: [
                     '/lobby/',
                     '/game/',
                     '/de/lobby/',
@@ -28,4 +45,3 @@ export default function robots(): MetadataRoute.Robots {
         host:    baseUrl,
     }
 }
-

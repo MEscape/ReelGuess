@@ -2,25 +2,28 @@ import type { MetadataRoute } from 'next'
 
 const baseUrl = process.env.NEXT_PUBLIC_BASE_URL ?? 'https://reelguess.app'
 
-// Last content update — update when landing page copy changes significantly.
-const LAST_MODIFIED = new Date('2026-03-14')
+const LAST_MODIFIED        = new Date('2026-03-16')
+const LAST_MODIFIED_LEGAL  = new Date('2026-03-14')
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Sitemap
-//
-// Only static / indexable pages are listed.
-// Dynamic session pages (lobby/game) are excluded — they're noindex.
 // ─────────────────────────────────────────────────────────────────────────────
 
 export default function sitemap(): MetadataRoute.Sitemap {
-    const legalSlugs = ['impressum', 'datenschutz', 'agb'] as const
-
-    const legalEntries: MetadataRoute.Sitemap = legalSlugs.flatMap((slug) => [
-        {
-            url:             `${baseUrl}/${slug}`,
-            lastModified:    LAST_MODIFIED,
-            changeFrequency: 'yearly' as const,
-            priority:        0.4,
+    // Helper: build both locale variants of a slug
+    function bilingualEntries(
+        slug: string,
+        opts: {
+            changeFrequency: MetadataRoute.Sitemap[number]['changeFrequency']
+            priority:        number
+            lastModified?:   Date
+        },
+    ): MetadataRoute.Sitemap {
+        const lm = opts.lastModified ?? LAST_MODIFIED
+        const base = {
+            changeFrequency: opts.changeFrequency,
+            priority:        opts.priority,
+            lastModified:    lm,
             alternates: {
                 languages: {
                     en:          `${baseUrl}/${slug}`,
@@ -28,23 +31,15 @@ export default function sitemap(): MetadataRoute.Sitemap {
                     'x-default': `${baseUrl}/${slug}`,
                 },
             },
-        },
-        {
-            url:             `${baseUrl}/de/${slug}`,
-            lastModified:    LAST_MODIFIED,
-            changeFrequency: 'yearly' as const,
-            priority:        0.4,
-            alternates: {
-                languages: {
-                    en:          `${baseUrl}/${slug}`,
-                    de:          `${baseUrl}/de/${slug}`,
-                    'x-default': `${baseUrl}/${slug}`,
-                },
-            },
-        },
-    ])
+        }
+        return [
+            { url: `${baseUrl}/${slug}`,       ...base },
+            { url: `${baseUrl}/de/${slug}`,    ...base },
+        ]
+    }
 
     return [
+        // ── Home ──────────────────────────────────────────────────────────
         {
             url:             `${baseUrl}/`,
             lastModified:    LAST_MODIFIED,
@@ -52,9 +47,9 @@ export default function sitemap(): MetadataRoute.Sitemap {
             priority:        1.0,
             alternates: {
                 languages: {
-                    en:           `${baseUrl}/`,
-                    de:           `${baseUrl}/de`,
-                    'x-default':  `${baseUrl}/`,
+                    en:          `${baseUrl}/`,
+                    de:          `${baseUrl}/de`,
+                    'x-default': `${baseUrl}/`,
                 },
             },
         },
@@ -65,12 +60,22 @@ export default function sitemap(): MetadataRoute.Sitemap {
             priority:        0.9,
             alternates: {
                 languages: {
-                    en:           `${baseUrl}/`,
-                    de:           `${baseUrl}/de`,
-                    'x-default':  `${baseUrl}/`,
+                    en:          `${baseUrl}/`,
+                    de:          `${baseUrl}/de`,
+                    'x-default': `${baseUrl}/`,
                 },
             },
         },
-        ...legalEntries,
+
+        // ── Content pages ─────────────────────────────────────────────────
+        ...bilingualEntries('about',          { changeFrequency: 'monthly',  priority: 0.85 }),
+        ...bilingualEntries('how-to-play',    { changeFrequency: 'monthly',  priority: 0.85 }),
+        ...bilingualEntries('how-to-import',  { changeFrequency: 'monthly',  priority: 0.85 }),
+        ...bilingualEntries('faq',            { changeFrequency: 'monthly',  priority: 0.80 }),
+
+        // ── Legal pages ───────────────────────────────────────────────────
+        ...bilingualEntries('impressum',   { changeFrequency: 'yearly', priority: 0.4, lastModified: LAST_MODIFIED_LEGAL }),
+        ...bilingualEntries('datenschutz', { changeFrequency: 'yearly', priority: 0.4, lastModified: LAST_MODIFIED_LEGAL }),
+        ...bilingualEntries('agb',         { changeFrequency: 'yearly', priority: 0.4, lastModified: LAST_MODIFIED_LEGAL }),
     ]
 }

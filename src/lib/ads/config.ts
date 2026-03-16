@@ -48,6 +48,26 @@ export const AD_SLOTS: AdSlot[] = [
         format:    'rewarded',
         slotId:    process.env.NEXT_PUBLIC_AD_SLOT_REWARDED             ?? '5555555555',
     },
+    {
+        placement: 'banner-content-about',
+        format:    'banner',
+        slotId:    process.env.NEXT_PUBLIC_AD_SLOT_CONTENT_ABOUT        ?? '6666666666',
+    },
+    {
+        placement: 'banner-content-how-to-play',
+        format:    'banner',
+        slotId:    process.env.NEXT_PUBLIC_AD_SLOT_CONTENT_HTP          ?? '7777777777',
+    },
+    {
+        placement: 'banner-content-how-to-import',
+        format:    'banner',
+        slotId:    process.env.NEXT_PUBLIC_AD_SLOT_CONTENT_IMPORT       ?? '8888888888',
+    },
+    {
+        placement: 'banner-content-faq',
+        format:    'banner',
+        slotId:    process.env.NEXT_PUBLIC_AD_SLOT_CONTENT_FAQ          ?? '9999999999',
+    },
 ]
 
 /** Lookup helper throws if an unknown placement is requested */

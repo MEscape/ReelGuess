@@ -1,37 +1,24 @@
 'use client'
 
 import type React from 'react'
-import { useTranslations } from 'next-intl'
+import Link from 'next/link'
+import { useTranslations, useLocale } from 'next-intl'
 import { UploadZone } from './upload-zone'
 
 type ImportStepUploadProps = {
-    isDragging:    boolean
+    isDragging: boolean
     setIsDragging: (v: boolean) => void
-    processFile:   (f: File) => void
-    fileInputRef:  React.RefObject<HTMLInputElement | null>
-    fileError:     string | null
+    processFile: (f: File) => void
+    fileInputRef: React.RefObject<HTMLInputElement | null>
+    fileError: string | null
 }
 
-// Shared rich-text tag renderers — stable references, defined outside component
-const richStrong      = (chunks: React.ReactNode) => <strong className="text-[var(--color-foreground)] font-semibold">{chunks}</strong>
-const richStrongAccent = (chunks: React.ReactNode) => <strong className="text-[var(--color-accent)] font-semibold">{chunks}</strong>
-const richCode        = (chunks: React.ReactNode) => <code className="text-[var(--color-accent)] font-bold" style={{ fontSize: 'var(--text-body-sm)' }}>{chunks}</code>
-const RICH_TAGS = { strong: richStrong, strongAccent: richStrongAccent, code: richCode }
-
 export function ImportStepUpload({
-    isDragging, setIsDragging, processFile, fileInputRef, fileError,
-}: ImportStepUploadProps) {
+                                     isDragging, setIsDragging, processFile, fileInputRef, fileError,
+                                 }: ImportStepUploadProps) {
     const t = useTranslations('reelImport')
-
-    const STEPS = [
-        t.rich('steps.step1', RICH_TAGS),
-        t.rich('steps.step2', RICH_TAGS),
-        t.rich('steps.step3', RICH_TAGS),
-        t.rich('steps.step4', RICH_TAGS),
-        t.rich('steps.step5', RICH_TAGS),
-        t.rich('steps.step6', RICH_TAGS),
-        t.rich('steps.step7', RICH_TAGS),
-    ]
+    const locale = useLocale()
+    const guideHref = locale === 'de' ? '/de/how-to-import' : '/how-to-import'
 
     return (
         <div className="flex flex-col gap-4 p-4">
@@ -45,11 +32,19 @@ export function ImportStepUpload({
                     {t('title')}
                 </h2>
                 <p className="font-sans text-[var(--color-subtle)] mt-1.5 leading-relaxed" style={{ fontSize: 'var(--text-body-sm)' }}>
-                    {t.rich('uploadDescriptionHtml', { strong: richStrong })}
+                    {t('uploadDescription')}
                 </p>
+                <Link
+                    href={guideHref}
+                    className="text-[var(--color-accent)] font-semibold underline underline-offset-2 hover:text-[var(--color-accent-dim)] mt-2 block"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                >
+                    {locale === 'de' ? '🎬 Vollständiger Leitfaden mit Video →' : '🎬 Full step-by-step guide with video →'}
+                </Link>
             </div>
 
-            {/* ── Instagram export link ── */}
+            {/* ── Instagram export shortcut ── */}
             <a
                 href="https://accountscenter.instagram.com/info_and_permissions/dyi/"
                 target="_blank"
@@ -59,31 +54,6 @@ export function ImportStepUpload({
             >
                 {t('openInstagramExport')}
             </a>
-
-            {/* ── Steps card ── */}
-            <div className="card-brutal flex flex-col gap-0">
-                <div className="flex items-center gap-2 px-4 py-2.5 border-b-2 border-[var(--color-border)]">
-                    <span className="input-label" style={{ marginBottom: 0, color: 'var(--color-muted)' }}>
-                        {t('followSteps').toUpperCase()}
-                    </span>
-                </div>
-                <ol className="flex flex-col divide-y divide-[var(--color-border)]">
-                    {STEPS.map((text, i) => (
-                        <li key={i} className="flex items-start gap-3 px-4 py-3">
-                            <span
-                                className="shrink-0 w-5 h-5 flex items-center justify-center font-display bg-[var(--color-accent)] text-[var(--color-accent-fg)] mt-0.5"
-                                style={{ fontSize: 'var(--text-label-xs)' }}
-                                aria-hidden="true"
-                            >
-                                {i + 1}
-                            </span>
-                            <span className="font-sans text-[var(--color-muted)] leading-relaxed" style={{ fontSize: 'var(--text-body-sm)' }}>
-                                {text}
-                            </span>
-                        </li>
-                    ))}
-                </ol>
-            </div>
 
             {/* ── Upload zone ── */}
             <UploadZone

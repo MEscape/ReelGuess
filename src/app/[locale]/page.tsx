@@ -4,7 +4,7 @@ import type { Metadata }              from 'next'
 import { CreateLobbySection, JoinLobbySection, ManageReelsSection } from '@/features/home'
 import { ShareCard }                  from '@/features/home/share-card'
 import { JsonLd }                     from '@/components/seo/json-ld'
-import { buildWebAppSchema, buildFaqSchema, buildBreadcrumbSchema, buildOrganizationSchema } from '@/components/seo/structured-data'
+import { buildWebAppSchema, buildBreadcrumbSchema, buildOrganizationSchema } from '@/components/seo/structured-data'
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Metadata
@@ -49,7 +49,6 @@ export default async function HomePage({ params }: Props) {
         <>
             {/* ── Structured Data ──────────────────────────────────────── */}
             <JsonLd schema={buildWebAppSchema(baseUrl, typedLocale)} />
-            <JsonLd schema={buildFaqSchema(typedLocale)} />
             <JsonLd schema={buildBreadcrumbSchema(baseUrl, typedLocale)} />
             <JsonLd schema={buildOrganizationSchema(baseUrl)} />
 
