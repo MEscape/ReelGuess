@@ -83,7 +83,7 @@ export const createRematchAction = withSentry(
     async (oldLobbyId: string, requestingPlayerId: string): Promise<SerializedResult<{ newLobbyCode: string; newPlayerId: string }, LobbyError>> => {
         const rl = await rateLimitFromIP('rematch', requestingPlayerId)
         if (!rl.success) {
-            return { ok: false, error: { type: 'LOBBY_VALIDATION_ERROR', message: 'Too many rematch requests. Please wait.', issues: [] } }
+            return { ok: false, error: { type: 'RATE_LIMITED' } }
         }
         if (!LobbyCodeSchema.safeParse(oldLobbyId).success) {
             return { ok: false, error: { type: 'LOBBY_VALIDATION_ERROR', message: 'Invalid lobby code', issues: [] } }

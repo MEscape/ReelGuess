@@ -51,13 +51,13 @@ export default async function AboutPage({ params }: Props) {
     const prefix = locale === 'en' ? '' : `/${locale}`
 
     const features = [
-        { titleKey: 'feature1Title', bodyKey: 'feature1Body', emoji: '🌐' },
-        { titleKey: 'feature2Title', bodyKey: 'feature2Body', emoji: '🔒' },
-        { titleKey: 'feature3Title', bodyKey: 'feature3Body', emoji: '⏱️' },
-        { titleKey: 'feature4Title', bodyKey: 'feature4Body', emoji: '🏆' },
-        { titleKey: 'feature5Title', bodyKey: 'feature5Body', emoji: '📱' },
-        { titleKey: 'feature6Title', bodyKey: 'feature6Body', emoji: '🎉' },
-    ] as const
+        { title: t('feature1Title'), body: t('feature1Body'), emoji: '🌐' },
+        { title: t('feature2Title'), body: t('feature2Body'), emoji: '🔒' },
+        { title: t('feature3Title'), body: t('feature3Body'), emoji: '⏱️' },
+        { title: t('feature4Title'), body: t('feature4Body'), emoji: '🏆' },
+        { title: t('feature5Title'), body: t('feature5Body'), emoji: '📱' },
+        { title: t('feature6Title'), body: t('feature6Body'), emoji: '🎉' },
+    ]
 
     return (
         <main id="main-content" className="legal-page pb-safe" aria-labelledby="about-page-title">
@@ -122,9 +122,9 @@ export default async function AboutPage({ params }: Props) {
                                 marginTop: 'var(--space-5)',
                             }}
                         >
-                            {features.map(({ titleKey, bodyKey, emoji }) => (
+                            {features.map(({ title, body, emoji }) => (
                                 <div
-                                    key={titleKey}
+                                    key={title}
                                     className="card-brutal"
                                     style={{ padding: 'var(--space-5)' }}
                                 >
@@ -134,11 +134,11 @@ export default async function AboutPage({ params }: Props) {
                                             className="font-display uppercase"
                                             style={{ fontSize: 'var(--text-title-sm)', letterSpacing: 'var(--tracking-display)', color: 'var(--color-foreground)', lineHeight: 1 }}
                                         >
-                                            {t(titleKey)}
+                                            {title}
                                         </h3>
                                     </div>
                                     <p className="legal-page__text" style={{ marginTop: 0 }}>
-                                        {t(bodyKey)}
+                                        {body}
                                     </p>
                                 </div>
                             ))}

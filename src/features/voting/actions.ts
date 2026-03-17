@@ -35,7 +35,7 @@ export const submitVoteAction = withSentry(
     ): Promise<SerializedResult<Vote, GameError>> => {
         const rl = await rateLimitFromIP('submitVote', voterId)
         if (!rl.success) {
-            return { ok: false, error: { type: 'GAME_DATABASE_ERROR', message: 'Too many requests. Please wait.' } }
+            return { ok: false, error: { type: 'RATE_LIMITED', message: 'Too many requests. Please wait.' } }
         }
 
         const parsed = SubmitVoteSchema.safeParse({ roundId, voterId, votedForId })
@@ -64,7 +64,7 @@ export const submitDoubleAction = withSentry(
     ): Promise<SerializedResult<void, GameError>> => {
         const rl = await rateLimitFromIP('submitDouble', voterId)
         if (!rl.success) {
-            return { ok: false, error: { type: 'GAME_DATABASE_ERROR', message: 'Too many requests. Please wait.' } }
+            return { ok: false, error: { type: 'RATE_LIMITED' } }
         }
 
         const parsed = SubmitDoubleSchema.safeParse({ roundId, voterId })

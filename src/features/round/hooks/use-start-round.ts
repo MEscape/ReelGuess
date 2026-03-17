@@ -19,6 +19,7 @@ export function useStartRound(
 ) {
     const queryClient = useQueryClient()
     const t           = useTranslations('game')
+    const tErrors     = useTranslations('errors')
 
     const mutation = useMutation<StartRoundActionResult, Error>({
         mutationFn: async () => {
@@ -33,6 +34,8 @@ export function useStartRound(
                         throw new Error(t('alreadyFinished'))
                     case 'GAME_NOT_HOST':
                         throw new Error(t('onlyHostCanStart'))
+                    case 'RATE_LIMITED':
+                        throw new Error(tErrors('rateLimitExceeded'))
                     default:
                         throw new Error(t('failedToStart'))
                 }

@@ -101,7 +101,7 @@ export async function revealRound(roundId: string): Promise<GameResult<RoundReve
     }
 
     // Winner path — calculate, persist scores, and write points_awarded to DB.
-    const { updatedVotes, updatedScores, scoreRows } = calculateRoundScores(votes, priorScores, round.roundNumber)
+    const { updatedVotes, updatedScores, scoreRows } = calculateRoundScores(votes, priorScores)
 
     // Persist scores and points_awarded in parallel.
     // points_awarded on the vote row is the source of truth for the reveal UI —

@@ -29,6 +29,7 @@ export function useCreateLobby() {
     const router      = useRouter()
     const setPlayerId = usePlayerStore((s) => s.setPlayerId)
     const t           = useTranslations('lobby.errors')
+    const tErrors     = useTranslations('errors')
 
     async function createLobby(playerName: string) {
         setError(null)
@@ -39,7 +40,11 @@ export function useCreateLobby() {
 
             const result = await createLobbyAction(fd)
             if (!result.ok) {
-                setError('message' in result.error ? result.error.message : t('failedToCreate'))
+                if (result.error.type === 'RATE_LIMITED') {
+                    setError(tErrors('rateLimitExceeded'))
+                } else {
+                    setError('message' in result.error ? result.error.message : t('failedToCreate'))
+                }
                 return
             }
 
@@ -74,6 +79,7 @@ export function useJoinLobby() {
     const router      = useRouter()
     const setPlayerId = usePlayerStore((s) => s.setPlayerId)
     const t           = useTranslations('lobby.errors')
+    const tErrors     = useTranslations('errors')
 
     async function joinLobby(code: string, playerName: string) {
         setError(null)
@@ -90,6 +96,7 @@ export function useJoinLobby() {
                     case 'LOBBY_NOT_FOUND':        setError(t('lobbyNotFound')); break
                     case 'LOBBY_FULL':             setError(t('lobbyFull')); break
                     case 'LOBBY_ALREADY_STARTED':  setError(t('lobbyAlreadyStarted')); break
+                    case 'RATE_LIMITED':           setError(tErrors('rateLimitExceeded')); break
                     case 'LOBBY_VALIDATION_ERROR':
                         if ('nameTaken' in e && e.nameTaken) {
                             setError(t('nameTaken', { name: e.nameTaken }))
@@ -128,8 +135,9 @@ export function useJoinLobby() {
 export function useStartGame(lobbyCode: string, hostPlayerId: string) {
     const [isPending, setIsPending] = useState(false)
     const [error,     setError]     = useState<string | null>(null)
-    const router = useRouter()
-    const t      = useTranslations('lobby.errors')
+    const router  = useRouter()
+    const t       = useTranslations('lobby.errors')
+    const tErrors = useTranslations('errors')
 
     async function startGame() {
         setError(null)
@@ -137,7 +145,11 @@ export function useStartGame(lobbyCode: string, hostPlayerId: string) {
         try {
             const result = await startGameAction(lobbyCode, hostPlayerId)
             if (!result.ok) {
-                setError('message' in result.error ? result.error.message : t('failedToStart'))
+                if (result.error.type === 'RATE_LIMITED') {
+                    setError(tErrors('rateLimitExceeded'))
+                } else {
+                    setError('message' in result.error ? result.error.message : t('failedToStart'))
+                }
                 return
             }
             // Host navigates immediately — Realtime handles all other players.

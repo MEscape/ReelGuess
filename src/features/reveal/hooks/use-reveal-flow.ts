@@ -42,6 +42,7 @@ export function useRevealFlow({ onRevealReady }: UseRevealFlowOptions = {}) {
     const [revealError, setRevealError] = useState<string | null>(null)
     const fetchedRoundRef               = useRef<string | null>(null)
     const t                             = useTranslations('reveal')
+    const tErrors                       = useTranslations('errors')
 
     const onRevealReadyRef = useRef(onRevealReady)
     useEffect(() => { onRevealReadyRef.current = onRevealReady }, [onRevealReady])
@@ -57,10 +58,14 @@ export function useRevealFlow({ onRevealReady }: UseRevealFlowOptions = {}) {
             onRevealReadyRef.current?.(result.value)
         } else {
             console.error('[useRevealFlow] revealRoundAction failed', result.error)
-            setRevealError(t('waitingForReveal'))
+            if (result.error.type === 'RATE_LIMITED') {
+                setRevealError(tErrors('rateLimitExceeded'))
+            } else {
+                setRevealError(t('waitingForReveal'))
+            }
             fetchedRoundRef.current = null
         }
-    }, [t])
+    }, [t, tErrors])
 
     /** Clears reveal state and the de-dupe guard for the next round. */
     const clearReveal = useCallback(() => {

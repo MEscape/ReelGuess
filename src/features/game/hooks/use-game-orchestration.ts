@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useCallback, useEffect, useRef, useMemo }  from 'react'
+import { useTranslations }                                    from 'next-intl'
 import { useGameRealtime }                                    from './use-game-realtime'
 import { usePageVisibilityRefresh }                           from './use-page-visibility-refresh'
 import { usePollForReveal, useRevealFlow, revealRoundAction } from "@/features/reveal"
@@ -67,7 +68,8 @@ export function useGameOrchestration({
                                          initialReelData,
                                          initialVoteCount,
                                      }: UseGameOrchestrationInput) {
-    const isHost = lobby.hostId === currentPlayerId
+    const isHost  = lobby.hostId === currentPlayerId
+    const tErrors = useTranslations('errors')
 
     // ── Core state ───────────────────────────────────────────────────────────
     const [phase, setPhase]             = useState<GamePhase>(
@@ -216,8 +218,11 @@ export function useGameOrchestration({
         const result = await submitDoubleAction(roundId, voterId)
         if (!result.ok) {
             console.error('[useGameOrchestration] submitDoubleAction failed', result.error)
+            if (result.error.type === 'RATE_LIMITED') {
+                throw new Error(tErrors('rateLimitExceeded'))
+            }
         }
-    }, [])
+    }, [tErrors])
 
     // ── Page visibility refresh ──────────────────────────────────────────────
     // When the user returns to the tab after it was hidden, Realtime events

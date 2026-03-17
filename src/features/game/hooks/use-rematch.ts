@@ -49,14 +49,15 @@ export function useRematch({
     const router      = useRouter()
     const setPlayerId = usePlayerStore((s) => s.setPlayerId)
     const t           = useTranslations('lobby.errors')
+    const tErrors     = useTranslations('errors')
 
     const mutation = useMutation<void, Error>({
         mutationFn: async () => {
             const result = await createRematchAction(lobbyId, currentPlayerId)
             if (!result.ok) {
-                const message = 'message' in result.error
-                    ? result.error.message
-                    : t('failedToRematch')
+                const message = result.error.type === 'RATE_LIMITED'
+                    ? tErrors('rateLimitExceeded')
+                    : ('message' in result.error ? result.error.message : t('failedToRematch'))
                 throw new Error(message)
             }
 

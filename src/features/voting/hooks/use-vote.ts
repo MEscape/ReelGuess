@@ -55,6 +55,7 @@ export function useVote({ currentPlayerId, onVoteSettled }: UseVoteOptions) {
     const [hasVoted, setHasVoted] = useState(false)
     const isSubmittingRef         = useRef(false)
     const t                       = useTranslations('voting')
+    const tErrors                 = useTranslations('errors')
 
     const mutation = useMutation<VoteMutationResult, Error, SubmitVoteArgs>({
         mutationFn: async ({ roundId, voterId, votedForId }) => {
@@ -66,6 +67,8 @@ export function useVote({ currentPlayerId, onVoteSettled }: UseVoteOptions) {
                         return { alreadyVoted: true, vote: null }
                     case 'NOT_VOTING_PHASE':
                         throw new Error(t('votingEnded'))
+                    case 'RATE_LIMITED':
+                        throw new Error(tErrors('rateLimitExceeded'))
                     default:
                         throw new Error(t('failedToVote'))
                 }

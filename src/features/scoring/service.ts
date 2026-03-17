@@ -127,14 +127,11 @@ export function calculateRoundScore(input: ScoreInput): ScoreOutput {
  *
  * @param votes        - All votes cast in this round (may be empty if timer expired).
  * @param priorScores  - Score entries from BEFORE this round's scoring.
- * @param roundNumber  - 1-based round number; used to cap the streak so it
- *                       can never exceed the number of rounds played.
  * @returns `{ updatedVotes, updatedScores, scoreRows }`.
  */
 export function calculateRoundScores(
     votes:       Vote[],
     priorScores: ScoreEntry[],
-    roundNumber: number,
 ): {
     updatedVotes:  Vote[]
     updatedScores: ScoreEntry[]
@@ -183,12 +180,12 @@ export function calculateRoundScores(
 
         if (prior) {
             prior.points += result.pointsEarned
-            prior.streak  = Math.min(result.newStreak, roundNumber)
+            prior.streak  = result.newStreak
         } else {
             // Player had no prior score row — create one.
             scoreMap.set(vote.voterId, {
                 points:      Math.max(0, result.pointsEarned),
-                streak:      Math.min(result.newStreak, roundNumber),
+                streak:      result.newStreak,
                 displayName: '',
                 avatarSeed:  '',
             })
