@@ -64,7 +64,7 @@ export const submitDoubleAction = withSentry(
     ): Promise<SerializedResult<void, GameError>> => {
         const rl = await rateLimitFromIP('submitDouble', voterId)
         if (!rl.success) {
-            return { ok: false, error: { type: 'RATE_LIMITED' } }
+            return { ok: false, error: { type: 'RATE_LIMITED', message: 'Too many requests. Please wait.' } }
         }
 
         const parsed = SubmitDoubleSchema.safeParse({ roundId, voterId })

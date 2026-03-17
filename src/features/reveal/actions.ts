@@ -27,7 +27,7 @@ export const revealRoundAction = withSentry(
     async (roundId: string): Promise<SerializedResult<RoundReveal, GameError>> => {
         const rl = await rateLimitFromIP('revealRound')
         if (!rl.success) {
-            return { ok: false, error: { type: 'RATE_LIMITED' } }
+            return { ok: false, error: { type: 'RATE_LIMITED', message: 'Too many requests. Please wait.' } }
         }
 
         const parsed = RevealRoundSchema.safeParse({ roundId })
