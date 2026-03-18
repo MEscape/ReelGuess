@@ -33,7 +33,7 @@ export const RECOMMENDED_REELS = 50
  * Soft local storage cap shown in the UI.
  * Once reached, user is prompted to watch a Rewarded Ad to unlock more slots.
  */
-export const SOFT_LOCAL_LIMIT = 10
+export const SOFT_LOCAL_LIMIT = 500
 
 /**
  * How many extra slots are granted per watched Rewarded Ad.
